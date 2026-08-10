@@ -19,6 +19,24 @@
       "notes": "Baseline foto katalog. Jangan dipakai sebagai bukti akurasi foto internet."
     },
     {
+      "id": "store-full-5480-budget-max-4m",
+      "enabled": true,
+      "image": "images/store-full-5480-reference.jpg",
+      "source_type": "store",
+      "view_type": "full",
+      "question": "Carikan produk yang sama atau paling mirip dengan foto ini, budget maksimal 4 juta.",
+      "expected": {
+        "product_id": 5480,
+        "product_name": "Soul of Chogokin GX-91 Getter 2 &amp; 3 Dynamic Classic",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": [],
+        "constraints": {
+          "max_price": 4000000
+        }
+      },
+      "notes": "Regresi pencarian visual dengan filter budget; semua hasil yang tampil harus maksimal Rp4.000.000."
+    },
+    {
       "id": "store-full-5020-reference",
       "enabled": true,
       "image": "images/store-full-5020-reference.jpg",

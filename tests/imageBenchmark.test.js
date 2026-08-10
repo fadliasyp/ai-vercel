@@ -100,6 +100,35 @@ test("treats a low-confidence negative result as a correct abstention", () => {
   assert.equal(result.false_confident, false);
 });
 
+test("fails a visually correct result when any displayed product exceeds budget", () => {
+  const result = evaluateImageBenchmarkCase({
+    testCase: positiveCase({
+      expected: {
+        product_id: 3323,
+        product_name: "Soul of Chogokin GX-47T Energer Z Test Type",
+        constraints: { max_price: 2000000 },
+      },
+    }),
+    statusCode: 200,
+    payload: {
+      match_confidence: { level: "high" },
+      products: [
+        {
+          id: 3323,
+          name: "Soul of Chogokin GX-47T Energer Z Test Type",
+          numericPrice: 1500000,
+        },
+        { id: 5, name: "Alternatif terlalu mahal", numericPrice: 2500000 },
+      ],
+    },
+  });
+
+  assert.equal(result.top1_correct, true);
+  assert.equal(result.constraints_correct, false);
+  assert.equal(result.correct, false);
+  assert.equal(result.false_confident, true);
+});
+
 test("builds top-k, false-confidence, source, and view metrics", () => {
   const top1 = evaluateImageBenchmarkCase({
     testCase: positiveCase(),
