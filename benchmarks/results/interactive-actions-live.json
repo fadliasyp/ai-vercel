@@ -1,6 +1,6 @@
 {
   "endpoint": "https://ai-vercel-ten-sigma.vercel.app/api/ask",
-  "generated_at": "2026-08-10T13:44:07.487Z",
+  "generated_at": "2026-08-10T13:47:25.914Z",
   "passed": 9,
   "total": 10,
   "results": [
@@ -181,7 +181,7 @@
         "customer_state": "distressed",
         "router": {
           "provider": "groq",
-          "model": "openai/gpt-oss-20b"
+          "model": "qwen/qwen3.6-27b"
         }
       },
       "allowedAssistantReasonValid": true,
@@ -252,7 +252,7 @@
       "coverageValid": true,
       "answerCoverage": null,
       "requestAttempts": 1,
-      "preview": "Maaf, aku paham ini membuat tidak nyaman. Aku bantu dari informasi yang bisa dipastikan. Oke, aku ba"
+      "preview": "Maaf, aku paham ini membuat tidak nyaman. Aku bantu dari informasi yang bisa dipastikan. Siap, ini i"
     },
     {
       "id": "order_requires_verification",
