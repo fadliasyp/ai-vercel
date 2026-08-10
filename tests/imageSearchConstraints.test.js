@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   applyImageSearchConstraints,
   extractImageSearchConstraints,
+  getImageBudgetMismatch,
 } from "../lib/chatbot/imageCandidatePool.js";
 
 test("extracts budget, ready stock, and similar-size constraints from image requests", () => {
@@ -87,4 +88,23 @@ test("does not treat a general availability question as ready-stock only", () =>
     readyStockOnly: false,
     similarSizeRequested: false,
   });
+});
+
+test("keeps the closest visual product identifiable when it is outside budget", () => {
+  const product = { id: 10, numericPrice: 15000000 };
+
+  assert.deepEqual(
+    getImageBudgetMismatch(product, {
+      budgetMin: null,
+      budgetMax: 4000000,
+    }),
+    { direction: "above", price: 15000000, limit: 4000000 },
+  );
+  assert.equal(
+    getImageBudgetMismatch(product, {
+      budgetMin: null,
+      budgetMax: 20000000,
+    }),
+    null,
+  );
 });

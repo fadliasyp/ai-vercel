@@ -14,6 +14,7 @@ import { getWooProductsCached } from "../lib/chatbot/wooCatalog.js";
 import {
   applyImageSearchConstraints,
   extractImageSearchConstraints,
+  getImageBudgetMismatch,
   interleaveUniqueProducts,
   plausibleVisualProducts,
 } from "../lib/chatbot/imageCandidatePool.js";
@@ -910,6 +911,16 @@ function buildConstraintSummary(constraints = {}, result = {}) {
   return parts.join(", ");
 }
 
+function buildBudgetMismatchNotice(product = {}, mismatch = {}) {
+  const direction = mismatch.direction === "below" ? "di bawah" : "di atas";
+  return (
+    `Foto ini paling mirip dengan **${product.name || "produk katalog"}** ` +
+    `seharga **${formatRupiah(mismatch.price)}**. Harganya ${direction} ` +
+    `batas budget **${formatRupiah(mismatch.limit)}**, jadi produk tersebut ` +
+    "tidak dimasukkan ke daftar alternatif yang sesuai budget."
+  );
+}
+
 function buildReasoning({
   analysis,
   products,
@@ -1177,6 +1188,16 @@ export default async function handler(req, res) {
       { referenceProduct: visualProducts[0] || unconstrainedProducts[0] },
     );
     const finalProducts = constraintResult.products.slice(0, 5);
+    const closestProduct = unconstrainedProducts[0] || null;
+    const budgetMismatch = getImageBudgetMismatch(closestProduct, constraints);
+    const closestProductExcludedByBudget =
+      Boolean(budgetMismatch) &&
+      !finalProducts.some(
+        (product) => String(product.id || "") === String(closestProduct?.id || ""),
+      );
+    const budgetMismatchNotice = closestProductExcludedByBudget
+      ? buildBudgetMismatchNotice(closestProduct, budgetMismatch)
+      : "";
     const matchedTopVisualScore = Number(visualProducts[0]?.visualScore || 0);
     const matchedSecondVisualScore = Number(visualProducts[1]?.visualScore || 0);
     const matchedVisualScoreGap = Math.max(
@@ -1194,9 +1215,9 @@ export default async function handler(req, res) {
       const noConstraintMatchPayload = {
         type: "text",
         intent: "image_product_search",
-        message:
-          `Aku menemukan kandidat yang mirip dengan foto, tetapi belum ada yang sekaligus memenuhi ${summary || "semua kriteria yang kamu minta"}. ` +
-          "Aku tidak akan menampilkan produk yang berada di luar kriteria tersebut.",
+        message: budgetMismatchNotice
+          ? `${budgetMismatchNotice}\n\nAku belum menemukan alternatif yang cukup mirip dan sekaligus memenuhi ${summary || "semua kriteria yang kamu minta"}.`
+          : `Aku menemukan kandidat yang mirip dengan foto, tetapi belum ada yang sekaligus memenuhi ${summary || "semua kriteria yang kamu minta"}. Aku tidak akan menampilkan produk yang berada di luar kriteria tersebut.`,
         image_analysis: analysis,
         search_constraints: constraints,
       };
@@ -1246,8 +1267,10 @@ export default async function handler(req, res) {
     const responsePayload = {
       type: "products",
       intent: "image_product_search",
-      intro: analysis.analysis_fallback
-        ? "Gemini sedang kena limit, jadi aku pakai visual index katalog Robot Jadul sebagai cadangan. Ini kandidat paling dekat yang bisa aku temukan:"
+      intro: budgetMismatchNotice
+        ? `${budgetMismatchNotice}\n\nBerikut alternatif paling mirip yang masih sesuai budget kamu:`
+        : analysis.analysis_fallback
+          ? "Gemini sedang kena limit, jadi aku pakai visual index katalog Robot Jadul sebagai cadangan. Ini kandidat paling dekat yang bisa aku temukan:"
         : isLowConfidence
           ? "Aku sudah membandingkan foto itu dengan katalog, tetapi bukti visualnya belum cukup untuk memastikan satu produk. Berikut kandidat terdekat, bukan hasil pasti:"
           : "Aku sudah membandingkan foto itu dengan foto produk katalog. Kandidat pertama memiliki kecocokan visual yang kuat:",
