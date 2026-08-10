@@ -81,3 +81,46 @@ test("does not mark a ready JUNK product as gift suitable", () => {
 
   assert.equal(metadata.giftSuitable, false);
 });
+
+test("keeps franchise era separate from product release years", () => {
+  const metadata = deriveRecommendationMetadata({
+    name: "DX Chogokin Grendizer Reissue",
+    description: "Reissue tahun 1985 dan edisi tahun 2000",
+  });
+
+  assert.deepEqual(metadata.decades, [1970]);
+});
+
+test("hard-filters JUNK and non-display products from gift recommendations", () => {
+  const products = [
+    {
+      id: 1,
+      name: "Action Gokin Godmars",
+      description: "Diecast figure untuk display",
+      numericPrice: 2500000,
+      stock: "instock",
+    },
+    {
+      id: 2,
+      name: "JUNK Godmars Part Only",
+      description: "Diecast figure untuk display",
+      numericPrice: 500000,
+      stock: "instock",
+    },
+    {
+      id: 3,
+      name: "Godmars Accessory",
+      numericPrice: 500000,
+      stock: "instock",
+    },
+  ];
+
+  assert.deepEqual(
+    filterByRecommendationMetadata(products, {
+      requestedDecade: 1980,
+      wantsGift: true,
+      wantsDisplay: true,
+    }).map((product) => product.id),
+    [1],
+  );
+});

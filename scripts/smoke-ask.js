@@ -90,6 +90,21 @@ const CASES = [
     expectedIntent: "recommendation",
   },
   {
+    id: "gift_display_recommendation",
+    question:
+      "Saya bingung cari kado untuk suami yang suka robot lawas tahun 80-an. Rekomendasikan yang cocok untuk pajangan, budget sekitar 3 jutaan.",
+    expectedIntent: "recommendation",
+    expectedType: "products",
+    minProducts: 1,
+    maxProductPrice: 3000000,
+    expectedRecommendation: {
+      decade: 1980,
+      displaySuitable: true,
+      giftSuitable: true,
+    },
+    requiredText: ["era franchise 1980-an", "hadiah", "pajangan"],
+  },
+  {
     question: "Bro apa aja stok yg ada",
     expectedIntent: "stock_availability",
     minProducts: 2,
@@ -216,6 +231,7 @@ const CONTROLLED_CASE_IDS = new Set([
   "secure_shipping_policy",
   "return_policy",
   "junk_detail_transparency",
+  "gift_display_recommendation",
   "out_of_scope_fiction",
   "order_requires_verification",
   "shipping_quote_multiturn",
@@ -434,8 +450,18 @@ function responseText(payload = {}) {
 
 async function main() {
   const argv = process.argv.slice(2);
+  const rulesOnly = argv.includes("--rules-only");
+  if (rulesOnly) {
+    process.env.GEMINI_API_KEY = "";
+    process.env.GOOGLE_API_KEY = "";
+    process.env.GROQ_ROUTER_ENABLED = "false";
+    process.env.GROQ_NATURALIZER_ENABLED = "false";
+  }
   const cases = selectedCases(argv);
   const endpoint = endpointFromArgs(argv);
+  if (rulesOnly && endpoint) {
+    throw new Error("--rules-only hanya tersedia untuk handler lokal");
+  }
   const outputPath = outputFromArgs(argv);
   if (!cases.length) {
     throw new Error("Tidak ada smoke case untuk intent yang dipilih");
@@ -561,6 +587,22 @@ async function main() {
         !testCase.expectedMatchStatus ||
         response.payload?.product_match?.status ===
           testCase.expectedMatchStatus;
+      const expectedRecommendation = testCase.expectedRecommendation;
+      const recommendationMetadataValid =
+        !expectedRecommendation ||
+        (productCount > 0 &&
+          response.payload.products.every((product) => {
+            const metadata = product?.recommendationMetadata || {};
+            return (
+              (expectedRecommendation.decade == null ||
+                metadata.decades?.includes(expectedRecommendation.decade)) &&
+              (expectedRecommendation.displaySuitable == null ||
+                metadata.displaySuitable ===
+                  expectedRecommendation.displaySuitable) &&
+              (expectedRecommendation.giftSuitable == null ||
+                metadata.giftSuitable === expectedRecommendation.giftSuitable)
+            );
+          }));
       const answerCoverage = testCase.checkCoverage
         ? evaluateAnswerCoverage(label, responses)
         : null;
@@ -586,6 +628,7 @@ async function main() {
         customerStateValid &&
         naturalizedValid &&
         matchStatusValid &&
+        recommendationMetadataValid &&
         coverageValid &&
         missingRequiredText.length === 0 &&
         presentForbiddenText.length === 0 &&
@@ -612,6 +655,7 @@ async function main() {
         customerStateValid,
         naturalizedValid,
         matchStatusValid,
+        recommendationMetadataValid,
         productMatch: response.payload?.product_match || null,
         requiredAnyTextValid,
         coverageValid,
