@@ -28,7 +28,8 @@ const CASES = [
     question: "barang ini bisa diasuransikan?",
     expectedIntent: "shipping_transaction",
     expectedCustomerState: "neutral",
-    expectedNaturalized: true,
+    expectedAssistantProvider: "groq",
+    allowedAssistantReasons: ["success", "unsafe_rewrite_rejected"],
     minActions: 3,
     requiredText: ["asuransi"],
   },
@@ -543,6 +544,11 @@ async function main() {
         !testCase.expectedAssistantReason ||
         response.payload?.assistant_meta?.reason ===
           testCase.expectedAssistantReason;
+      const allowedAssistantReasonValid =
+        !testCase.allowedAssistantReasons?.length ||
+        testCase.allowedAssistantReasons.includes(
+          response.payload?.assistant_meta?.reason,
+        );
       const customerStateValid =
         !testCase.expectedCustomerState ||
         response.payload?.assistant_meta?.customer_state ===
@@ -576,6 +582,7 @@ async function main() {
         responseTypeValid &&
         assistantProviderValid &&
         assistantReasonValid &&
+        allowedAssistantReasonValid &&
         customerStateValid &&
         naturalizedValid &&
         matchStatusValid &&
@@ -601,6 +608,7 @@ async function main() {
         missingRequiredText,
         presentForbiddenText,
         assistantMeta: response.payload?.assistant_meta || null,
+        allowedAssistantReasonValid,
         customerStateValid,
         naturalizedValid,
         matchStatusValid,

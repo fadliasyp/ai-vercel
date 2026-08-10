@@ -1,8 +1,8 @@
 {
   "endpoint": "https://ai-vercel-ten-sigma.vercel.app/api/ask",
-  "generated_at": "2026-08-10T12:03:14.049Z",
+  "generated_at": "2026-08-10T13:17:48.021Z",
   "passed": 8,
-  "total": 8,
+  "total": 9,
   "results": [
     {
       "id": "store_visit",
@@ -34,9 +34,9 @@
       "presentForbiddenText": [],
       "assistantMeta": {
         "provider": "groq",
-        "model": "openai/gpt-oss-20b",
+        "model": "qwen/qwen3.6-27b\nqwen/qwen3.6-27b\nqwen/qwen3.6-27b",
         "naturalized": false,
-        "reason": "unsafe_rewrite_rejected",
+        "reason": "error_404",
         "customer_state": "neutral",
         "router": {
           "provider": "local_rules_ml"
@@ -62,7 +62,7 @@
       "requiredText": [
         "asuransi"
       ],
-      "passed": true,
+      "passed": false,
       "statusCode": 200,
       "actualIntent": "shipping_transaction",
       "type": "text",
@@ -78,23 +78,23 @@
       "presentForbiddenText": [],
       "assistantMeta": {
         "provider": "groq",
-        "model": "openai/gpt-oss-20b",
-        "naturalized": true,
-        "reason": "success",
+        "model": "qwen/qwen3.6-27b\nqwen/qwen3.6-27b\nqwen/qwen3.6-27b",
+        "naturalized": false,
+        "reason": "error_404",
         "customer_state": "neutral",
         "router": {
           "provider": "local_rules_ml"
         }
       },
       "customerStateValid": true,
-      "naturalizedValid": true,
+      "naturalizedValid": false,
       "matchStatusValid": true,
       "productMatch": null,
       "requiredAnyTextValid": true,
       "coverageValid": true,
       "answerCoverage": null,
       "requestAttempts": 1,
-      "preview": "**Asuransi Pengiriman** Pengiriman bisa diasuransikan, terutama untuk produk koleksi atau barang ber"
+      "preview": "**Asuransi Pengiriman** Untuk keamanan pesanan, pengiriman bisa menggunakan asuransi terutama untuk "
     },
     {
       "id": "out_of_scope_fiction",
@@ -120,9 +120,9 @@
       "presentForbiddenText": [],
       "assistantMeta": {
         "provider": "groq",
-        "model": "openai/gpt-oss-20b",
-        "naturalized": true,
-        "reason": "success",
+        "model": "qwen/qwen3.6-27b\nqwen/qwen3.6-27b\nqwen/qwen3.6-27b",
+        "naturalized": false,
+        "reason": "error_404",
         "customer_state": "neutral",
         "router": {
           "provider": "local_rules_ml"
@@ -165,13 +165,12 @@
       "presentForbiddenText": [],
       "assistantMeta": {
         "provider": "groq",
-        "model": "openai/gpt-oss-20b",
+        "model": "qwen/qwen3.6-27b\nqwen/qwen3.6-27b\nqwen/qwen3.6-27b",
         "naturalized": false,
-        "reason": "unsafe_rewrite_rejected",
+        "reason": "error_404",
         "customer_state": "distressed",
         "router": {
-          "provider": "groq",
-          "model": "openai/gpt-oss-20b"
+          "provider": "local_rules_ml"
         }
       },
       "customerStateValid": true,
@@ -183,6 +182,61 @@
       "answerCoverage": null,
       "requestAttempts": 1,
       "preview": "Maaf atas kendalanya. Untuk **barang rusak atau cacat**, retur atau refund **bisa diajukan**, tetapi"
+    },
+    {
+      "id": "junk_detail_transparency",
+      "question": "Popy ST Dynaman ini kondisi dan kelengkapannya gimana? Ada bagian yang hilang atau rusak?",
+      "expectedIntent": "product_detail",
+      "expectedType": "products",
+      "expectedProductName": "Popy ST Dynaman",
+      "minProducts": 1,
+      "requiredText": [
+        "JUNK (Missing Components)",
+        "bagian yang hilang belum dirinci"
+      ],
+      "forbiddenText": [
+        "<p data-path",
+        "<b>Condition"
+      ],
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "product_detail",
+      "type": "products",
+      "productCount": 1,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 3,
+      "actionCountValid": true,
+      "productPrices": [
+        500000
+      ],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "qwen/qwen3.6-27b\nqwen/qwen3.6-27b\nqwen/qwen3.6-27b",
+        "naturalized": false,
+        "reason": "error_404",
+        "customer_state": "distressed",
+        "router": {
+          "provider": "local_rules_ml"
+        }
+      },
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": {
+        "status": "matched",
+        "confidence": 0.95,
+        "reason": "strong_catalog_match"
+      },
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": null,
+      "requestAttempts": 1,
+      "preview": "Maaf, aku paham ini membuat tidak nyaman. Aku bantu dari informasi yang bisa dipastikan. Ini detail "
     },
     {
       "id": "order_requires_verification",
@@ -266,13 +320,12 @@
       "presentForbiddenText": [],
       "assistantMeta": {
         "provider": "groq",
-        "model": "openai/gpt-oss-20b",
-        "naturalized": true,
-        "reason": "success",
+        "model": "qwen/qwen3.6-27b\nqwen/qwen3.6-27b\nqwen/qwen3.6-27b",
+        "naturalized": false,
+        "reason": "error_404",
         "customer_state": "neutral",
         "router": {
-          "provider": "groq",
-          "model": "openai/gpt-oss-20b"
+          "provider": "local_rules_ml"
         }
       },
       "customerStateValid": true,
@@ -318,9 +371,9 @@
       "presentForbiddenText": [],
       "assistantMeta": {
         "provider": "groq",
-        "model": "openai/gpt-oss-20b",
+        "model": "qwen/qwen3.6-27b\nqwen/qwen3.6-27b\nqwen/qwen3.6-27b",
         "naturalized": false,
-        "reason": "unsafe_rewrite_rejected",
+        "reason": "error_404",
         "customer_state": "neutral",
         "router": {
           "provider": "local_rules_ml"
@@ -360,13 +413,12 @@
       "presentForbiddenText": [],
       "assistantMeta": {
         "provider": "groq",
-        "model": "openai/gpt-oss-20b",
-        "naturalized": true,
-        "reason": "success",
+        "model": "qwen/qwen3.6-27b\nqwen/qwen3.6-27b\nqwen/qwen3.6-27b",
+        "naturalized": false,
+        "reason": "error_404",
         "customer_state": "neutral",
         "router": {
-          "provider": "groq",
-          "model": "openai/gpt-oss-20b"
+          "provider": "local_rules_ml"
         }
       },
       "customerStateValid": true,

@@ -51,6 +51,16 @@ test("enables Groq naturalizer when an API key is configured", () => {
   assert.equal(disabled.enabled, false);
 });
 
+test("uses one valid naturalizer model when a Vercel env value contains duplicate lines", () => {
+  const config = resolveGroqNaturalizerConfig({
+    GROQ_API_KEY: "secret",
+    GROQ_NATURALIZER_MODEL:
+      "qwen/qwen3.6-27b\nqwen/qwen3.6-27b\nqwen/qwen3.6-27b",
+  });
+
+  assert.equal(config.model, "qwen/qwen3.6-27b");
+});
+
 test("accepts a friendlier rewrite when protected facts stay identical", async () => {
   let status = null;
   const result = await naturalizeResponseWithGroq(payload, {

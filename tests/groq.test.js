@@ -62,6 +62,16 @@ test("resolves Groq config without exposing it to production routing", () => {
   assert.equal(config.timeoutMs, 5000);
 });
 
+test("uses one valid router model when a Vercel env value contains duplicate lines", () => {
+  const config = resolveGroqRouterConfig({
+    GROQ_API_KEY: "secret",
+    GROQ_ROUTER_MODEL:
+      "qwen/qwen3.6-27b\nqwen/qwen3.6-27b\nqwen/qwen3.6-27b",
+  });
+
+  assert.equal(config.model, "qwen/qwen3.6-27b");
+});
+
 test("returns a validated semantic route from Groq", async () => {
   let capturedRequest;
   const route = await classifyCommerceWithGroq({
