@@ -15,6 +15,7 @@ const CASES = [
     expectedIntent: "general",
     expectedType: "text",
     expectedCustomerState: "neutral",
+    minActions: 3,
     requiredText: ["Blok M Square", "3A", "Blok A", "11.00", "20.00"],
   },
   {
@@ -28,6 +29,7 @@ const CASES = [
     expectedIntent: "shipping_transaction",
     expectedCustomerState: "neutral",
     expectedNaturalized: true,
+    minActions: 3,
     requiredText: ["asuransi"],
   },
   {
@@ -47,6 +49,7 @@ const CASES = [
     question: "Barang Getter Robo saya terkelupas dan cacat, bisa retur dan refund?",
     expectedIntent: "return_product",
     expectedCustomerState: "distressed",
+    minActions: 3,
     requiredText: ["2 x 24 jam", "1-3 hari kerja", "3-7 hari kerja"],
   },
   {
@@ -428,6 +431,11 @@ async function main() {
         : 0;
       const optionCountValid =
         testCase.minOptions == null || optionCount >= testCase.minOptions;
+      const actionCount = Array.isArray(response.payload?.actions)
+        ? response.payload.actions.length
+        : 0;
+      const actionCountValid =
+        testCase.minActions == null || actionCount >= testCase.minActions;
       const productCountValid =
         testCase.minProducts == null ||
         productCount >= testCase.minProducts;
@@ -498,6 +506,7 @@ async function main() {
         pricesValid &&
         productCountValid &&
         optionCountValid &&
+        actionCountValid &&
         maxProductCountValid &&
         expectedProductNameValid &&
         ascendingPricesValid &&
@@ -521,6 +530,8 @@ async function main() {
         productCount,
         optionCount,
         optionCountValid,
+        actionCount,
+        actionCountValid,
         productPrices,
         maxProductCountValid,
         expectedProductNameValid,

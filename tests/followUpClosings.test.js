@@ -29,6 +29,36 @@ test("provides explicit budget choices for recommendation clarification", () => 
   ]);
 });
 
+test("adds contextual choices only to explicitly completed information", () => {
+  const result = applyControlledFollowUpPolicy(
+    {
+      type: "text",
+      message: "Pembayaran tersedia melalui transfer bank.",
+      _actionContext: "payment_methods",
+    },
+    { intent: "shipping_transaction" },
+  );
+
+  assert.deepEqual(result.actions, [
+    "Bagaimana cara membeli produk?",
+    "Apakah bisa bayar COD?",
+    "Cek ongkir ke kota tujuan",
+  ]);
+  assert.equal("_actionContext" in result, false);
+});
+
+test("does not force choices onto a required shipping clarification", () => {
+  const result = applyControlledFollowUpPolicy(
+    {
+      type: "text",
+      message: "Sebutkan nama kecamatan tujuan.",
+    },
+    { intent: "shipping_transaction" },
+  );
+
+  assert.equal("actions" in result, false);
+});
+
 test("replaces an optional closing with explicit product actions", () => {
   const result = applyControlledFollowUpPolicy(
     {

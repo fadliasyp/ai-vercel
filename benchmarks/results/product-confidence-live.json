@@ -1,6 +1,6 @@
 {
   "endpoint": "https://ai-vercel-ten-sigma.vercel.app/api/ask",
-  "generated_at": "2026-08-10T10:21:03.043Z",
+  "generated_at": "2026-08-10T10:59:58.113Z",
   "passed": 4,
   "total": 4,
   "results": [
@@ -16,6 +16,8 @@
       "actualIntent": "stock_availability",
       "type": "products",
       "productCount": 1,
+      "optionCount": 0,
+      "optionCountValid": true,
       "productPrices": [
         2000000
       ],
@@ -44,7 +46,7 @@
       "requiredAnyTextValid": true,
       "coverageValid": true,
       "answerCoverage": null,
-      "requestAttempts": 2,
+      "requestAttempts": 1,
       "preview": "Untuk **Soul of Chogokin GX-47T Energer Z Test Type**, stoknya masih **ready stock** ✅."
     },
     {
@@ -59,6 +61,8 @@
       "actualIntent": "stock_availability",
       "type": "products",
       "productCount": 1,
+      "optionCount": 0,
+      "optionCountValid": true,
       "productPrices": [
         2000000
       ],
@@ -94,6 +98,8 @@
       "id": "confidence_ambiguous_series",
       "question": "cek stok Soul of Chogokin",
       "expectedIntent": "stock_availability",
+      "expectedType": "options",
+      "minOptions": 2,
       "maxProducts": 0,
       "requiredText": [
         "beberapa produk",
@@ -102,8 +108,10 @@
       "passed": true,
       "statusCode": 200,
       "actualIntent": "stock_availability",
-      "type": "text",
+      "type": "options",
       "productCount": 0,
+      "optionCount": 3,
+      "optionCountValid": true,
       "productPrices": [],
       "maxProductCountValid": true,
       "expectedProductNameValid": true,
@@ -145,6 +153,8 @@
       "actualIntent": "product_discovery",
       "type": "text",
       "productCount": 0,
+      "optionCount": 0,
+      "optionCountValid": true,
       "productPrices": [],
       "maxProductCountValid": true,
       "expectedProductNameValid": true,

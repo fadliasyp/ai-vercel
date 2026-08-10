@@ -5670,6 +5670,7 @@ export default async function handler(req, res) {
             codEnabled,
           }),
           intent: "shipping_transaction",
+          _actionContext: "payment_methods",
         },
         "shipping_transaction",
       );
@@ -5684,6 +5685,7 @@ export default async function handler(req, res) {
           type: "text",
           message: buildAssistantCapabilitiesMessage(),
           intent: "general",
+          _actionContext: "assistant_capabilities",
         },
         "general",
       );
@@ -5698,6 +5700,7 @@ export default async function handler(req, res) {
             addressText: process.env.STORE_ADDRESS_TEXT,
           }),
           intent: "general",
+          _actionContext: "store_location",
         },
         "general",
       );
@@ -5712,6 +5715,7 @@ export default async function handler(req, res) {
             addressText: process.env.STORE_ADDRESS_TEXT,
           }),
           intent: "general",
+          _actionContext: "store_hours",
         },
         "general",
       );
@@ -6497,6 +6501,13 @@ export default async function handler(req, res) {
             type: "text",
             intent: "shipping_transaction",
             message: transactionPolicyMessage,
+            _actionContext: looksLikePaymentMethodQuestion(rawQuestion)
+              ? "payment_methods"
+              : looksLikeInsuranceQuestion(rawQuestion)
+                ? "shipping_insurance"
+              : looksLikeShippingEstimateQuestion(rawQuestion)
+                ? "shipping_estimate"
+                : undefined,
           },
           "shipping_transaction",
         );
@@ -6521,6 +6532,7 @@ export default async function handler(req, res) {
           intro: "Berikut panduan cara beli di Robot Jadul (step-by-step):",
           steps,
           _noTruncateReasoning: true,
+          _actionContext: "how_to_buy",
         });
       }
 
@@ -6722,16 +6734,18 @@ export default async function handler(req, res) {
           {
             type: "text",
             message: storeText,
+            _actionContext: "store_location",
           },
           "general",
         );
       }
 
       return await send(
-        {
-          type: "text",
-          message: `${originText}\n\nKalau mau datang langsung, ini alamat toko kami:\n\n${storeText}`,
-        },
+          {
+            type: "text",
+            message: `${originText}\n\nAlamat toko kami jika kamu ingin datang langsung:\n\n${storeText}`,
+            _actionContext: "shipping_origin",
+          },
         "shipping_transaction",
       );
     }
@@ -7114,6 +7128,7 @@ export default async function handler(req, res) {
         intro: "Berikut panduan cara beli di Robot Jadul (step-by-step):",
         steps,
         _noTruncateReasoning: true,
+        _actionContext: "how_to_buy",
       });
     }
 
@@ -8625,6 +8640,7 @@ Kembalikan JSON valid:
           {
             type: "text",
             message: buildInsuranceMessage(),
+            _actionContext: "shipping_insurance",
           },
           "shipping_transaction",
         );
@@ -8638,6 +8654,7 @@ Kembalikan JSON valid:
           {
             type: "text",
             message: buildPaymentMethodsMessage(),
+            _actionContext: "payment_methods",
           },
           "shipping_transaction",
         );
@@ -8658,6 +8675,7 @@ Kembalikan JSON valid:
           {
             type: "text",
             message: buildShippingEstimateMessage({ includeOffer: true }),
+            _actionContext: "shipping_estimate",
           },
           "shipping_transaction",
         );
@@ -8743,6 +8761,7 @@ Kembalikan JSON valid:
         {
           type: "text",
           message: buildReturnPolicyMessage(rawQuestion),
+          _actionContext: "return_policy",
         },
         "return_product",
       );
