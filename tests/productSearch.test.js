@@ -166,6 +166,33 @@ test("ignores transaction clauses while matching a product", () => {
   assert.equal(result?.id, 2);
 });
 
+test("ignores product-fact clauses in compound catalog questions", () => {
+  const catalog = [
+    ...products,
+    {
+      id: 3,
+      name: "Soul of Chogokin GX-47T Energer Z Test Type",
+      category: "Chogokin",
+      stock: "instock",
+    },
+  ];
+
+  const detail = assessProductSearchConfidence(
+    "Soul of Chogokin GX-47T Energer Z Test Type kondisinya bagaimana, kelengkapannya apa saja, dan stoknya masih ready?",
+    catalog,
+  );
+  const promo = assessProductSearchConfidence(
+    "Soul of Chogokin GX-47T Energer Z Test Type sedang promo dan stoknya ready? Kalau bayar sekarang bisa dikirim hari ini?",
+    catalog,
+    { preferPromo: false },
+  );
+
+  assert.equal(detail.status, "matched");
+  assert.equal(detail.product?.id, 3);
+  assert.equal(promo.status, "matched");
+  assert.equal(promo.product?.id, 3);
+});
+
 test("prefers the matching promo product for a compound request", () => {
   const result = findBestProductForCompoundRequest(
     "Mazinger Z yang promonya masih ready dan bisa dikirim hari ini?",

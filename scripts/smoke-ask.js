@@ -99,6 +99,16 @@ const CASES = [
     expectedIntent: "shipping_transaction",
   },
   {
+    id: "compound_secure_shipping_multiturn",
+    questions: [
+      "Ongkir ke Surabaya untuk Getter Robo GX-74 berapa? Pengirimannya aman kan, bisa asuransi dan packing kayu?",
+      "Surabaya, Wonokromo",
+    ],
+    expectedIntent: "shipping_transaction",
+    checkCoverage: true,
+    minRequestedFacets: 3,
+  },
+  {
     id: "compound_product_detail_stock",
     question:
       "Soul of Chogokin GX-47T Energer Z Test Type kondisinya bagaimana, kelengkapannya apa saja, dan stoknya masih ready?",
@@ -173,6 +183,7 @@ const CONTROLLED_CASE_IDS = new Set([
 ]);
 
 const COMPOUND_CASE_IDS = new Set([
+  "compound_secure_shipping_multiturn",
   "compound_product_detail_stock",
   "compound_transaction_policy",
   "compound_stock_promo_dispatch",
@@ -286,6 +297,21 @@ async function invokeAskLocal(question, index, sessionId = null) {
   });
 }
 
+function isTransientCatalogPayload(payload = {}) {
+  const message = String(payload?.message || payload?.intro || "").toLowerCase();
+  return message.includes("server lagi sibuk ambil data produk");
+}
+
+async function invokeAskLocalWithRetry(question, index, sessionId) {
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    const response = await invokeAskLocal(question, index, sessionId);
+    if (!isTransientCatalogPayload(response.payload) || attempt === 2) {
+      return { ...response, attempts: attempt };
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+  }
+}
+
 async function invokeAskRemote(question, index, sessionId, endpoint) {
   for (let attempt = 1; attempt <= 2; attempt += 1) {
     const controller = new AbortController();
@@ -313,11 +339,10 @@ async function invokeAskRemote(question, index, sessionId, endpoint) {
         throw new Error(`Respons endpoint bukan JSON (HTTP ${response.status})`);
       }
 
-      const message = String(payload?.message || payload?.intro || "").toLowerCase();
       const retryable =
         response.status === 429 ||
         response.status >= 500 ||
-        message.includes("server lagi sibuk ambil data produk");
+        isTransientCatalogPayload(payload);
       if (retryable && attempt < 2) {
         await new Promise((resolve) => setTimeout(resolve, 1500));
         continue;
@@ -393,7 +418,7 @@ async function main() {
       for (const question of questions) {
         response = endpoint
           ? await invokeAskRemote(question, index, sessionId, endpoint)
-          : await invokeAskLocal(question, index, sessionId);
+          : await invokeAskLocalWithRetry(question, index, sessionId);
         responses.push(response.payload);
         requestAttempts += response.attempts || 1;
       }

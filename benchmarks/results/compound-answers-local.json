@@ -1,0 +1,365 @@
+{
+  "endpoint": "local",
+  "generated_at": "2026-08-10T11:44:45.097Z",
+  "passed": 6,
+  "total": 6,
+  "results": [
+    {
+      "id": "store_visit",
+      "question": "Saya mau cek langsung kelengkapannya. Toko fisiknya di Blok M Square lantai berapa dan blok apa? Hari ini buka sampai jam berapa?",
+      "expectedIntent": "general",
+      "expectedType": "text",
+      "expectedCustomerState": "neutral",
+      "minActions": 3,
+      "requiredText": [
+        "Blok M Square",
+        "3A",
+        "Blok A",
+        "11.00",
+        "20.00"
+      ],
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "general",
+      "type": "text",
+      "productCount": 0,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 3,
+      "actionCountValid": true,
+      "productPrices": [],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "naturalized": true,
+        "reason": "success",
+        "customer_state": "neutral",
+        "router": {
+          "provider": "local_rules_ml"
+        }
+      },
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": null,
+      "requestAttempts": 1,
+      "preview": "Lokasi toko fisik Robot Jadul: Robot Jadul, Blok M Square lantai 3A, Blok A nomor 36-37, Jl. Melawai"
+    },
+    {
+      "id": "return_policy",
+      "question": "Barang Getter Robo saya terkelupas dan cacat, bisa retur dan refund?",
+      "expectedIntent": "return_product",
+      "expectedCustomerState": "distressed",
+      "minActions": 3,
+      "requiredText": [
+        "2 x 24 jam",
+        "1-3 hari kerja",
+        "3-7 hari kerja"
+      ],
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "return_product",
+      "type": "text",
+      "productCount": 0,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 3,
+      "actionCountValid": true,
+      "productPrices": [],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "naturalized": false,
+        "reason": "unsafe_rewrite_rejected",
+        "customer_state": "distressed",
+        "router": {
+          "provider": "groq",
+          "model": "openai/gpt-oss-20b"
+        }
+      },
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": null,
+      "requestAttempts": 1,
+      "preview": "Maaf atas kendalanya. Untuk **barang rusak atau cacat**, retur atau refund **bisa diajukan**, tetapi"
+    },
+    {
+      "id": "compound_secure_shipping_multiturn",
+      "questions": [
+        "Ongkir ke Surabaya untuk Getter Robo GX-74 berapa? Pengirimannya aman kan, bisa asuransi dan packing kayu?",
+        "Surabaya, Wonokromo"
+      ],
+      "expectedIntent": "shipping_transaction",
+      "checkCoverage": true,
+      "minRequestedFacets": 3,
+      "question": "Ongkir ke Surabaya untuk Getter Robo GX-74 berapa? Pengirimannya aman kan, bisa asuransi dan packing kayu? -> Surabaya, Wonokromo",
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "shipping_transaction",
+      "type": "text",
+      "productCount": 0,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 0,
+      "actionCountValid": true,
+      "productPrices": [],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "naturalized": true,
+        "reason": "success",
+        "customer_state": "neutral",
+        "router": {
+          "provider": "groq",
+          "model": "openai/gpt-oss-20b"
+        }
+      },
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": {
+        "requested": [
+          "shipping_quote",
+          "insurance",
+          "packing"
+        ],
+        "status": {
+          "shipping_quote": "answered",
+          "insurance": "answered",
+          "packing": "answered"
+        },
+        "answered": [
+          "shipping_quote",
+          "insurance",
+          "packing"
+        ],
+        "clarified": [],
+        "missing": [],
+        "coverage": 1,
+        "passed": true
+      },
+      "requestAttempts": 2,
+      "preview": "Ongkir estimasi (±1kg) ke **SURABAYA - WONOKROMO**: • JNE Reg: Rp 20.000 • Tiki Reg: Rp 19.000 • Pos"
+    },
+    {
+      "id": "compound_product_detail_stock",
+      "question": "Soul of Chogokin GX-47T Energer Z Test Type kondisinya bagaimana, kelengkapannya apa saja, dan stoknya masih ready?",
+      "expectedIntent": "stock_availability",
+      "checkCoverage": true,
+      "minRequestedFacets": 3,
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "stock_availability",
+      "type": "products",
+      "productCount": 1,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 3,
+      "actionCountValid": true,
+      "productPrices": [
+        2000000
+      ],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "naturalized": false,
+        "reason": "unsafe_rewrite_rejected",
+        "customer_state": "neutral",
+        "router": {
+          "provider": "local_rules_ml"
+        }
+      },
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": {
+        "status": "matched",
+        "confidence": 0.95,
+        "reason": "strong_catalog_match"
+      },
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": {
+        "requested": [
+          "product_condition",
+          "completeness",
+          "stock"
+        ],
+        "status": {
+          "product_condition": "answered",
+          "completeness": "answered",
+          "stock": "answered"
+        },
+        "answered": [
+          "product_condition",
+          "completeness",
+          "stock"
+        ],
+        "clarified": [],
+        "missing": [],
+        "coverage": 1,
+        "passed": true
+      },
+      "requestAttempts": 1,
+      "preview": "Untuk **Soul of Chogokin GX-47T Energer Z Test Type**, stoknya masih **ready stock** ✅. 📦 **Detail "
+    },
+    {
+      "id": "compound_transaction_policy",
+      "question": "Untuk barang mahal bisa COD dan bayar pakai apa? Bisa pakai asuransi, packing kayu, dan berapa lama pengirimannya?",
+      "expectedIntent": "shipping_transaction",
+      "checkCoverage": true,
+      "minRequestedFacets": 5,
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "shipping_transaction",
+      "type": "text",
+      "productCount": 0,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 3,
+      "actionCountValid": true,
+      "productPrices": [],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "naturalized": false,
+        "reason": "unsafe_rewrite_rejected",
+        "customer_state": "neutral",
+        "router": {
+          "provider": "local_rules_ml"
+        }
+      },
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": {
+        "requested": [
+          "insurance",
+          "packing",
+          "shipping_estimate",
+          "cod",
+          "payment_methods"
+        ],
+        "status": {
+          "insurance": "answered",
+          "packing": "answered",
+          "shipping_estimate": "answered",
+          "cod": "answered",
+          "payment_methods": "answered"
+        },
+        "answered": [
+          "insurance",
+          "packing",
+          "shipping_estimate",
+          "cod",
+          "payment_methods"
+        ],
+        "clarified": [],
+        "missing": [],
+        "coverage": 1,
+        "passed": true
+      },
+      "requestAttempts": 1,
+      "preview": "**COD / bayar di tempat tersedia** untuk area atau kondisi tertentu. Ketersediaannya tetap mengikuti"
+    },
+    {
+      "id": "compound_stock_promo_dispatch",
+      "question": "Soul of Chogokin GX-47T Energer Z Test Type sedang promo dan stoknya ready? Kalau bayar sekarang bisa dikirim hari ini?",
+      "expectedIntent": "shipping_transaction",
+      "checkCoverage": true,
+      "minRequestedFacets": 3,
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "shipping_transaction",
+      "type": "products",
+      "productCount": 1,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 0,
+      "actionCountValid": true,
+      "productPrices": [
+        2000000
+      ],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "naturalized": false,
+        "reason": "unsafe_rewrite_rejected",
+        "customer_state": "urgent",
+        "router": {
+          "provider": "local_rules_ml"
+        }
+      },
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": {
+        "status": "matched",
+        "confidence": 0.95,
+        "reason": "strong_catalog_match"
+      },
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": {
+        "requested": [
+          "stock",
+          "promo",
+          "same_day"
+        ],
+        "status": {
+          "stock": "answered",
+          "promo": "answered",
+          "same_day": "answered"
+        },
+        "answered": [
+          "stock",
+          "promo",
+          "same_day"
+        ],
+        "clarified": [],
+        "missing": [],
+        "coverage": 1,
+        "passed": true
+      },
+      "requestAttempts": 1,
+      "preview": "Aku paham kamu butuh kepastian cepat. Ini yang bisa dipastikan sekarang. **Soul of Chogokin GX-47T E"
+    }
+  ]
+}

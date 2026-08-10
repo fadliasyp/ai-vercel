@@ -189,6 +189,7 @@ import {
 } from "../lib/chatbot/wooCatalog.js";
 import { buildWordPressUrl } from "../lib/chatbot/siteConfig.js";
 import {
+  extractDistrictFollowUp,
   findCityWithDistrict,
   extractShippingDestination,
   isShippingQuotePending,
@@ -3731,9 +3732,10 @@ export default async function handler(req, res) {
         }
 
         if (pending.stage === "need_district") {
+          const districtQuery = extractDistrictFollowUp(rawQuestion);
           const data = await searchDistrictsFromWP(
             pending.data.city_id,
-            rawQuestion,
+            districtQuery,
           ).catch(() => null);
 
           const districts = data?.districts || [];
@@ -4350,10 +4352,11 @@ export default async function handler(req, res) {
 
       // user sedang diminta kecamatan
       if (pending.stage === "need_district") {
+        const districtQuery = extractDistrictFollowUp(rawQuestion);
         let districtLookupFailed = false;
         const data = await searchDistrictsFromWP(
           pending.data.city_id,
-          rawQuestion,
+          districtQuery,
         ).catch((err) => {
           console.error("SEARCH DISTRICT ERROR:", err?.message || err);
           districtLookupFailed = true;
@@ -4379,7 +4382,7 @@ export default async function handler(req, res) {
             {
               type: "text",
               message:
-                `Aku belum menemukan kecamatan **${rawQuestion}** di **${pending.data.city_name}** 🙏\n\n` +
+                `Aku belum menemukan kecamatan **${districtQuery}** di **${pending.data.city_name}** 🙏\n\n` +
                 `Coba tulis nama kecamatan yang lebih lengkap ya.`,
               intent: "shipping_transaction",
             },
@@ -6061,9 +6064,11 @@ export default async function handler(req, res) {
         const cityName = session.lastBotQuestionMeta?.city_name;
 
         if (cityId) {
-          const data = await searchDistrictsFromWP(cityId, rawQuestion).catch(
-            () => null,
-          );
+          const districtQuery = extractDistrictFollowUp(rawQuestion);
+          const data = await searchDistrictsFromWP(
+            cityId,
+            districtQuery,
+          ).catch(() => null);
           const top = data?.districts?.[0];
 
           if (top) {

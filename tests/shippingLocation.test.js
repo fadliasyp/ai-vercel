@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  extractDistrictFollowUp,
   extractShippingDestination,
   findCityWithDistrict,
   isShippingQuotePending,
@@ -27,6 +28,8 @@ test("splits a city and district answer from one message", () => {
     districtText: "Rajeg",
   });
   assert.equal(normalizeLocationText("Kabupaten Tangerang"), "tangerang");
+  assert.equal(extractDistrictFollowUp("Surabaya, Wonokromo"), "Wonokromo");
+  assert.equal(extractDistrictFollowUp("Wonokromo"), "Wonokromo");
 });
 
 test("keeps shipping quote pending recognizable above intent routing", () => {
