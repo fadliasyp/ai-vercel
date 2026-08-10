@@ -1,0 +1,3777 @@
+{
+  "generated_at": "2026-07-29T19:15:35.666Z",
+  "provider": "groq",
+  "model": "openai/gpt-oss-20b",
+  "dataset": {
+    "source": "intent-ml-api/Data yg dilatih dan di test/dataset_intent_13_hard_test.csv",
+    "sha256": "4c989123a4ce64af5c1376d8fdf5054d25b2c9e8bfc0b9a956ca3cd6b4af767d",
+    "full_case_count": 104,
+    "evaluated_case_count": 104
+  },
+  "settings": {
+    "delay_ms": 5500,
+    "timeout_ms": 15000,
+    "retries": 1
+  },
+  "metrics": {
+    "total": 104,
+    "successes": 102,
+    "failures": 2,
+    "correct": 99,
+    "accuracy": 0.9519,
+    "macro_f1": 0.9605,
+    "low_confidence_below_0_6": 0,
+    "scope_distribution": {
+      "in_scope": 98,
+      "out_of_scope": 4
+    },
+    "latency_ms": {
+      "average": 1643.64,
+      "p50": 895,
+      "p95": 1574,
+      "max": 31005
+    },
+    "usage": {
+      "prompt_tokens": 80899,
+      "completion_tokens": 9195,
+      "cached_tokens": 23040,
+      "total_tokens": 90094
+    },
+    "per_intent": {
+      "greeting": {
+        "support": 8,
+        "correct": 6,
+        "precision": 1,
+        "recall": 0.75,
+        "f1": 0.8571
+      },
+      "product_discovery": {
+        "support": 8,
+        "correct": 7,
+        "precision": 1,
+        "recall": 0.875,
+        "f1": 0.9333
+      },
+      "recommendation": {
+        "support": 8,
+        "correct": 7,
+        "precision": 1,
+        "recall": 0.875,
+        "f1": 0.9333
+      },
+      "product_detail": {
+        "support": 8,
+        "correct": 8,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1
+      },
+      "price_promo": {
+        "support": 8,
+        "correct": 8,
+        "precision": 0.8,
+        "recall": 1,
+        "f1": 0.8889
+      },
+      "stock_availability": {
+        "support": 8,
+        "correct": 8,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1
+      },
+      "shipping_transaction": {
+        "support": 8,
+        "correct": 8,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1
+      },
+      "shipping_origin": {
+        "support": 8,
+        "correct": 8,
+        "precision": 0.8889,
+        "recall": 1,
+        "f1": 0.9412
+      },
+      "return_product": {
+        "support": 8,
+        "correct": 8,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1
+      },
+      "compare": {
+        "support": 8,
+        "correct": 8,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1
+      },
+      "transaction_status": {
+        "support": 8,
+        "correct": 8,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1
+      },
+      "shipment_tracking": {
+        "support": 8,
+        "correct": 8,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1
+      },
+      "general": {
+        "support": 8,
+        "correct": 7,
+        "precision": 1,
+        "recall": 0.875,
+        "f1": 0.9333
+      }
+    },
+    "confusion": {
+      "greeting": {
+        "greeting": 6,
+        "__error__": 2
+      },
+      "product_discovery": {
+        "product_discovery": 7,
+        "price_promo": 1
+      },
+      "recommendation": {
+        "recommendation": 7,
+        "price_promo": 1
+      },
+      "product_detail": {
+        "product_detail": 8
+      },
+      "price_promo": {
+        "price_promo": 8
+      },
+      "stock_availability": {
+        "stock_availability": 8
+      },
+      "shipping_transaction": {
+        "shipping_transaction": 8
+      },
+      "shipping_origin": {
+        "shipping_origin": 8
+      },
+      "return_product": {
+        "return_product": 8
+      },
+      "compare": {
+        "compare": 8
+      },
+      "transaction_status": {
+        "transaction_status": 8
+      },
+      "shipment_tracking": {
+        "shipment_tracking": 8
+      },
+      "general": {
+        "general": 7,
+        "shipping_origin": 1
+      }
+    }
+  },
+  "errors": [
+    {
+      "question": "sore min, saya baru pertama kali di sini",
+      "expected_intent": "greeting",
+      "predicted_intent": null,
+      "scope": null,
+      "confidence": null,
+      "needs_clarification": null,
+      "entities": null,
+      "correct": false,
+      "latency_ms": 31005,
+      "attempts": 2,
+      "usage": null,
+      "error": {
+        "code": "GROQ_NETWORK_ERROR",
+        "status": 0,
+        "message": "fetch failed"
+      }
+    },
+    {
+      "question": "izin tanya dulu ya kak",
+      "expected_intent": "greeting",
+      "predicted_intent": null,
+      "scope": null,
+      "confidence": null,
+      "needs_clarification": null,
+      "entities": null,
+      "correct": false,
+      "latency_ms": 26867,
+      "attempts": 2,
+      "usage": null,
+      "error": {
+        "code": "GROQ_NETWORK_ERROR",
+        "status": 0,
+        "message": "fetch failed"
+      }
+    },
+    {
+      "question": "mainan robot kisaran sejuta ada tidak",
+      "expected_intent": "product_discovery",
+      "predicted_intent": "price_promo",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": 1000000,
+        "budget_max": 1000000,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": false,
+      "latency_ms": 681,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.281168397,
+        "prompt_tokens": 794,
+        "prompt_time": 0.023988782,
+        "completion_tokens": 112,
+        "completion_time": 0.118620244,
+        "total_tokens": 906,
+        "total_time": 0.142609026,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 38
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "mending ambil yang mana kalau budget 1 jutaan",
+      "expected_intent": "recommendation",
+      "predicted_intent": "price_promo",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": 1000000,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": false,
+      "latency_ms": 1574,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.210420766,
+        "prompt_tokens": 797,
+        "prompt_time": 0.050242198,
+        "completion_tokens": 106,
+        "completion_time": 0.131361897,
+        "total_tokens": 903,
+        "total_time": 0.181604095,
+        "completion_tokens_details": {
+          "reasoning_tokens": 34
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "ada cabang toko di luar jakarta tidak",
+      "expected_intent": "general",
+      "predicted_intent": "shipping_origin",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": "Jakarta",
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": false,
+      "latency_ms": 485,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.005242251,
+        "prompt_tokens": 793,
+        "prompt_time": 0.021804165,
+        "completion_tokens": 97,
+        "completion_time": 0.122030789,
+        "total_tokens": 890,
+        "total_time": 0.143834954,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 27
+        }
+      },
+      "error": null
+    }
+  ],
+  "results": [
+    {
+      "question": "halo min, aku baru mampir nih",
+      "expected_intent": "greeting",
+      "predicted_intent": "greeting",
+      "scope": "in_scope",
+      "confidence": 0.95,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 551,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.285596159,
+        "prompt_tokens": 793,
+        "prompt_time": 0.044327269,
+        "completion_tokens": 72,
+        "completion_time": 0.074224855,
+        "total_tokens": 865,
+        "total_time": 0.118552124,
+        "completion_tokens_details": {
+          "reasoning_tokens": 3
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "permisi kak, boleh tanya sedikit?",
+      "expected_intent": "greeting",
+      "predicted_intent": "greeting",
+      "scope": "in_scope",
+      "confidence": 0.95,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 763,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.286496982,
+        "prompt_tokens": 794,
+        "prompt_time": 0.054251626,
+        "completion_tokens": 85,
+        "completion_time": 0.100571093,
+        "total_tokens": 879,
+        "total_time": 0.154822719,
+        "completion_tokens_details": {
+          "reasoning_tokens": 16
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "hai admin, bantu kasih info ya",
+      "expected_intent": "greeting",
+      "predicted_intent": "greeting",
+      "scope": "in_scope",
+      "confidence": 0.95,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 920,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.284821425,
+        "prompt_tokens": 792,
+        "prompt_time": 0.065303143,
+        "completion_tokens": 88,
+        "completion_time": 0.102046018,
+        "total_tokens": 880,
+        "total_time": 0.167349161,
+        "completion_tokens_details": {
+          "reasoning_tokens": 19
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "pagi, saya mau nanya-nanya dulu",
+      "expected_intent": "greeting",
+      "predicted_intent": "greeting",
+      "scope": "in_scope",
+      "confidence": 0.95,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 895,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.176490771,
+        "prompt_tokens": 795,
+        "prompt_time": 0.040523674,
+        "completion_tokens": 90,
+        "completion_time": 0.102373336,
+        "total_tokens": 885,
+        "total_time": 0.14289701,
+        "completion_tokens_details": {
+          "reasoning_tokens": 21
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "misi, ada yang bisa dibantu?",
+      "expected_intent": "greeting",
+      "predicted_intent": "greeting",
+      "scope": "in_scope",
+      "confidence": 0.95,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 810,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.280368807,
+        "prompt_tokens": 794,
+        "prompt_time": 0.04185285,
+        "completion_tokens": 89,
+        "completion_time": 0.092371352,
+        "total_tokens": 883,
+        "total_time": 0.134224202,
+        "completion_tokens_details": {
+          "reasoning_tokens": 20
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "hello kak admin",
+      "expected_intent": "greeting",
+      "predicted_intent": "greeting",
+      "scope": "in_scope",
+      "confidence": 0.95,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 748,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.284437965,
+        "prompt_tokens": 788,
+        "prompt_time": 0.040293873,
+        "completion_tokens": 72,
+        "completion_time": 0.093637175,
+        "total_tokens": 860,
+        "total_time": 0.133931048,
+        "completion_tokens_details": {
+          "reasoning_tokens": 3
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "sore min, saya baru pertama kali di sini",
+      "expected_intent": "greeting",
+      "predicted_intent": null,
+      "scope": null,
+      "confidence": null,
+      "needs_clarification": null,
+      "entities": null,
+      "correct": false,
+      "latency_ms": 31005,
+      "attempts": 2,
+      "usage": null,
+      "error": {
+        "code": "GROQ_NETWORK_ERROR",
+        "status": 0,
+        "message": "fetch failed"
+      }
+    },
+    {
+      "question": "izin tanya dulu ya kak",
+      "expected_intent": "greeting",
+      "predicted_intent": null,
+      "scope": null,
+      "confidence": null,
+      "needs_clarification": null,
+      "entities": null,
+      "correct": false,
+      "latency_ms": 26867,
+      "attempts": 2,
+      "usage": null,
+      "error": {
+        "code": "GROQ_NETWORK_ERROR",
+        "status": 0,
+        "message": "fetch failed"
+      }
+    },
+    {
+      "question": "kalau dana cuma sekitar sejuta, opsinya apa aja",
+      "expected_intent": "price_promo",
+      "predicted_intent": "price_promo",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": 1000000,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 17792,
+      "attempts": 2,
+      "usage": {
+        "queue_time": 0.314947551,
+        "prompt_tokens": 797,
+        "prompt_time": 0.042774335,
+        "completion_tokens": 119,
+        "completion_time": 0.13403903,
+        "total_tokens": 916,
+        "total_time": 0.176813365,
+        "completion_tokens_details": {
+          "reasoning_tokens": 47
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "under 2 jt ada barang apa yang oke",
+      "expected_intent": "price_promo",
+      "predicted_intent": "price_promo",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": 0,
+        "budget_max": 2000000,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 639,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.326479641,
+        "prompt_tokens": 794,
+        "prompt_time": 0.044208225,
+        "completion_tokens": 119,
+        "completion_time": 0.126492788,
+        "total_tokens": 913,
+        "total_time": 0.170701013,
+        "completion_tokens_details": {
+          "reasoning_tokens": 47
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "lagi ada sale item apa nih",
+      "expected_intent": "price_promo",
+      "predicted_intent": "price_promo",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 687,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.178113037,
+        "prompt_tokens": 791,
+        "prompt_time": 0.042865238,
+        "completion_tokens": 94,
+        "completion_time": 0.133849332,
+        "total_tokens": 885,
+        "total_time": 0.17671457,
+        "completion_tokens_details": {
+          "reasoning_tokens": 24
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "barang kisaran 700 ribuan apa aja",
+      "expected_intent": "price_promo",
+      "predicted_intent": "price_promo",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": 700000,
+        "budget_max": 700000,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 779,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.319519128,
+        "prompt_tokens": 794,
+        "prompt_time": 0.02253081,
+        "completion_tokens": 108,
+        "completion_time": 0.132798082,
+        "total_tokens": 902,
+        "total_time": 0.155328892,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 36
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "diskon untuk produk chogokin bulan ini berapa",
+      "expected_intent": "price_promo",
+      "predicted_intent": "price_promo",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [
+          "Chogokin"
+        ],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1474,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.278803265,
+        "prompt_tokens": 796,
+        "prompt_time": 0.040903091,
+        "completion_tokens": 91,
+        "completion_time": 0.09624985,
+        "total_tokens": 887,
+        "total_time": 0.137152941,
+        "completion_tokens_details": {
+          "reasoning_tokens": 17
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "maks budget saya 500rb, dapet apa",
+      "expected_intent": "price_promo",
+      "predicted_intent": "price_promo",
+      "scope": "in_scope",
+      "confidence": 0.95,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": 500000,
+        "budget_max": 500000,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 582,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.157305457,
+        "prompt_tokens": 795,
+        "prompt_time": 0.044151502,
+        "completion_tokens": 130,
+        "completion_time": 0.157830682,
+        "total_tokens": 925,
+        "total_time": 0.201982184,
+        "completion_tokens_details": {
+          "reasoning_tokens": 58
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "selisih harga mahal dan murahnya karena apa",
+      "expected_intent": "price_promo",
+      "predicted_intent": "price_promo",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 714,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.157409054,
+        "prompt_tokens": 795,
+        "prompt_time": 0.203474822,
+        "completion_tokens": 104,
+        "completion_time": 0.108586093,
+        "total_tokens": 899,
+        "total_time": 0.312060915,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 34
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "harga pas atau masih bisa nego tipis",
+      "expected_intent": "price_promo",
+      "predicted_intent": "price_promo",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 705,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.319209719,
+        "prompt_tokens": 793,
+        "prompt_time": 0.048375336,
+        "completion_tokens": 81,
+        "completion_time": 0.10068451,
+        "total_tokens": 874,
+        "total_time": 0.149059846,
+        "completion_tokens_details": {
+          "reasoning_tokens": 11
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "ini ori bandai kah",
+      "expected_intent": "product_detail",
+      "predicted_intent": "product_detail",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 729,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.315155908,
+        "prompt_tokens": 790,
+        "prompt_time": 0.046542487,
+        "completion_tokens": 100,
+        "completion_time": 0.107826636,
+        "total_tokens": 890,
+        "total_time": 0.154369123,
+        "completion_tokens_details": {
+          "reasoning_tokens": 31
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "ukuran exact-nya berapa cm ya",
+      "expected_intent": "product_detail",
+      "predicted_intent": "product_detail",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 571,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.048093313,
+        "prompt_tokens": 794,
+        "prompt_time": 0.071386457,
+        "completion_tokens": 90,
+        "completion_time": 0.095537505,
+        "total_tokens": 884,
+        "total_time": 0.166923962,
+        "completion_tokens_details": {
+          "reasoning_tokens": 21
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "apakah full diecast",
+      "expected_intent": "product_detail",
+      "predicted_intent": "product_detail",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 911,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.176319749,
+        "prompt_tokens": 790,
+        "prompt_time": 0.040656523,
+        "completion_tokens": 97,
+        "completion_time": 0.121317912,
+        "total_tokens": 887,
+        "total_time": 0.161974435,
+        "completion_tokens_details": {
+          "reasoning_tokens": 28
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "isi box lengkapnya apa",
+      "expected_intent": "product_detail",
+      "predicted_intent": "product_detail",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 580,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.175771765,
+        "prompt_tokens": 790,
+        "prompt_time": 0.046056846,
+        "completion_tokens": 94,
+        "completion_time": 0.108014415,
+        "total_tokens": 884,
+        "total_time": 0.154071261,
+        "completion_tokens_details": {
+          "reasoning_tokens": 25
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "bagian tangan-kaki bisa digerakin?",
+      "expected_intent": "product_detail",
+      "predicted_intent": "product_detail",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 812,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.211395766,
+        "prompt_tokens": 795,
+        "prompt_time": 0.040880022,
+        "completion_tokens": 111,
+        "completion_time": 0.130206063,
+        "total_tokens": 906,
+        "total_time": 0.171086085,
+        "completion_tokens_details": {
+          "reasoning_tokens": 42
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "rilis tahun berapa yang ini",
+      "expected_intent": "product_detail",
+      "predicted_intent": "product_detail",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 780,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.314340853,
+        "prompt_tokens": 792,
+        "prompt_time": 0.040290126,
+        "completion_tokens": 89,
+        "completion_time": 0.10375908,
+        "total_tokens": 881,
+        "total_time": 0.144049206,
+        "completion_tokens_details": {
+          "reasoning_tokens": 20
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "kondisi item-nya misb atau loose",
+      "expected_intent": "product_detail",
+      "predicted_intent": "product_detail",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1235,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.284795172,
+        "prompt_tokens": 795,
+        "prompt_time": 0.047712025,
+        "completion_tokens": 87,
+        "completion_time": 0.11867196,
+        "total_tokens": 882,
+        "total_time": 0.166383985,
+        "completion_tokens_details": {
+          "reasoning_tokens": 18
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "edisi ini limited bukan",
+      "expected_intent": "product_detail",
+      "predicted_intent": "product_detail",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 944,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.285396907,
+        "prompt_tokens": 790,
+        "prompt_time": 0.0465709,
+        "completion_tokens": 103,
+        "completion_time": 0.11180805,
+        "total_tokens": 893,
+        "total_time": 0.15837895,
+        "completion_tokens_details": {
+          "reasoning_tokens": 34
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "ada robot vintage yg ready buat dilihat",
+      "expected_intent": "product_discovery",
+      "predicted_intent": "product_discovery",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 812,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.26943988,
+        "prompt_tokens": 793,
+        "prompt_time": 0.018457365,
+        "completion_tokens": 100,
+        "completion_time": 0.100992156,
+        "total_tokens": 893,
+        "total_time": 0.119449521,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 30
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "saya cari voltron, ada pilihan apa",
+      "expected_intent": "product_discovery",
+      "predicted_intent": "product_discovery",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [
+          "voltron"
+        ],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1144,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.050396159,
+        "prompt_tokens": 794,
+        "prompt_time": 0.020092501,
+        "completion_tokens": 91,
+        "completion_time": 0.101947301,
+        "total_tokens": 885,
+        "total_time": 0.122039802,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 18
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "lagi nyari chogokin, tersedia apa aja",
+      "expected_intent": "product_discovery",
+      "predicted_intent": "product_discovery",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [
+          "chogokin"
+        ],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 833,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.17641804,
+        "prompt_tokens": 795,
+        "prompt_time": 0.04368187,
+        "completion_tokens": 106,
+        "completion_time": 0.122167516,
+        "total_tokens": 901,
+        "total_time": 0.165849386,
+        "completion_tokens_details": {
+          "reasoning_tokens": 32
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "produk bandai di toko ini ada apa saja",
+      "expected_intent": "product_discovery",
+      "predicted_intent": "product_discovery",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 410,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.049055235,
+        "prompt_tokens": 794,
+        "prompt_time": 0.016610464,
+        "completion_tokens": 83,
+        "completion_time": 0.092481769,
+        "total_tokens": 877,
+        "total_time": 0.109092233,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 13
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "cari barang display tema robot, ada?",
+      "expected_intent": "product_discovery",
+      "predicted_intent": "product_discovery",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 756,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.314536973,
+        "prompt_tokens": 794,
+        "prompt_time": 0.039796516,
+        "completion_tokens": 87,
+        "completion_time": 0.089372858,
+        "total_tokens": 881,
+        "total_time": 0.129169374,
+        "completion_tokens_details": {
+          "reasoning_tokens": 17
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "mainan robot kisaran sejuta ada tidak",
+      "expected_intent": "product_discovery",
+      "predicted_intent": "price_promo",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": 1000000,
+        "budget_max": 1000000,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": false,
+      "latency_ms": 681,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.281168397,
+        "prompt_tokens": 794,
+        "prompt_time": 0.023988782,
+        "completion_tokens": 112,
+        "completion_time": 0.118620244,
+        "total_tokens": 906,
+        "total_time": 0.142609026,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 38
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "ada gundam atau sejenisnya?",
+      "expected_intent": "product_discovery",
+      "predicted_intent": "product_discovery",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 739,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.277517411,
+        "prompt_tokens": 794,
+        "prompt_time": 0.025883888,
+        "completion_tokens": 97,
+        "completion_time": 0.110399554,
+        "total_tokens": 891,
+        "total_time": 0.136283442,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 27
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "lagi cari figure robot lawas",
+      "expected_intent": "product_discovery",
+      "predicted_intent": "product_discovery",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1033,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.356838497,
+        "prompt_tokens": 791,
+        "prompt_time": 0.043833342,
+        "completion_tokens": 92,
+        "completion_time": 0.093137633,
+        "total_tokens": 883,
+        "total_time": 0.136970975,
+        "completion_tokens_details": {
+          "reasoning_tokens": 22
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "buat hadiah, enaknya pilih yang mana",
+      "expected_intent": "recommendation",
+      "predicted_intent": "recommendation",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1055,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.315469575,
+        "prompt_tokens": 793,
+        "prompt_time": 0.015143392,
+        "completion_tokens": 85,
+        "completion_time": 0.086501395,
+        "total_tokens": 878,
+        "total_time": 0.101644787,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 16
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "yang paling cocok buat pajangan meja apa",
+      "expected_intent": "recommendation",
+      "predicted_intent": "recommendation",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 760,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.280959476,
+        "prompt_tokens": 793,
+        "prompt_time": 0.041279591,
+        "completion_tokens": 96,
+        "completion_time": 0.101085858,
+        "total_tokens": 889,
+        "total_time": 0.142365449,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 27
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "tolong rekomendasiin yg worth it dong",
+      "expected_intent": "recommendation",
+      "predicted_intent": "recommendation",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 900,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.207567747,
+        "prompt_tokens": 795,
+        "prompt_time": 0.044566585,
+        "completion_tokens": 84,
+        "completion_time": 0.087557132,
+        "total_tokens": 879,
+        "total_time": 0.132123717,
+        "completion_tokens_details": {
+          "reasoning_tokens": 15
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "kalau buat kolektor baru, bagusnya mulai dari mana",
+      "expected_intent": "recommendation",
+      "predicted_intent": "recommendation",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 750,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.202015792,
+        "prompt_tokens": 797,
+        "prompt_time": 0.051302804,
+        "completion_tokens": 100,
+        "completion_time": 0.123369652,
+        "total_tokens": 897,
+        "total_time": 0.174672456,
+        "completion_tokens_details": {
+          "reasoning_tokens": 31
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "mending ambil yang mana kalau budget 1 jutaan",
+      "expected_intent": "recommendation",
+      "predicted_intent": "price_promo",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": 1000000,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": false,
+      "latency_ms": 1574,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.210420766,
+        "prompt_tokens": 797,
+        "prompt_time": 0.050242198,
+        "completion_tokens": 106,
+        "completion_time": 0.131361897,
+        "total_tokens": 903,
+        "total_time": 0.181604095,
+        "completion_tokens_details": {
+          "reasoning_tokens": 34
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "saran robot keren buat display",
+      "expected_intent": "recommendation",
+      "predicted_intent": "recommendation",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 567,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.232315179,
+        "prompt_tokens": 791,
+        "prompt_time": 0.043274416,
+        "completion_tokens": 83,
+        "completion_time": 0.108063735,
+        "total_tokens": 874,
+        "total_time": 0.151338151,
+        "completion_tokens_details": {
+          "reasoning_tokens": 14
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "yang value for money buat koleksi apa",
+      "expected_intent": "recommendation",
+      "predicted_intent": "recommendation",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1205,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.279604964,
+        "prompt_tokens": 793,
+        "prompt_time": 0.039558262,
+        "completion_tokens": 95,
+        "completion_time": 0.137140427,
+        "total_tokens": 888,
+        "total_time": 0.176698689,
+        "completion_tokens_details": {
+          "reasoning_tokens": 26
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "menurut admin, yg paling cakep buat pajangan apa",
+      "expected_intent": "recommendation",
+      "predicted_intent": "recommendation",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1335,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.211481826,
+        "prompt_tokens": 797,
+        "prompt_time": 0.374670888,
+        "completion_tokens": 113,
+        "completion_time": 0.114990014,
+        "total_tokens": 910,
+        "total_time": 0.489660902,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 44
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "kalau barang sampai lecet bisa komplain?",
+      "expected_intent": "return_product",
+      "predicted_intent": "return_product",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 896,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.284764307,
+        "prompt_tokens": 795,
+        "prompt_time": 0.01921058,
+        "completion_tokens": 83,
+        "completion_time": 0.089749567,
+        "total_tokens": 878,
+        "total_time": 0.108960147,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 14
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "proses refund biasanya berapa hari",
+      "expected_intent": "return_product",
+      "predicted_intent": "return_product",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 849,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.322578009,
+        "prompt_tokens": 792,
+        "prompt_time": 0.12935739,
+        "completion_tokens": 81,
+        "completion_time": 0.086581457,
+        "total_tokens": 873,
+        "total_time": 0.215938847,
+        "completion_tokens_details": {
+          "reasoning_tokens": 12
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "isi box kurang bisa retur gak",
+      "expected_intent": "return_product",
+      "predicted_intent": "return_product",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1262,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.270508636,
+        "prompt_tokens": 791,
+        "prompt_time": 0.053191082,
+        "completion_tokens": 100,
+        "completion_time": 0.105797801,
+        "total_tokens": 891,
+        "total_time": 0.158988883,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 31
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "barang gak sesuai foto bisa pengembalian?",
+      "expected_intent": "return_product",
+      "predicted_intent": "return_product",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 997,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.282953567,
+        "prompt_tokens": 794,
+        "prompt_time": 0.039619772,
+        "completion_tokens": 80,
+        "completion_time": 0.10432841,
+        "total_tokens": 874,
+        "total_time": 0.143948182,
+        "completion_tokens_details": {
+          "reasoning_tokens": 11
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "salah kirim item bisa tukar barang?",
+      "expected_intent": "return_product",
+      "predicted_intent": "return_product",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1345,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.319941023,
+        "prompt_tokens": 795,
+        "prompt_time": 0.148362175,
+        "completion_tokens": 84,
+        "completion_time": 0.089061822,
+        "total_tokens": 879,
+        "total_time": 0.237423997,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 15
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "box penyok parah bisa klaim?",
+      "expected_intent": "return_product",
+      "predicted_intent": "return_product",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1234,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.312618454,
+        "prompt_tokens": 794,
+        "prompt_time": 0.096275975,
+        "completion_tokens": 84,
+        "completion_time": 0.086943581,
+        "total_tokens": 878,
+        "total_time": 0.183219556,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 15
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "aturan refund di toko ini gimana",
+      "expected_intent": "return_product",
+      "predicted_intent": "return_product",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 963,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.312358763,
+        "prompt_tokens": 792,
+        "prompt_time": 0.039585644,
+        "completion_tokens": 79,
+        "completion_time": 0.081595272,
+        "total_tokens": 871,
+        "total_time": 0.121180916,
+        "completion_tokens_details": {
+          "reasoning_tokens": 10
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "uang kembali untuk retur kapan masuk",
+      "expected_intent": "return_product",
+      "predicted_intent": "return_product",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1099,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.178543213,
+        "prompt_tokens": 791,
+        "prompt_time": 0.046092212,
+        "completion_tokens": 80,
+        "completion_time": 0.100888568,
+        "total_tokens": 871,
+        "total_time": 0.14698078,
+        "completion_tokens_details": {
+          "reasoning_tokens": 11
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "barang dikirim dari kota mana",
+      "expected_intent": "shipping_origin",
+      "predicted_intent": "shipping_origin",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": "kota",
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 686,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.320150108,
+        "prompt_tokens": 791,
+        "prompt_time": 0.01911525,
+        "completion_tokens": 93,
+        "completion_time": 0.105018728,
+        "total_tokens": 884,
+        "total_time": 0.124133978,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 23
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "alamat toko offline kalian di mana",
+      "expected_intent": "shipping_origin",
+      "predicted_intent": "shipping_origin",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": "offline store",
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 888,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.287111029,
+        "prompt_tokens": 791,
+        "prompt_time": 0.132415139,
+        "completion_tokens": 82,
+        "completion_time": 0.086169263,
+        "total_tokens": 873,
+        "total_time": 0.218584402,
+        "completion_tokens_details": {
+          "reasoning_tokens": 12
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "kalau mau pickup langsung ke mana",
+      "expected_intent": "shipping_origin",
+      "predicted_intent": "shipping_origin",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1074,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.177754348,
+        "prompt_tokens": 792,
+        "prompt_time": 0.040004557,
+        "completion_tokens": 80,
+        "completion_time": 0.106842054,
+        "total_tokens": 872,
+        "total_time": 0.146846611,
+        "completion_tokens_details": {
+          "reasoning_tokens": 11
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "asal kirim paketnya dari mana ya",
+      "expected_intent": "shipping_origin",
+      "predicted_intent": "shipping_origin",
+      "scope": "in_scope",
+      "confidence": 0.95,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": "unknown",
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 978,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.177747679,
+        "prompt_tokens": 793,
+        "prompt_time": 0.018878527,
+        "completion_tokens": 79,
+        "completion_time": 0.08118306,
+        "total_tokens": 872,
+        "total_time": 0.100061587,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 10
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "warehouse kalian lokasinya di mana",
+      "expected_intent": "shipping_origin",
+      "predicted_intent": "shipping_origin",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": "warehouse",
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 817,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.179083167,
+        "prompt_tokens": 792,
+        "prompt_time": 0.042343184,
+        "completion_tokens": 80,
+        "completion_time": 0.082147042,
+        "total_tokens": 872,
+        "total_time": 0.124490226,
+        "completion_tokens_details": {
+          "reasoning_tokens": 11
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "kalian base di kota mana sih",
+      "expected_intent": "shipping_origin",
+      "predicted_intent": "shipping_origin",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": "kota",
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 998,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.197307314,
+        "prompt_tokens": 793,
+        "prompt_time": 0.018235468,
+        "completion_tokens": 78,
+        "completion_time": 0.08173488,
+        "total_tokens": 871,
+        "total_time": 0.099970348,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 8
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "paket nanti berangkat dari mana",
+      "expected_intent": "shipping_origin",
+      "predicted_intent": "shipping_origin",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1241,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.311660447,
+        "prompt_tokens": 792,
+        "prompt_time": 0.040606499,
+        "completion_tokens": 93,
+        "completion_time": 0.098439138,
+        "total_tokens": 885,
+        "total_time": 0.139045637,
+        "completion_tokens_details": {
+          "reasoning_tokens": 24
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "bisa info alamat lengkap toko",
+      "expected_intent": "shipping_origin",
+      "predicted_intent": "shipping_origin",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": "toko",
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 932,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.005496291,
+        "prompt_tokens": 791,
+        "prompt_time": 0.054550617,
+        "completion_tokens": 81,
+        "completion_time": 0.087386521,
+        "total_tokens": 872,
+        "total_time": 0.141937138,
+        "completion_tokens_details": {
+          "reasoning_tokens": 11
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "ongkir ke bekasi kira-kira berapa",
+      "expected_intent": "shipping_transaction",
+      "predicted_intent": "shipping_transaction",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": "Bekasi",
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 853,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.284564522,
+        "prompt_tokens": 795,
+        "prompt_time": 0.039761247,
+        "completion_tokens": 83,
+        "completion_time": 0.091190359,
+        "total_tokens": 878,
+        "total_time": 0.130951606,
+        "completion_tokens_details": {
+          "reasoning_tokens": 13
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "bayarnya bisa qris gak",
+      "expected_intent": "shipping_transaction",
+      "predicted_intent": "shipping_transaction",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 839,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.205998752,
+        "prompt_tokens": 791,
+        "prompt_time": 0.046770702,
+        "completion_tokens": 90,
+        "completion_time": 0.11080153,
+        "total_tokens": 881,
+        "total_time": 0.157572232,
+        "completion_tokens_details": {
+          "reasoning_tokens": 21
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "kurir yang tersedia apa aja",
+      "expected_intent": "shipping_transaction",
+      "predicted_intent": "shipping_transaction",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1430,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.281137136,
+        "prompt_tokens": 791,
+        "prompt_time": 0.045937682,
+        "completion_tokens": 89,
+        "completion_time": 0.094663506,
+        "total_tokens": 880,
+        "total_time": 0.140601188,
+        "completion_tokens_details": {
+          "reasoning_tokens": 20
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "cara membeli produk ini gimana",
+      "expected_intent": "shipping_transaction",
+      "predicted_intent": "shipping_transaction",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1365,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.206895924,
+        "prompt_tokens": 791,
+        "prompt_time": 0.027307315,
+        "completion_tokens": 84,
+        "completion_time": 0.090140964,
+        "total_tokens": 875,
+        "total_time": 0.117448279,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 15
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "estimasi nyampe surabaya berapa lama",
+      "expected_intent": "shipping_transaction",
+      "predicted_intent": "shipping_transaction",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": "Surabaya",
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 972,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.285638014,
+        "prompt_tokens": 794,
+        "prompt_time": 0.117980524,
+        "completion_tokens": 126,
+        "completion_time": 0.135250501,
+        "total_tokens": 920,
+        "total_time": 0.253231025,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 56
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "barang ini bisa diasuransikan?",
+      "expected_intent": "shipping_transaction",
+      "predicted_intent": "shipping_transaction",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1179,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.284626614,
+        "prompt_tokens": 793,
+        "prompt_time": 0.037376895,
+        "completion_tokens": 95,
+        "completion_time": 0.099918463,
+        "total_tokens": 888,
+        "total_time": 0.137295358,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 26
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "bisa cod atau transfer aja",
+      "expected_intent": "shipping_transaction",
+      "predicted_intent": "shipping_transaction",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1176,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.206347387,
+        "prompt_tokens": 791,
+        "prompt_time": 0.048943937,
+        "completion_tokens": 88,
+        "completion_time": 0.113728298,
+        "total_tokens": 879,
+        "total_time": 0.162672235,
+        "completion_tokens_details": {
+          "reasoning_tokens": 19
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "kirim pakai jne/jnt ada kah",
+      "expected_intent": "shipping_transaction",
+      "predicted_intent": "shipping_transaction",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 808,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.217626496,
+        "prompt_tokens": 794,
+        "prompt_time": 0.078234734,
+        "completion_tokens": 83,
+        "completion_time": 0.090995545,
+        "total_tokens": 877,
+        "total_time": 0.169230279,
+        "completion_tokens_details": {
+          "reasoning_tokens": 14
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "masih ready stock kan",
+      "expected_intent": "stock_availability",
+      "predicted_intent": "stock_availability",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 652,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.197371317,
+        "prompt_tokens": 790,
+        "prompt_time": 0.025500276,
+        "completion_tokens": 95,
+        "completion_time": 0.106110156,
+        "total_tokens": 885,
+        "total_time": 0.131610432,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 25
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "sisa unitnya ada berapa",
+      "expected_intent": "stock_availability",
+      "predicted_intent": "stock_availability",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1393,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.178423648,
+        "prompt_tokens": 792,
+        "prompt_time": 0.842620966,
+        "completion_tokens": 95,
+        "completion_time": 0.098730187,
+        "total_tokens": 887,
+        "total_time": 0.941351153,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 25
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "barang ini sold out belum",
+      "expected_intent": "stock_availability",
+      "predicted_intent": "stock_availability",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 647,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.279082525,
+        "prompt_tokens": 790,
+        "prompt_time": 0.017419004,
+        "completion_tokens": 97,
+        "completion_time": 0.101057218,
+        "total_tokens": 887,
+        "total_time": 0.118476222,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 27
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "ready atau po ya item ini",
+      "expected_intent": "stock_availability",
+      "predicted_intent": "stock_availability",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 4170,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.289205478,
+        "prompt_tokens": 791,
+        "prompt_time": 0.04439165,
+        "completion_tokens": 94,
+        "completion_time": 0.114786638,
+        "total_tokens": 885,
+        "total_time": 0.159178288,
+        "completion_tokens_details": {
+          "reasoning_tokens": 24
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "restock berikutnya kapan",
+      "expected_intent": "stock_availability",
+      "predicted_intent": "stock_availability",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 643,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.287498559,
+        "prompt_tokens": 790,
+        "prompt_time": 0.04583673,
+        "completion_tokens": 91,
+        "completion_time": 0.094261507,
+        "total_tokens": 881,
+        "total_time": 0.140098237,
+        "completion_tokens_details": {
+          "reasoning_tokens": 21
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "stok gudangnya masih aman?",
+      "expected_intent": "stock_availability",
+      "predicted_intent": "stock_availability",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 911,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.286000344,
+        "prompt_tokens": 791,
+        "prompt_time": 0.195548164,
+        "completion_tokens": 93,
+        "completion_time": 0.09902773,
+        "total_tokens": 884,
+        "total_time": 0.294575894,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 23
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "produk ini masih tersedia sekarang",
+      "expected_intent": "stock_availability",
+      "predicted_intent": "stock_availability",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 921,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.232932994,
+        "prompt_tokens": 790,
+        "prompt_time": 0.143038972,
+        "completion_tokens": 93,
+        "completion_time": 0.093819719,
+        "total_tokens": 883,
+        "total_time": 0.236858691,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 23
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "udah habis atau masih ada",
+      "expected_intent": "stock_availability",
+      "predicted_intent": "stock_availability",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1006,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.207036485,
+        "prompt_tokens": 791,
+        "prompt_time": 0.020855396,
+        "completion_tokens": 100,
+        "completion_time": 0.113682763,
+        "total_tokens": 891,
+        "total_time": 0.134538159,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 30
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "status order 7001 gimana",
+      "expected_intent": "transaction_status",
+      "predicted_intent": "transaction_status",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": "7001",
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 801,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.178543002,
+        "prompt_tokens": 792,
+        "prompt_time": 0.040239062,
+        "completion_tokens": 83,
+        "completion_time": 0.089472691,
+        "total_tokens": 875,
+        "total_time": 0.129711753,
+        "completion_tokens_details": {
+          "reasoning_tokens": 13
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "tolong cek pesanan saya udah diproses belum",
+      "expected_intent": "transaction_status",
+      "predicted_intent": "transaction_status",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1633,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.206742607,
+        "prompt_tokens": 797,
+        "prompt_time": 0.505246387,
+        "completion_tokens": 91,
+        "completion_time": 0.096180845,
+        "total_tokens": 888,
+        "total_time": 0.601427232,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 22
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "invoice 5120 status pembayarannya apa",
+      "expected_intent": "transaction_status",
+      "predicted_intent": "transaction_status",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": "5120",
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 631,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.270356026,
+        "prompt_tokens": 794,
+        "prompt_time": 0.035834626,
+        "completion_tokens": 75,
+        "completion_time": 0.076148661,
+        "total_tokens": 869,
+        "total_time": 0.111983287,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 5
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "status proses order 86420 saat ini bagaimana",
+      "expected_intent": "transaction_status",
+      "predicted_intent": "transaction_status",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": "86420",
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1117,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.158710611,
+        "prompt_tokens": 794,
+        "prompt_time": 0.481250722,
+        "completion_tokens": 80,
+        "completion_time": 0.085290709,
+        "total_tokens": 874,
+        "total_time": 0.566541431,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 10
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "pesanan saya lagi di tahap mana",
+      "expected_intent": "transaction_status",
+      "predicted_intent": "transaction_status",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 897,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.2832971,
+        "prompt_tokens": 792,
+        "prompt_time": 0.045956619,
+        "completion_tokens": 80,
+        "completion_time": 0.081747492,
+        "total_tokens": 872,
+        "total_time": 0.127704111,
+        "completion_tokens_details": {
+          "reasoning_tokens": 11
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "cek orderan terbaru saya dong",
+      "expected_intent": "transaction_status",
+      "predicted_intent": "transaction_status",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1055,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.318758308,
+        "prompt_tokens": 791,
+        "prompt_time": 0.019623798,
+        "completion_tokens": 89,
+        "completion_time": 0.096067449,
+        "total_tokens": 880,
+        "total_time": 0.115691247,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 20
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "boleh cek perkembangan pesanan nomor 97531",
+      "expected_intent": "transaction_status",
+      "predicted_intent": "transaction_status",
+      "scope": "in_scope",
+      "confidence": 0.95,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": "97531",
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1204,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.284628344,
+        "prompt_tokens": 795,
+        "prompt_time": 0.022776022,
+        "completion_tokens": 85,
+        "completion_time": 0.093199118,
+        "total_tokens": 880,
+        "total_time": 0.11597514,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 15
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "status transaksi saya masih pending kah",
+      "expected_intent": "transaction_status",
+      "predicted_intent": "transaction_status",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1062,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.317067479,
+        "prompt_tokens": 791,
+        "prompt_time": 0.04781815,
+        "completion_tokens": 80,
+        "completion_time": 0.081920172,
+        "total_tokens": 871,
+        "total_time": 0.129738322,
+        "completion_tokens_details": {
+          "reasoning_tokens": 11
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "sekarang pukul berapa ya",
+      "expected_intent": "general",
+      "predicted_intent": "general",
+      "scope": "out_of_scope",
+      "confidence": 0.95,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 952,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.004897945,
+        "prompt_tokens": 792,
+        "prompt_time": 0.035083294,
+        "completion_tokens": 79,
+        "completion_time": 0.108089439,
+        "total_tokens": 871,
+        "total_time": 0.143172733,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 10
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "tolong kasih prakiraan cuaca besok",
+      "expected_intent": "general",
+      "predicted_intent": "general",
+      "scope": "out_of_scope",
+      "confidence": 0.95,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 902,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.316730766,
+        "prompt_tokens": 794,
+        "prompt_time": 0.235895552,
+        "completion_tokens": 79,
+        "completion_time": 0.083510604,
+        "total_tokens": 873,
+        "total_time": 0.319406156,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 10
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "siapa kepala negara indonesia saat ini",
+      "expected_intent": "general",
+      "predicted_intent": "general",
+      "scope": "out_of_scope",
+      "confidence": 0.95,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1086,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.206474458,
+        "prompt_tokens": 792,
+        "prompt_time": 0.0470748,
+        "completion_tokens": 86,
+        "completion_time": 0.118327003,
+        "total_tokens": 878,
+        "total_time": 0.165401803,
+        "completion_tokens_details": {
+          "reasoning_tokens": 17
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "bantu buat program sederhana dong",
+      "expected_intent": "general",
+      "predicted_intent": "general",
+      "scope": "out_of_scope",
+      "confidence": 0.95,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 980,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.285770688,
+        "prompt_tokens": 791,
+        "prompt_time": 0.206574507,
+        "completion_tokens": 90,
+        "completion_time": 0.090789936,
+        "total_tokens": 881,
+        "total_time": 0.297364443,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 21
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "tokonya buka setiap hari atau tidak",
+      "expected_intent": "general",
+      "predicted_intent": "general",
+      "scope": "in_scope",
+      "confidence": 0.95,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 725,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.207709856,
+        "prompt_tokens": 792,
+        "prompt_time": 0.046380348,
+        "completion_tokens": 93,
+        "completion_time": 0.096386724,
+        "total_tokens": 885,
+        "total_time": 0.142767072,
+        "completion_tokens_details": {
+          "reasoning_tokens": 25
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "admin robot jadul bisa dihubungi lewat apa",
+      "expected_intent": "general",
+      "predicted_intent": "general",
+      "scope": "in_scope",
+      "confidence": 0.95,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1243,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.313370522,
+        "prompt_tokens": 795,
+        "prompt_time": 0.040979267,
+        "completion_tokens": 79,
+        "completion_time": 0.098542544,
+        "total_tokens": 874,
+        "total_time": 0.139521811,
+        "completion_tokens_details": {
+          "reasoning_tokens": 11
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "robot jadul itu toko khusus apa",
+      "expected_intent": "general",
+      "predicted_intent": "general",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1308,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.271494667,
+        "prompt_tokens": 792,
+        "prompt_time": 0.107014571,
+        "completion_tokens": 89,
+        "completion_time": 0.2341336,
+        "total_tokens": 881,
+        "total_time": 0.341148171,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 21
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "ada cabang toko di luar jakarta tidak",
+      "expected_intent": "general",
+      "predicted_intent": "shipping_origin",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": "Jakarta",
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": false,
+      "latency_ms": 485,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.005242251,
+        "prompt_tokens": 793,
+        "prompt_time": 0.021804165,
+        "completion_tokens": 97,
+        "completion_time": 0.122030789,
+        "total_tokens": 890,
+        "total_time": 0.143834954,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 27
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "gx 47 sama gx 48 beda apa",
+      "expected_intent": "compare",
+      "predicted_intent": "compare",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [
+          "gx 47",
+          "gx 48"
+        ],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 722,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.17609927,
+        "prompt_tokens": 794,
+        "prompt_time": 0.040039723,
+        "completion_tokens": 93,
+        "completion_time": 0.144103643,
+        "total_tokens": 887,
+        "total_time": 0.184143366,
+        "completion_tokens_details": {
+          "reasoning_tokens": 17
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "kalau voltes dan daimos enakan pilih mana",
+      "expected_intent": "compare",
+      "predicted_intent": "compare",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [
+          "voltes",
+          "daimos"
+        ],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 846,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.281600321,
+        "prompt_tokens": 796,
+        "prompt_time": 0.034567348,
+        "completion_tokens": 90,
+        "completion_time": 0.09985989,
+        "total_tokens": 886,
+        "total_time": 0.134427238,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 16
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "tolong komparasi grendizer lawan mazinger",
+      "expected_intent": "compare",
+      "predicted_intent": "compare",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [
+          "grendizer",
+          "mazinger"
+        ],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 859,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.210692186,
+        "prompt_tokens": 797,
+        "prompt_time": 0.039844162,
+        "completion_tokens": 84,
+        "completion_time": 0.101830684,
+        "total_tokens": 881,
+        "total_time": 0.141674846,
+        "completion_tokens_details": {
+          "reasoning_tokens": 9
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "antara versi bandai dan takara lebih oke mana",
+      "expected_intent": "compare",
+      "predicted_intent": "compare",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [
+          "versi bandai",
+          "versi takara"
+        ],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 775,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.269817246,
+        "prompt_tokens": 795,
+        "prompt_time": 0.02554796,
+        "completion_tokens": 87,
+        "completion_time": 0.112479203,
+        "total_tokens": 882,
+        "total_time": 0.138027163,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 9
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "figure loose vs misb lebih worth it yang mana",
+      "expected_intent": "compare",
+      "predicted_intent": "compare",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [
+          "figure loose",
+          "misb"
+        ],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 1051,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.269745605,
+        "prompt_tokens": 795,
+        "prompt_time": 0.025115233,
+        "completion_tokens": 79,
+        "completion_time": 0.080184213,
+        "total_tokens": 874,
+        "total_time": 0.105299446,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 5
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "dari dua robot tadi mana yang lebih murah",
+      "expected_intent": "compare",
+      "predicted_intent": "compare",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 595,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.178805224,
+        "prompt_tokens": 794,
+        "prompt_time": 0.038033781,
+        "completion_tokens": 93,
+        "completion_time": 0.098109473,
+        "total_tokens": 887,
+        "total_time": 0.136143254,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 25
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "produk pertama dibanding kedua unggul mana",
+      "expected_intent": "compare",
+      "predicted_intent": "compare",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 649,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.205370982,
+        "prompt_tokens": 792,
+        "prompt_time": 0.047283019,
+        "completion_tokens": 77,
+        "completion_time": 0.092674394,
+        "total_tokens": 869,
+        "total_time": 0.139957413,
+        "completion_tokens_details": {
+          "reasoning_tokens": 9
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "mau tahu perbedaan getter one dan getter two",
+      "expected_intent": "compare",
+      "predicted_intent": "compare",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 968,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.232268852,
+        "prompt_tokens": 796,
+        "prompt_time": 0.28238089,
+        "completion_tokens": 83,
+        "completion_time": 0.12318962,
+        "total_tokens": 879,
+        "total_time": 0.40557051,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 15
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "resi saya JX9988776655 sudah bergerak belum",
+      "expected_intent": "shipment_tracking",
+      "predicted_intent": "shipment_tracking",
+      "scope": "in_scope",
+      "confidence": 0.95,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": "JX9988776655"
+      },
+      "correct": true,
+      "latency_ms": 782,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.207064167,
+        "prompt_tokens": 797,
+        "prompt_time": 0.053614589,
+        "completion_tokens": 85,
+        "completion_time": 0.093575703,
+        "total_tokens": 882,
+        "total_time": 0.147190292,
+        "completion_tokens_details": {
+          "reasoning_tokens": 10
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "paket jne saya sekarang ada di kota mana",
+      "expected_intent": "shipment_tracking",
+      "predicted_intent": "shipment_tracking",
+      "scope": "in_scope",
+      "confidence": 0.95,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 903,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.425118364,
+        "prompt_tokens": 794,
+        "prompt_time": 0.126684704,
+        "completion_tokens": 82,
+        "completion_time": 0.088790648,
+        "total_tokens": 876,
+        "total_time": 0.215475352,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 13
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "tolong tracking kiriman dengan nomor SC88776655",
+      "expected_intent": "shipment_tracking",
+      "predicted_intent": "shipment_tracking",
+      "scope": "in_scope",
+      "confidence": 0.95,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": "SC88776655"
+      },
+      "correct": true,
+      "latency_ms": 725,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.299559805,
+        "prompt_tokens": 796,
+        "prompt_time": 0.047752381,
+        "completion_tokens": 79,
+        "completion_time": 0.088766206,
+        "total_tokens": 875,
+        "total_time": 0.136518587,
+        "completion_tokens_details": {
+          "reasoning_tokens": 6
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "barang sudah diserahkan ke kurir tapi belum sampai",
+      "expected_intent": "shipment_tracking",
+      "predicted_intent": "shipment_tracking",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 839,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.31264145,
+        "prompt_tokens": 796,
+        "prompt_time": 0.047068056,
+        "completion_tokens": 85,
+        "completion_time": 0.09419489,
+        "total_tokens": 881,
+        "total_time": 0.141262946,
+        "completion_tokens_details": {
+          "reasoning_tokens": 16
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "nomor resinya bisa dilacak dari sini tidak",
+      "expected_intent": "shipment_tracking",
+      "predicted_intent": "shipment_tracking",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 712,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.280302696,
+        "prompt_tokens": 795,
+        "prompt_time": 0.019405663,
+        "completion_tokens": 84,
+        "completion_time": 0.087887564,
+        "total_tokens": 879,
+        "total_time": 0.107293227,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 15
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "update terakhir perjalanan paket saya apa",
+      "expected_intent": "shipment_tracking",
+      "predicted_intent": "shipment_tracking",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 761,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.316907808,
+        "prompt_tokens": 791,
+        "prompt_time": 0.07906571,
+        "completion_tokens": 92,
+        "completion_time": 0.103486707,
+        "total_tokens": 883,
+        "total_time": 0.182552417,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 23
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "paket jnt saya kenapa tidak bergerak",
+      "expected_intent": "shipment_tracking",
+      "predicted_intent": "shipment_tracking",
+      "scope": "in_scope",
+      "confidence": 0.92,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": null
+      },
+      "correct": true,
+      "latency_ms": 738,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.179027173,
+        "prompt_tokens": 795,
+        "prompt_time": 0.016493055,
+        "completion_tokens": 83,
+        "completion_time": 0.092157328,
+        "total_tokens": 878,
+        "total_time": 0.108650383,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 14
+        }
+      },
+      "error": null
+    },
+    {
+      "question": "cek posisi kiriman POS77665544",
+      "expected_intent": "shipment_tracking",
+      "predicted_intent": "shipment_tracking",
+      "scope": "in_scope",
+      "confidence": 0.95,
+      "needs_clarification": false,
+      "entities": {
+        "product_names": [],
+        "budget_min": null,
+        "budget_max": null,
+        "location": null,
+        "order_id": null,
+        "tracking_number": "POS77665544"
+      },
+      "correct": true,
+      "latency_ms": 662,
+      "attempts": 1,
+      "usage": {
+        "queue_time": 0.212157918,
+        "prompt_tokens": 793,
+        "prompt_time": 0.055989704,
+        "completion_tokens": 88,
+        "completion_time": 0.113968288,
+        "total_tokens": 881,
+        "total_time": 0.169957992,
+        "completion_tokens_details": {
+          "reasoning_tokens": 15
+        }
+      },
+      "error": null
+    }
+  ]
+}

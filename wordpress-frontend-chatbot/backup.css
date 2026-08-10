@@ -1,0 +1,49 @@
+/* === Beautify textarea only === */
+#ai-chat-input .ai-input {
+  width: 100%;
+  min-height: 42px; /* tinggi nyaman */
+  max-height: 160px; /* biar nggak kebablasan */
+  padding: 10px 12px;
+
+  border: 1px solid #e6edf7;
+  border-radius: 14px;
+
+  background: #ffffff;
+  color: #0f172a;
+
+  font-size: 14px;
+  line-height: 1.45;
+
+  outline: none;
+  resize: none; /* jangan bisa di-drag */
+  overflow-y: auto;
+
+  box-shadow: 0 6px 18px rgba(13, 38, 76, 0.06);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.05s ease;
+}
+
+/* placeholder lebih halus */
+#ai-chat-input .ai-input::placeholder {
+  color: #94a3b8;
+}
+
+/* efek fokus (lebih “pro”) */
+#ai-chat-input .ai-input:focus {
+  border-color: #9cc3ff;
+  box-shadow: 0 10px 26px rgba(51, 108, 255, 0.14);
+}
+
+/* rapihin scrollbar (Chrome/Edge) */
+#ai-chat-input .ai-input::-webkit-scrollbar {
+  width: 8px;
+}
+#ai-chat-input .ai-input::-webkit-scrollbar-thumb {
+  background: #dbe7f6;
+  border-radius: 10px;
+}
+#ai-chat-input .ai-input::-webkit-scrollbar-track {
+  background: transparent;
+}

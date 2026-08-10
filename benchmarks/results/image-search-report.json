@@ -1,0 +1,192 @@
+{
+  "generated_at": "2026-07-29T20:55:32.913Z",
+  "target": "local-handler",
+  "dataset": {
+    "path": "C:\\kumpulan-coding-fadli\\ai-vercel\\benchmarks\\image-search\\dataset.json",
+    "fingerprint": "c82e33de37cca3a29b0b59054f55c06aad47e2743344f436bf74c8e685a2bbf2",
+    "total_cases": 10,
+    "evaluated_cases": 1
+  },
+  "settings": {
+    "delay_ms": 5000,
+    "timeout_ms": 85000,
+    "retries": 1,
+    "source_filter": null,
+    "view_filter": null,
+    "case_filter": null
+  },
+  "production_gate": {
+    "passed": false,
+    "checks": {
+      "at_least_30_positive_cases": false,
+      "at_least_5_negative_cases": false,
+      "at_least_10_internet_cases": false,
+      "at_least_10_crop_cases": false,
+      "top1_at_least_80_percent": true,
+      "top3_at_least_95_percent": true,
+      "false_confident_at_most_5_percent": true,
+      "api_success_at_least_95_percent": true
+    }
+  },
+  "metrics": {
+    "overall": {
+      "total": 1,
+      "successes": 1,
+      "failures": 0,
+      "positive_cases": 1,
+      "negative_cases": 0,
+      "top1_accuracy": 1,
+      "top3_accuracy": 1,
+      "top5_accuracy": 1,
+      "negative_rejection_accuracy": 0,
+      "abstention_rate": 0,
+      "false_confident_count": 0,
+      "false_confident_rate": 0,
+      "confidence_distribution": {
+        "high": 1
+      },
+      "latency_ms": {
+        "average": 65848,
+        "p50": 65848,
+        "p95": 65848,
+        "max": 65848
+      }
+    },
+    "by_source_type": {
+      "store": {
+        "total": 1,
+        "successes": 1,
+        "failures": 0,
+        "positive_cases": 1,
+        "negative_cases": 0,
+        "top1_accuracy": 1,
+        "top3_accuracy": 1,
+        "top5_accuracy": 1,
+        "negative_rejection_accuracy": 0,
+        "abstention_rate": 0,
+        "false_confident_count": 0,
+        "false_confident_rate": 0,
+        "confidence_distribution": {
+          "high": 1
+        },
+        "latency_ms": {
+          "average": 65848,
+          "p50": 65848,
+          "p95": 65848,
+          "max": 65848
+        }
+      }
+    },
+    "by_view_type": {
+      "full": {
+        "total": 1,
+        "successes": 1,
+        "failures": 0,
+        "positive_cases": 1,
+        "negative_cases": 0,
+        "top1_accuracy": 1,
+        "top3_accuracy": 1,
+        "top5_accuracy": 1,
+        "negative_rejection_accuracy": 0,
+        "abstention_rate": 0,
+        "false_confident_count": 0,
+        "false_confident_rate": 0,
+        "confidence_distribution": {
+          "high": 1
+        },
+        "latency_ms": {
+          "average": 65848,
+          "p50": 65848,
+          "p95": 65848,
+          "max": 65848
+        }
+      }
+    }
+  },
+  "errors": [],
+  "results": [
+    {
+      "id": "store-full-5480-reference",
+      "image": "images/store-full-5480-reference.jpg",
+      "source_type": "store",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama dengan foto referensi katalog ini.",
+      "expected": {
+        "product_id": 5480,
+        "product_name": "Soul of Chogokin GX-91 Getter 2 &amp; 3 Dynamic Classic",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "negative": false,
+      "status_code": 200,
+      "api_succeeded": true,
+      "latency_ms": 65848,
+      "vision_evaluated": true,
+      "confidence_level": "high",
+      "confidence": {
+        "level": "high",
+        "top_score": 95,
+        "score_gap": 25,
+        "visually_reranked": true
+      },
+      "expected_rank": 1,
+      "top1_correct": true,
+      "top3_correct": true,
+      "top5_correct": true,
+      "negative_correct": false,
+      "correct": true,
+      "abstained": false,
+      "false_confident": false,
+      "candidates": [
+        {
+          "rank": 1,
+          "id": 5480,
+          "name": "Soul of Chogokin GX-91 Getter 2 &amp; 3 Dynamic Classic",
+          "visual_score": 95,
+          "lexical_score": 154,
+          "confidence": "high",
+          "matches_expected": true
+        },
+        {
+          "rank": 2,
+          "id": 5381,
+          "name": "Soul of Chogokin GX-76X Grendizer D.C. Spazer Set",
+          "visual_score": 70,
+          "lexical_score": 75,
+          "confidence": "high",
+          "matches_expected": false
+        },
+        {
+          "rank": 3,
+          "id": 3622,
+          "name": "Soul of Chogokin GX-08 Aphorodai A",
+          "visual_score": 60,
+          "lexical_score": 100,
+          "confidence": "high",
+          "matches_expected": false
+        },
+        {
+          "rank": 4,
+          "id": 516,
+          "name": "Soul of Chogokin GX-50SP Combattler V 50th Anniversary",
+          "visual_score": 60,
+          "lexical_score": 70,
+          "confidence": "medium",
+          "matches_expected": false
+        },
+        {
+          "rank": 5,
+          "id": 5375,
+          "name": "Soul of Chogokin GX-92 Ideon Full Action",
+          "visual_score": 60,
+          "lexical_score": 68,
+          "confidence": "medium",
+          "matches_expected": false
+        }
+      ],
+      "response_intro": "Aku sudah membandingkan foto itu dengan foto produk katalog. Kandidat pertama memiliki kecocokan visual yang kuat:",
+      "error": null,
+      "attempts": 1
+    }
+  ]
+}

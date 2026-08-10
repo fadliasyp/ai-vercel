@@ -1,0 +1,5 @@
+untuk redeploy
+
+vercel --prod 
+
+iyaaa saya setuju sangat bagus, kita beri pelanggan bisa menekan pilihan saja, agar jadi interaktif juga chatbot kita, dan tetap sesuai konteks dan tepat sasaran, yuk lanjut tahap berikutnya

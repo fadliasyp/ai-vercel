@@ -1,0 +1,9 @@
+saya ingin menambah fitur user/pelanggan bisa kirim foto di chatbot beserta perintahnya (layaknya AI) lalu nanti chatbot akan menscan foto itu lalu mencari dari seluruh produk mana yg mirip dengan memberikian berbagai macam contohnya, serta sesuai teks/perintah yg di berikan oleh user (contoh user kirim gambar beserta perintah: "tolong carikan barang ini beserrta kelebihannya" dan contoh lainnya)
+
+disini saya memakai frontendnya dari wordpress yg saya taruh di footer nya dengan widget html, agar mempurmudah pengerjaan saya asumsikan filenya itu berada di /wordpress-frontend-chatbot/*
+
+mari kita berdiskusi dahulu, kira2 fitur itu bisa di terap kan di chabot kita atau tidak?
+
+jangan merubah logic yg sudah berjalan!!
+
+mari kita diskusi dahulu, jangan merubah kode nya dulu

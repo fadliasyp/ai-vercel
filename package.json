@@ -1,0 +1,29 @@
+{
+  "name": "ai-vercel",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build:visual-index": "node scripts/build-visual-index.js",
+    "benchmark:groq-intents": "node scripts/benchmark-groq-intents.js",
+    "benchmark:customers": "node scripts/benchmark-customer-conversations.js",
+    "benchmark:compound-live": "node scripts/smoke-ask.js --compound --endpoint https://ai-vercel-ten-sigma.vercel.app/api/ask --output benchmarks/results/compound-answers-live.json",
+    "benchmark:confidence-live": "node scripts/smoke-ask.js --confidence --endpoint https://ai-vercel-ten-sigma.vercel.app/api/ask --output benchmarks/results/product-confidence-live.json",
+    "benchmark:images": "node scripts/benchmark-image-search.js",
+    "dataset:images": "node scripts/manage-image-benchmark-dataset.js",
+    "smoke:domain": "node scripts/smoke-fadli-site.js",
+    "smoke:ask": "node scripts/smoke-ask.js",
+    "test": "node --test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/genai": "^1.43.0",
+    "@nlpjs/lang-id": "4.26.1",
+    "@supabase/supabase-js": "^2.98.0",
+    "dotenv": "^17.3.1",
+    "vercel": "^56.5.0"
+  }
+}

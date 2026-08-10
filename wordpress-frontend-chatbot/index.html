@@ -1,0 +1,34 @@
+<div id="ai-chat-bubble">&#128172;</div>
+
+<div id="ai-chat-box">
+  <div id="ai-chat-header">
+    <span class="header-title">Tanya Produk</span>
+    <button id="ai-close" aria-label="Tutup" title="Tutup">&times;</button>
+  </div>
+
+  <div id="ai-chat-messages"></div>
+
+  <div id="ai-image-preview" aria-live="polite"></div>
+
+  <div id="ai-chat-input">
+    <input id="ai-image-input" type="file" accept="image/*" hidden />
+    <button
+      id="ai-attach-image"
+      class="ai-attach-image-btn"
+      type="button"
+      aria-label="Upload foto"
+      title="Upload foto"
+    >
+      +
+    </button>
+
+    <textarea
+      id="ai-input"
+      rows="1"
+      placeholder="Tanya produk..."
+      class="ai-input"
+    ></textarea>
+
+    <button class="ai-send-btn" onclick="sendQuestion()">Kirim</button>
+  </div>
+</div>

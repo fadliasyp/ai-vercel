@@ -1,0 +1,1331 @@
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const bubble = document.getElementById("ai-chat-bubble");
+    const box = document.getElementById("ai-chat-box");
+    const messages = document.getElementById("ai-chat-messages");
+    const input = document.getElementById("ai-input");
+    const imageInput = document.getElementById("ai-image-input");
+    const attachImageBtn = document.getElementById("ai-attach-image");
+    const imagePreview = document.getElementById("ai-image-preview");
+    let selectedImage = null;
+
+    //   =============================================
+    // inputan pertanyaan saat keayboard dipakai maka ketutup inputannya,
+    // saat pakai google lens
+
+    function isMobileMode() {
+      return window.innerWidth <= 900;
+    }
+
+    function setMobileViewportVars() {
+      if (!isMobileMode()) {
+        document.documentElement.style.setProperty("--keyboard-offset", "0px");
+        document.documentElement.style.setProperty(
+          "--app-vh",
+          `${window.innerHeight * 0.01}px`,
+        );
+        return;
+      }
+
+      const vv = window.visualViewport;
+      const visibleHeight = vv ? vv.height : window.innerHeight;
+      const offsetTop = vv ? vv.offsetTop : 0;
+
+      document.documentElement.style.setProperty(
+        "--app-vh",
+        `${visibleHeight * 0.01}px`,
+      );
+
+      // hitung tinggi keyboard
+      const keyboardOffset = Math.max(
+        0,
+        window.innerHeight - visibleHeight - offsetTop,
+      );
+
+      document.documentElement.style.setProperty(
+        "--keyboard-offset",
+        `${keyboardOffset}px`,
+      );
+    }
+
+    function keepChatInputVisible() {
+      if (!isMobileMode()) return;
+      setMobileViewportVars();
+
+      setTimeout(() => {
+        const chatInputWrap = document.getElementById("ai-chat-input");
+        if (chatInputWrap) {
+          chatInputWrap.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+          });
+        }
+        scrollBottom();
+      }, 250);
+    }
+
+    window.addEventListener("resize", setMobileViewportVars);
+    window.addEventListener("orientationchange", () => {
+      setTimeout(setMobileViewportVars, 250);
+    });
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", setMobileViewportVars);
+      window.visualViewport.addEventListener("scroll", setMobileViewportVars);
+    }
+
+    if (input) {
+      input.addEventListener("focus", keepChatInputVisible);
+      input.addEventListener("click", keepChatInputVisible);
+      input.addEventListener("input", keepChatInputVisible);
+    }
+
+    function mobileKeyboardFix() {
+      const box = document.getElementById("ai-chat-box");
+      if (!box) return;
+      if (window.innerWidth > 900) return;
+
+      const vv = window.visualViewport;
+      if (!vv) return;
+
+      box.style.height = vv.height + "px";
+    }
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", mobileKeyboardFix);
+      window.visualViewport.addEventListener("scroll", mobileKeyboardFix);
+    }
+    window.addEventListener("resize", mobileKeyboardFix);
+
+    //   ===========================
+
+    function autoResize(el) {
+      el.style.height = "auto";
+      el.style.height = el.scrollHeight + "px";
+    }
+
+    function focusInput() {
+      if (!input) return;
+
+      setTimeout(() => {
+        input.focus();
+
+        // taruh cursor di paling akhir
+        const val = input.value;
+        input.setSelectionRange(val.length, val.length);
+      }, 120);
+    }
+
+    if (input) {
+      input.addEventListener("input", function () {
+        autoResize(this);
+      });
+    }
+
+    function scrollBottom() {
+      if (!messages) return;
+
+      messages.scrollTo({
+        top: messages.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+
+    const LEGACY_SESSION_KEY = "ai_chat_history_session";
+    const CHAT_HISTORY_KEY_PREFIX = "ai_chat_history_v2";
+    const MAX_CHAT_HISTORY_ITEMS = 60;
+
+    // ==============================
+    // SESSION ID (persist)
+    // ==============================
+    function getSessionId() {
+      let id = localStorage.getItem("ai_session_id");
+      if (!id) {
+        id = crypto.randomUUID
+          ? crypto.randomUUID()
+          : "sess_" + Math.random().toString(36).slice(2);
+        localStorage.setItem("ai_session_id", id);
+      }
+      return id;
+    }
+    const sessionId = getSessionId();
+    const SESSION_KEY = `${CHAT_HISTORY_KEY_PREFIX}:${sessionId}`;
+
+    let chatHistory = [];
+
+    // ==============================
+    // TOGGLE CHAT
+    // ==============================
+    if (bubble && box) {
+      bubble.onclick = () => {
+        const isOpen = box.style.display === "flex";
+
+        if (isOpen) {
+          box.style.display = "none";
+          return;
+        }
+
+        box.style.display = "flex";
+        setMobileViewportVars();
+        mobileKeyboardFix();
+
+        scrollBottom(); // langsung scroll ke pesan terakhir
+        focusInput(); // langsung fokus ke textarea
+      };
+    }
+
+    const closeBtn = document.getElementById("ai-close");
+
+    if (closeBtn && box) {
+      closeBtn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation(); // biar gak “nembus” ke event lain
+        box.style.display = "none";
+      };
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && box?.style.display === "flex") {
+        box.style.display = "none";
+      }
+    });
+
+    function renderPaymentMethods(data = {}) {
+      if (!messages) return;
+
+      let html = `
+    <div class="msg bot">
+      <div class="rj-payment-wrap">
+        ${
+          data.intro
+            ? `<div class="bot-text prose-chat">${renderMarkdown(data.intro)}</div>`
+            : ""
+        }
+        <div class="rj-payment-grid">
+  `;
+
+      (data.methods || []).forEach((m) => {
+        html += `
+      <div class="rj-payment-card">
+        <div class="rj-payment-logo-wrap">
+          <img
+            class="rj-payment-logo"
+            src="${escapeHtml(m.logo || "")}"
+            alt="${escapeHtml(m.name || "")}"
+            loading="lazy"
+            onerror="this.style.display='none';"
+          />
+        </div>
+        <div class="rj-payment-name">${escapeHtml(m.name || "-")}</div>
+      </div>
+    `;
+      });
+
+      html += `
+        </div>
+        ${
+          data.closing
+            ? `<div class="bot-text prose-chat" style="margin-top:10px;">${renderMarkdown(data.closing)}</div>`
+            : ""
+        }
+      </div>
+    </div>
+  `;
+
+      messages.innerHTML += html;
+    }
+
+    // ==============================
+    // SAVE / LOAD SESSION
+    // ==============================
+    function redactSensitiveChatText(text = "") {
+      return String(text || "")
+        .replace(
+          /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,
+          "[email disembunyikan]",
+        )
+        .replace(
+          /(?:\+?62|0)8(?:[\s.-]?\d){7,11}(?!\d)/g,
+          "[nomor telepon disembunyikan]",
+        );
+    }
+
+    function sanitizeStoredChat(items = []) {
+      return items.map((item) =>
+        item?.type === "user"
+          ? { ...item, text: redactSensitiveChatText(item.text) }
+          : item,
+      );
+    }
+
+    function parseStoredChat(raw = "") {
+      if (!raw) return [];
+
+      try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? sanitizeStoredChat(parsed) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function readStoredChat() {
+      try {
+        const saved = localStorage.getItem(SESSION_KEY);
+        if (saved) return parseStoredChat(saved);
+      } catch (e) {}
+
+      // Migrasi sekali dari versi lama yang hanya tersedia di tab saat ini.
+      try {
+        const legacySaved = sessionStorage.getItem(LEGACY_SESSION_KEY);
+        const legacyHistory = parseStoredChat(legacySaved || "");
+
+        if (legacyHistory.length) {
+          const limitedHistory = legacyHistory.slice(-MAX_CHAT_HISTORY_ITEMS);
+          try {
+            localStorage.setItem(
+              SESSION_KEY,
+              JSON.stringify(limitedHistory),
+            );
+            sessionStorage.removeItem(LEGACY_SESSION_KEY);
+          } catch (e) {}
+          return limitedHistory;
+        }
+      } catch (e) {}
+
+      // Cadangan ketika localStorage diblokir oleh browser.
+      try {
+        return parseStoredChat(sessionStorage.getItem(SESSION_KEY) || "");
+      } catch {
+        return [];
+      }
+    }
+
+    function saveChat() {
+      chatHistory = sanitizeStoredChat(chatHistory).slice(
+        -MAX_CHAT_HISTORY_ITEMS,
+      );
+      const serialized = JSON.stringify(chatHistory);
+
+      try {
+        localStorage.setItem(SESSION_KEY, serialized);
+        return;
+      } catch (e) {}
+
+      try {
+        sessionStorage.setItem(SESSION_KEY, serialized);
+      } catch (e) {}
+    }
+
+    function loadChat() {
+      chatHistory = readStoredChat();
+      if (!chatHistory.length) return;
+
+      // Bersihkan juga data verifikasi yang tersimpan oleh versi lama.
+      saveChat();
+
+      chatHistory.forEach((item, index) => {
+        const isLatestItem = index === chatHistory.length - 1;
+
+        if (item.type === "user") {
+          renderUser(item.text);
+        } else if (item.type === "bot") {
+          renderBotText(item.text, item.intent);
+        } else if (item.type === "products") {
+          if (item.intro) renderBotText(item.intro, item.intent || null);
+          if (item.message) renderBotText(item.message, item.intent || null);
+          renderProducts(item.products || []);
+          if (item.reasoning_text)
+            renderBotText(item.reasoning_text, item.intent || null);
+          if (item.closing) renderBotText(item.closing, item.intent || null);
+        } else if (item.type === "payment_methods") {
+          renderPaymentMethods({
+            intro: item.intro || "",
+            methods: item.methods || [],
+            closing: item.closing || "",
+            intent: item.intent || null,
+          });
+        } else if (item.type === "suggestions" && isLatestItem) {
+          renderSuggestions({ suggestions: item.suggestions || [] });
+        } else if (item.type === "options" && isLatestItem) {
+          renderOptions("", item.options || []);
+        } else if (item.type === "compare") {
+          renderCompare(item.payload);
+        } else if (item.type === "how_to_buy") {
+          renderHowToBuy(item.steps || []);
+        }
+      });
+
+      scrollBottom();
+    }
+
+    // ==============================
+    // SCROLL
+    // ==============================
+    function scrollBottom() {
+      if (!messages) return;
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    //   ============================
+    // suggestions
+    // ============================
+    function renderSuggestions(data) {
+      if (!messages) return;
+      if (!data || !Array.isArray(data.suggestions) || !data.suggestions.length)
+        return;
+
+      const wrap = document.createElement("div");
+      wrap.className = "chat-suggestions";
+
+      data.suggestions.forEach((text) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "suggestion-btn";
+        btn.textContent = text;
+
+        btn.addEventListener("click", () => {
+          removeSuggestions();
+          window.sendQuestion(text, { isSuggestionClick: true });
+        });
+
+        wrap.appendChild(btn);
+      });
+
+      messages.appendChild(wrap);
+      scrollBottom();
+    }
+
+    function removeSuggestions() {
+      document
+        .querySelectorAll(".chat-suggestions")
+        .forEach((el) => el.remove());
+    }
+
+    function isFreshSession() {
+      return !Array.isArray(chatHistory) || chatHistory.length === 0;
+    }
+
+    function removeOptions() {
+      document.querySelectorAll(".rj-options").forEach((el) => {
+        const parent = el.closest(".msg.bot");
+        if (parent) parent.remove();
+      });
+    }
+
+    //   ==============================
+    // OPSI PILIH KOTA/KECAMATAN
+    // ================================
+
+    function renderOptions(intro, options = []) {
+      if (!messages) return;
+
+      let html = `<div class="msg bot">`;
+      if (intro)
+        html += `<div class="bot-text prose-chat">${renderMarkdown(intro)}</div>`;
+
+      html += `<div class="rj-options">`;
+      options.slice(0, 8).forEach((opt) => {
+        const rawLabel = opt.label || opt.text || "-";
+        const label = escapeHtml(rawLabel);
+        const value = escapeHtml(opt.value || rawLabel);
+        html += `<button type="button" class="rj-opt-btn" data-value="${value}">${label}</button>`;
+      });
+      html += `</div></div>`;
+
+      messages.innerHTML += html;
+
+      // event delegation khusus tombol yg baru dirender
+      messages.querySelectorAll(".rj-opt-btn").forEach((btn) => {
+        btn.onclick = () => {
+          const v = btn.getAttribute("data-value") || "";
+          if (!v) return;
+
+          removeOptions();
+          // opsional: nonaktifkan tombol biar tidak dobel klik
+          document
+            .querySelectorAll(".rj-opt-btn")
+            .forEach((b) => (b.disabled = true));
+
+          window.sendQuestion(v, { isSuggestionClick: false });
+        };
+      });
+    }
+
+    // ==============================
+    // HELPERS
+    // ==============================
+    function escapeHtml(str = "") {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function renderMarkdown(mdText = "") {
+      const rawHtml = marked.parse(String(mdText || ""), {
+        gfm: true,
+        breaks: true,
+      });
+      return DOMPurify.sanitize(rawHtml);
+    }
+
+    function stripTags(html = "") {
+      return String(html)
+        .replace(/<[^>]*>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function readFileAsDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function compressImageFile(file, maxSize = 1280, quality = 0.82) {
+      const originalDataUrl = await readFileAsDataUrl(file);
+
+      if (!/^image\//i.test(file.type || "")) {
+        throw new Error("File harus berupa gambar.");
+      }
+
+      const img = new Image();
+      img.decoding = "async";
+
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = originalDataUrl;
+      });
+
+      const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(img.width * scale));
+      canvas.height = Math.max(1, Math.round(img.height * scale));
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      const mimeType =
+        file.type === "image/png" || file.type === "image/webp"
+          ? file.type
+          : "image/jpeg";
+
+      return canvas.toDataURL(mimeType, quality);
+    }
+
+    function renderImagePreview() {
+      if (!imagePreview) return;
+
+      if (!selectedImage) {
+        imagePreview.classList.remove("is-active");
+        imagePreview.innerHTML = "";
+        return;
+      }
+
+      imagePreview.classList.add("is-active");
+      imagePreview.innerHTML = `
+        <img src="${escapeHtml(selectedImage.dataUrl)}" alt="" />
+        <div class="ai-image-name">${escapeHtml(selectedImage.name || "Foto produk")}</div>
+        <button type="button" id="ai-remove-image">Hapus</button>
+      `;
+
+      const removeBtn = document.getElementById("ai-remove-image");
+      if (removeBtn) {
+        removeBtn.onclick = () => {
+          selectedImage = null;
+          if (imageInput) imageInput.value = "";
+          renderImagePreview();
+        };
+      }
+    }
+
+    if (attachImageBtn && imageInput) {
+      attachImageBtn.addEventListener("click", () => imageInput.click());
+
+      imageInput.addEventListener("change", async () => {
+        const file = imageInput.files?.[0];
+        if (!file) return;
+
+        if (!/^image\//i.test(file.type || "")) {
+          addBotText("File yang dipilih harus berupa gambar ya.", "image_product_search");
+          imageInput.value = "";
+          return;
+        }
+
+        if (file.size > 8 * 1024 * 1024) {
+          addBotText("Ukuran foto terlalu besar. Coba pilih foto maksimal 8 MB ya.", "image_product_search");
+          imageInput.value = "";
+          return;
+        }
+
+        try {
+          const dataUrl = await compressImageFile(file);
+          selectedImage = {
+            name: file.name,
+            dataUrl,
+          };
+          renderImagePreview();
+          focusInput();
+        } catch (e) {
+          selectedImage = null;
+          imageInput.value = "";
+          renderImagePreview();
+          addBotText("Foto belum bisa dibaca. Coba pilih foto lain ya.", "image_product_search");
+        }
+      });
+    }
+
+    function rupiah(n) {
+      const x = Number(n || 0);
+      return x ? "Rp " + x.toLocaleString("id-ID") : "—";
+    }
+
+    function badgeStock(stock) {
+      return stock === "instock" ? "✅ Ready" : "⚠️ Tidak ready";
+    }
+
+    function niceCondition(cond) {
+      return cond && String(cond).trim() ? `📦 ${cond}` : "ℹ️ Kondisi: -";
+    }
+
+    // ubah reasoning_text jadi HTML rapi (judul + bullet)
+    function formatReasoning(text) {
+      if (!text) return "<p style='margin:0'>—</p>";
+
+      // escape dulu biar aman
+      let t = escapeHtml(String(text).trim());
+
+      // jadikan "1) ..." jadi heading kecil
+      t = t.replace(/(^|\n)\s*(\d+)\)\s*/g, "\n<h4 class='rj-h4'>$2) </h4>");
+
+      const lines = t
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      let html = "";
+      let inList = false;
+
+      for (const line of lines) {
+        const isBullet = /^\s*[-•]\s+/.test(line);
+
+        if (isBullet) {
+          if (!inList) {
+            html += "<ul class='rj-ul'>";
+            inList = true;
+          }
+          html += `<li class="rj-li">${line.replace(/^\s*[-•]\s+/, "")}</li>`;
+          continue;
+        }
+
+        if (inList) {
+          html += "</ul>";
+          inList = false;
+        }
+
+        if (line.startsWith("<h4")) html += line;
+        else html += `<p class="rj-p">${line}</p>`;
+      }
+
+      if (inList) html += "</ul>";
+      return html;
+    }
+
+    // ==============================
+    // RENDER (NO SAVE)
+    // ==============================
+    function renderUser(text, imageDataUrl = "") {
+      if (!messages) return;
+      messages.innerHTML += `
+        <div class="msg user">
+          ${imageDataUrl ? `<img src="${escapeHtml(imageDataUrl)}" alt="" style="display:block;width:96px;height:96px;object-fit:cover;border-radius:12px;margin-bottom:8px;" />` : ""}
+          ${escapeHtml(text)}
+        </div>
+      `;
+    }
+
+    function renderBotText(text, intent = null) {
+      if (!messages) return;
+
+      let badge = "";
+      if (intent) {
+        const labelMap = {
+          product_discovery: "Pencarian Produk",
+          product_detail: "Detail Produk",
+          price_promo: "Harga & Promo",
+          stock_availability: "Cek Stok",
+          shipping_transaction: "Pengiriman & Bayar",
+          shipping_origin: "Asal Pengiriman",
+          general: "Info Umum",
+          recommendation: "Rekomendasi",
+          return_product: "Pengembalian Produk",
+          transaction_status: "Status Transaksi",
+          shipment_tracking: "Lacak Resi",
+          image_product_search: "Pencarian Foto",
+        };
+        const niceLabel = labelMap[intent] || intent;
+        badge = `<div class="intent-badge">${escapeHtml(niceLabel)}</div>`;
+      }
+
+      const htmlText = renderMarkdown(text); // ✅ render markdown -> HTML (aman)
+
+      messages.innerHTML += `
+    <div class="msg bot">
+      ${badge}
+      <div class="bot-text prose-chat">${htmlText}</div>
+    </div>
+  `;
+    }
+
+    function renderProducts(products) {
+      if (!messages) return;
+
+      let html = `<div class="msg bot">`;
+
+      (products || []).forEach((p) => {
+        const priceText = rupiah(p.numericPrice || p.effectivePrice || p.price);
+        html += `
+        <div class="product-card">
+          <img src="${escapeHtml(p.image || "")}" alt="" loading="lazy"/>
+          <div class="product-info">
+            <b>${escapeHtml(p.name || "-")}</b>
+          <div>${escapeHtml(priceText)}</div>
+<div>
+  ${
+    p.stock === "instock"
+      ? typeof p.stockQuantity === "number" && p.stockQuantity > 0
+        ? `✅ Ready • sisa ${p.stockQuantity} pcs`
+        : `✅ Ready`
+      : `⚠️ Tidak ready`
+  }
+</div>
+<a href="${escapeHtml(p.link || "#")}" target="_blank" rel="noopener">Lihat Produk</a>
+          </div>
+        </div>
+      `;
+      });
+
+      html += `</div>`;
+      messages.innerHTML += html;
+    }
+
+    // ✅ COMPARE UI CANTIK (append ke chat)
+    function renderCompare(payload) {
+      if (!messages) return;
+
+      const A = payload?.products?.[0];
+      const B = payload?.products?.[1];
+      if (!A || !B) {
+        renderBotText("Data perbandingan belum lengkap.");
+        return;
+      }
+
+      const winA = payload.winner === "A";
+      const winB = payload.winner === "B";
+
+      const priceA = rupiah(A.numericPrice || A.effectivePrice || 0);
+      const priceB = rupiah(B.numericPrice || B.effectivePrice || 0);
+
+      const html = `
+  <div class="msg bot">
+    <div class="rj-ai">
+      <div class="rj-ai__head">
+        <div class="rj-ai__title">
+          <span class="rj-ai__dot"></span>
+          Perbandingan Produk
+        </div>
+        <div class="rj-ai__badge">RobotJadul AI</div>
+      </div>
+
+      ${payload.intro ? `<div class="rj-ai__intro">${escapeHtml(payload.intro)}</div>` : ""}
+
+      <div class="rj-ai__grid">
+        <div class="rj-card ${winA ? "rj-card--win" : ""}">
+          <div class="rj-card__label">
+            <span>Produk A</span>
+            ${winA ? `<span class="rj-chip rj-chip--win">⭐ Direkomendasikan</span>` : ``}
+          </div>
+
+          <div class="rj-row" style="display:grid;grid-template-columns:92px minmax(0,1fr);gap:12px;align-items:center;min-width:0;">
+            <img class="rj-thumb"
+              src="${escapeHtml(A.image || "")}"
+              alt=""
+              loading="lazy"
+              style="width:92px;height:92px;border-radius:14px;background:#fff;border:1px solid #e6edf7;padding:6px;object-fit:contain;box-sizing:border-box;"
+            >
+            <div style="min-width:0;">
+              <p class="rj-name" style="
+                margin:0 0 6px 0;
+                font-size:14px;
+                font-weight:950;
+                line-height:1.25;
+                display:-webkit-box;
+                -webkit-box-orient:vertical;
+                -webkit-line-clamp:2;
+                overflow:hidden;
+                text-overflow:ellipsis;
+                white-space:normal;
+                word-break:break-word;
+              ">${escapeHtml(A.name || "-")}</p>
+
+              <div class="rj-meta" style="display:flex;flex-wrap:wrap;gap:8px;min-width:0;">
+                <span class="rj-meta__item" style="max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">💰 ${escapeHtml(priceA)}</span>
+                <span class="rj-meta__item" style="max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(badgeStock(A.stock))}</span>
+
+                <!-- condition: full width, max 3 baris, rapih -->
+                <span class="rj-meta__item rj-cond" style="
+                  flex:1 0 100%;
+                  max-width:100%;
+                  white-space:normal;
+                  overflow:hidden;
+                  display:-webkit-box;
+                  -webkit-box-orient:vertical;
+                  -webkit-line-clamp:3;
+                  line-height:1.25;
+                  word-break:break-word;
+                ">${escapeHtml(stripTags(niceCondition(A.condition)))}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="rj-actions">
+            <a class="rj-link" href="${escapeHtml(A.link || "#")}" target="_blank" rel="noopener">Lihat Produk A</a>
+          </div>
+        </div>
+
+        <div class="rj-card ${winB ? "rj-card--win" : ""}">
+          <div class="rj-card__label">
+            <span>Produk B</span>
+            ${winB ? `<span class="rj-chip rj-chip--win">⭐ Direkomendasikan</span>` : ``}
+          </div>
+
+          <div class="rj-row" style="display:grid;grid-template-columns:92px minmax(0,1fr);gap:12px;align-items:center;min-width:0;">
+            <img class="rj-thumb"
+              src="${escapeHtml(B.image || "")}"
+              alt=""
+              loading="lazy"
+              style="width:92px;height:92px;border-radius:14px;background:#fff;border:1px solid #e6edf7;padding:6px;object-fit:contain;box-sizing:border-box;"
+            >
+            <div style="min-width:0;">
+              <p class="rj-name" style="
+                margin:0 0 6px 0;
+                font-size:14px;
+                font-weight:950;
+                line-height:1.25;
+                display:-webkit-box;
+                -webkit-box-orient:vertical;
+                -webkit-line-clamp:2;
+                overflow:hidden;
+                text-overflow:ellipsis;
+                white-space:normal;
+                word-break:break-word;
+              ">${escapeHtml(B.name || "-")}</p>
+
+              <div class="rj-meta" style="display:flex;flex-wrap:wrap;gap:8px;min-width:0;">
+                <span class="rj-meta__item" style="max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">💰 ${escapeHtml(priceB)}</span>
+                <span class="rj-meta__item" style="max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(badgeStock(B.stock))}</span>
+
+                <!-- ✅ FIX: pakai B.condition -->
+                <span class="rj-meta__item rj-cond" style="
+                  flex:1 0 100%;
+                  max-width:100%;
+                  white-space:normal;
+                  overflow:hidden;
+                  display:-webkit-box;
+                  -webkit-box-orient:vertical;
+                  -webkit-line-clamp:3;
+                  line-height:1.25;
+                  word-break:break-word;
+                ">${escapeHtml(stripTags(niceCondition(B.condition)))}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="rj-actions">
+            <a class="rj-link" href="${escapeHtml(B.link || "#")}" target="_blank" rel="noopener">Lihat Produk B</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="rj-ai__reason">
+        <h4 class="rj-h4-title">Ringkasan & Alasan</h4>
+      <div class="rj-reason-box prose-chat">${renderMarkdown(payload.reasoning_text || "")}</div>
+      </div>
+
+      ${payload.closing ? `<div class="rj-ai__intro rj-ai__closing">${escapeHtml(payload.closing)}</div>` : ""}
+    </div>
+  </div>
+`;
+
+      messages.innerHTML += html;
+    }
+
+    function renderHowToBuy(steps) {
+      if (!messages) return;
+
+      let html = `<div class="msg bot">`;
+
+      (steps || []).forEach((s) => {
+        html += `
+        <div class="how-card">
+          <div><b>Step ${escapeHtml(s.step)}.</b> ${escapeHtml(s.text || "")}</div>
+          ${s.image ? `<img class="how-img" src="${escapeHtml(s.image)}" loading="lazy" />` : ""}
+        </div>
+      `;
+      });
+
+      html += `</div>`;
+      messages.innerHTML += html;
+    }
+
+    //   =============================
+    // bikin loading untuk chatbot berfikir
+    // ================================
+    let thinkingEl = null;
+    let thinkingTimer = null;
+
+    function showThinking(intentHint = "") {
+      if (!messages) return;
+
+      removeThinking();
+
+      const steps = getThinkingSteps(intentHint);
+      let i = 0;
+
+      thinkingEl = document.createElement("div");
+      thinkingEl.className = "msg bot thinking-wrap";
+      thinkingEl.innerHTML = `
+    <div class="intent-badge">RobotJadul AI</div>
+    <div class="bot-text prose-chat thinking-text">${steps[0]}</div>
+  `;
+
+      messages.appendChild(thinkingEl);
+      scrollBottom();
+
+      thinkingTimer = setInterval(() => {
+        if (!thinkingEl) return;
+        i = (i + 1) % steps.length;
+        const textEl = thinkingEl.querySelector(".thinking-text");
+        if (textEl) textEl.innerHTML = steps[i];
+        scrollBottom();
+      }, 1400);
+    }
+
+    function removeThinking() {
+      if (thinkingTimer) {
+        clearInterval(thinkingTimer);
+        thinkingTimer = null;
+      }
+      if (thinkingEl) {
+        thinkingEl.remove();
+        thinkingEl = null;
+      }
+    }
+
+    function getThinkingSteps(intentHint = "") {
+      const key = String(intentHint || "").toLowerCase();
+
+      if (key.includes("stock")) {
+        return [
+          "⏳ Sedang memahami pertanyaan kamu...",
+          "📦 Sedang mengecek data stok produk...",
+          "✅ Sedang menyiapkan jawaban stok...",
+        ];
+      }
+
+      if (key.includes("price")) {
+        return [
+          "⏳ Sedang memahami pertanyaan kamu...",
+          "💰 Sedang mengecek harga produk...",
+          "✅ Sedang menyiapkan informasi harga...",
+        ];
+      }
+
+      if (key.includes("recommend")) {
+        return [
+          "⏳ Sedang memahami kebutuhan kamu...",
+          "🤖 Sedang memilih produk yang paling cocok...",
+          "✅ Sedang menyiapkan rekomendasi terbaik...",
+        ];
+      }
+
+      if (key.includes("compare")) {
+        return [
+          "⏳ Sedang memahami produk yang ingin dibandingkan...",
+          "⚖️ Sedang membandingkan detail produk...",
+          "✅ Sedang menyiapkan hasil perbandingan...",
+        ];
+      }
+
+      if (key.includes("shipping")) {
+        return [
+          "⏳ Sedang memahami tujuan pengiriman...",
+          "🚚 Sedang mengecek informasi pengiriman...",
+          "✅ Sedang menyiapkan jawaban pengiriman...",
+        ];
+      }
+
+      if (key.includes("tracking")) {
+        return [
+          "⏳ Sedang memahami nomor resi kamu...",
+          "📦 Sedang melacak posisi paket...",
+          "✅ Sedang menyiapkan status pengiriman...",
+        ];
+      }
+
+      if (key.includes("image")) {
+        return [
+          "Sedang membaca foto produk...",
+          "Sedang mengambil ciri visual dari gambar...",
+          "Sedang mencocokkan dengan katalog Robot Jadul...",
+        ];
+      }
+
+      return [
+        "⏳ Sedang memahami pertanyaan kamu...",
+        "🔎 Sedang mencari data yang relevan...",
+        "✅ Sedang menyiapkan jawaban terbaik...",
+      ];
+    }
+
+    // ==============================
+    // ADD MESSAGE (WITH SAVE)
+    // ==============================
+    function addUserMessage(text, imageDataUrl = "") {
+      renderUser(text, imageDataUrl);
+      chatHistory.push({ type: "user", text });
+      saveChat();
+
+      scrollBottom(); // ✅ langsung scroll ke pertanyaan user
+    }
+
+    function addBotText(text, intent = null) {
+      renderBotText(text, intent);
+      chatHistory.push({ type: "bot", text, intent });
+      saveChat();
+    }
+
+    function addSuggestions(message, suggestions, intent = null) {
+      addBotText(message, intent);
+      renderSuggestions({ suggestions });
+
+      chatHistory.push({
+        type: "suggestions",
+        message,
+        suggestions,
+        intent,
+      });
+
+      saveChat();
+    }
+
+    function addActionSuggestions(suggestions, intent = null) {
+      if (!Array.isArray(suggestions) || !suggestions.length) return;
+
+      renderSuggestions({ suggestions });
+      chatHistory.push({
+        type: "suggestions",
+        message: "",
+        suggestions,
+        intent,
+      });
+      saveChat();
+    }
+
+    function addProducts(payload) {
+      if (payload.intro) renderBotText(payload.intro, payload.intent || null);
+      if (payload.message)
+        renderBotText(payload.message, payload.intent || null);
+
+      renderProducts(payload.products || []);
+
+      if (payload.reasoning_text)
+        renderBotText(payload.reasoning_text, payload.intent || null);
+      if (payload.closing)
+        renderBotText(payload.closing, payload.intent || null);
+
+      chatHistory.push({
+        type: "products",
+        intro: payload.intro || "",
+        message: payload.message || "",
+        products: payload.products || [],
+        reasoning_text: payload.reasoning_text || "",
+        closing: payload.closing || "",
+        intent: payload.intent || null,
+      });
+
+      saveChat();
+    }
+
+    function addPaymentMethods(payload) {
+      renderPaymentMethods(payload);
+
+      chatHistory.push({
+        type: "payment_methods",
+        intro: payload.intro || "",
+        methods: payload.methods || [],
+        closing: payload.closing || "",
+        intent: payload.intent || null,
+      });
+
+      saveChat();
+    }
+
+    function addHowToBuy(steps) {
+      renderHowToBuy(steps);
+      chatHistory.push({ type: "how_to_buy", steps });
+      saveChat();
+    }
+
+    function addCompare(payload) {
+      renderCompare(payload);
+      chatHistory.push({ type: "compare", payload });
+      saveChat();
+    }
+
+    function detectIntentHint(question = "") {
+      const q = String(question).toLowerCase();
+
+      if (
+        q.includes("stok") ||
+        q.includes("ready") ||
+        q.includes("masih ada")
+      ) {
+        return "stock";
+      }
+
+      if (q.includes("harga") || q.includes("promo") || q.includes("diskon")) {
+        return "price";
+      }
+
+      if (
+        q.includes("rekomendasi") ||
+        q.includes("terbaik") ||
+        q.includes("worth it") ||
+        q.includes("paling dicari") ||
+        q.includes("terpopuler")
+      ) {
+        return "recommendation";
+      }
+
+      if (
+        q.includes("resi") ||
+        q.includes("lacak paket") ||
+        q.includes("tracking paket") ||
+        q.includes("sampai mana")
+      ) {
+        return "tracking";
+      }
+
+      if (
+        q.includes("bandingkan") ||
+        q.includes("vs") ||
+        q.includes("versus") ||
+        q.includes("bedanya")
+      ) {
+        return "compare";
+      }
+
+      if (
+        q.includes("ongkir") ||
+        q.includes("kirim") ||
+        q.includes("pengiriman") ||
+        q.includes("checkout")
+      ) {
+        return "shipping";
+      }
+
+      return "general";
+    }
+
+    function getCurrentProductPageContext() {
+      const body = document.body;
+      const isProductPage =
+        body?.classList.contains("single-product") ||
+        /\/product\//i.test(window.location.pathname);
+
+      if (!isProductPage) return null;
+
+      const postIdClass = Array.from(body?.classList || []).find((name) =>
+        /^postid-\d+$/.test(name),
+      );
+      const productId = postIdClass
+        ? Number(postIdClass.replace("postid-", ""))
+        : null;
+      const productName =
+        document
+          .querySelector("h1.product_title, .product_title.entry-title")
+          ?.textContent?.trim() || "";
+      const url =
+        document.querySelector('link[rel="canonical"]')?.href ||
+        window.location.href;
+
+      return {
+        productId,
+        productName: productName.slice(0, 240),
+        url: url.slice(0, 1000),
+      };
+    }
+
+    // ==============================
+    // SEND QUESTION
+    // ==============================
+    window.sendQuestion = async function (forcedQuestion = null, options = {}) {
+      const hasImage = !!selectedImage?.dataUrl;
+      const question =
+        (forcedQuestion || input?.value || "").trim() ||
+        (hasImage ? "Tolong carikan produk yang mirip dengan foto ini" : "");
+      if (!question && !hasImage) return;
+
+      const isSuggestionClick = options.isSuggestionClick === true;
+      const imageToSend = hasImage ? selectedImage : null;
+      const pageContext = getCurrentProductPageContext();
+
+      removeSuggestions();
+
+      addUserMessage(question, imageToSend?.dataUrl || "");
+      input.value = "";
+      input.style.height = "auto";
+      if (hasImage) {
+        selectedImage = null;
+        if (imageInput) imageInput.value = "";
+        renderImagePreview();
+      }
+      scrollBottom();
+
+      try {
+        showThinking(imageToSend ? "image" : detectIntentHint(question));
+        const response = await fetch(
+          imageToSend
+            ? "https://ai-vercel-ten-sigma.vercel.app/api/ask-image"
+            : "https://ai-vercel-ten-sigma.vercel.app/api/ask",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Session-Id": sessionId,
+            },
+            body: JSON.stringify(
+              imageToSend
+                ? {
+                  question,
+                  image: imageToSend.dataUrl,
+                  imageName: imageToSend.name || "",
+                  history: chatHistory.slice(-20),
+                  pageContext,
+                }
+                : {
+                    question,
+                    history: chatHistory.slice(-20),
+                    isSuggestionClick,
+                    pageContext,
+                  },
+            ),
+          },
+        );
+
+        const data = await response.json();
+        console.log("BOT DATA:", data);
+        removeThinking();
+
+        if (data.type === "how_to_buy") {
+          if (data.intro) addBotText(data.intro, data.intent || null);
+          addHowToBuy(data.steps || []);
+          if (data.closing) addBotText(data.closing, data.intent || null);
+        } else if (data.type === "suggestions") {
+          addSuggestions(
+            data.message || "Silakan pilih salah satu pertanyaan berikut 😊",
+            data.suggestions || [],
+            data.intent || null,
+          );
+        } else if (data.type === "products") {
+          addProducts(data);
+        } else if (data.type === "payment_methods") {
+          addPaymentMethods(data);
+        } else if (data.type === "options") {
+          if (data.intro) addBotText(data.intro, data.intent || null);
+          renderOptions("", data.options || []);
+          chatHistory.push({
+            type: "options",
+            intro: data.intro || "",
+            options: data.options || [],
+          });
+          saveChat();
+        } else if (
+          data.type === "compare_reasoned" ||
+          data.type === "compare"
+        ) {
+          addCompare(data); // ✅ render cantik + simpan session
+        } else {
+          addBotText(
+            data.message || data.intro || "Tidak ada jawaban",
+            data.intent || null,
+          );
+        }
+
+        if (
+          data.type !== "suggestions" &&
+          Array.isArray(data.actions) &&
+          data.actions.length
+        ) {
+          addActionSuggestions(data.actions, data.intent || null);
+        }
+      } catch (err) {
+        removeThinking();
+        addBotText("Terjadi kesalahan koneksi.");
+      }
+
+      scrollBottom();
+    };
+
+    // ==============================
+    // ENTER KEY SUPPORT
+    // ==============================
+    if (input) {
+      input.addEventListener("keydown", function (e) {
+        // CTRL + ENTER = baris baru
+        if (e.key === "Enter" && e.shiftKey) {
+          e.preventDefault();
+          const start = this.selectionStart;
+          const end = this.selectionEnd;
+
+          this.value =
+            this.value.substring(0, start) + "\n" + this.value.substring(end);
+
+          this.selectionStart = this.selectionEnd = start + 1;
+          autoResize(this);
+          return;
+        }
+
+        // ENTER = kirim pesan
+        if (e.key === "Enter") {
+          e.preventDefault();
+          window.sendQuestion();
+        }
+      });
+    }
+
+    // ==============================
+    // INIT
+    // ==============================
+
+    loadChat();
+    scrollBottom();
+    // focusInput();
+    setMobileViewportVars();
+
+    if (isFreshSession()) {
+      window.sendQuestion("halo", { isSuggestionClick: false });
+    }
+  });
+</script>

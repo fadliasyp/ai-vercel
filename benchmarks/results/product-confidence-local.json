@@ -1,0 +1,185 @@
+{
+  "endpoint": "local",
+  "generated_at": "2026-08-10T10:30:10.827Z",
+  "passed": 4,
+  "total": 4,
+  "results": [
+    {
+      "id": "confidence_exact_product",
+      "question": "cek stok Soul of Chogokin GX-47T Energer Z Test Type",
+      "expectedIntent": "stock_availability",
+      "expectedProductName": "Soul of Chogokin GX-47T Energer Z Test Type",
+      "minProducts": 1,
+      "expectedMatchStatus": "matched",
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "stock_availability",
+      "type": "products",
+      "productCount": 1,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "productPrices": [
+        2000000
+      ],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "naturalized": true,
+        "reason": "success",
+        "customer_state": "neutral",
+        "router": {
+          "provider": "local_rules_ml"
+        }
+      },
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": {
+        "status": "matched",
+        "confidence": 0.95,
+        "reason": "strong_catalog_match"
+      },
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": null,
+      "requestAttempts": 1,
+      "preview": "Untuk **Soul of Chogokin GX-47T Energer Z Test Type**, stoknya masih **ready stock** ✅."
+    },
+    {
+      "id": "confidence_safe_typo",
+      "question": "cek stok Soul of Chogokinn GX-47T Energerr Z Test Type",
+      "expectedIntent": "stock_availability",
+      "expectedProductName": "Soul of Chogokin GX-47T Energer Z Test Type",
+      "minProducts": 1,
+      "expectedMatchStatus": "matched",
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "stock_availability",
+      "type": "products",
+      "productCount": 1,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "productPrices": [
+        2000000
+      ],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "naturalized": true,
+        "reason": "success",
+        "customer_state": "neutral",
+        "router": {
+          "provider": "local_rules_ml"
+        }
+      },
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": {
+        "status": "matched",
+        "confidence": 0.95,
+        "reason": "strong_catalog_match"
+      },
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": null,
+      "requestAttempts": 1,
+      "preview": "Untuk **Soul of Chogokin GX-47T Energer Z Test Type**, stoknya masih **ready stock** ✅."
+    },
+    {
+      "id": "confidence_ambiguous_series",
+      "question": "cek stok Soul of Chogokin",
+      "expectedIntent": "stock_availability",
+      "expectedType": "options",
+      "minOptions": 2,
+      "maxProducts": 0,
+      "requiredText": [
+        "beberapa produk",
+        "nama atau kode produk"
+      ],
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "stock_availability",
+      "type": "options",
+      "productCount": 0,
+      "optionCount": 3,
+      "optionCountValid": true,
+      "productPrices": [],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "naturalized": false,
+        "reason": "unsafe_rewrite_rejected",
+        "customer_state": "neutral",
+        "router": {
+          "provider": "local_rules_ml"
+        }
+      },
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": null,
+      "requestAttempts": 1,
+      "preview": "Aku menemukan beberapa produk yang sama-sama cocok dengan nama tersebut: - **Soul of Chogokin GX-91 "
+    },
+    {
+      "id": "confidence_unknown_mixed_name",
+      "question": "apakah ada Soul of Chogokin Ultraman Hyper X?",
+      "expectedIntent": "product_discovery",
+      "maxProducts": 0,
+      "requiredAnyText": [
+        "belum ada",
+        "belum menemukan",
+        "belum ditemukan",
+        "tidak tersedia"
+      ],
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "product_discovery",
+      "type": "text",
+      "productCount": 0,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "productPrices": [],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "naturalized": true,
+        "reason": "success",
+        "customer_state": "neutral",
+        "router": {
+          "provider": "groq",
+          "model": "openai/gpt-oss-20b"
+        }
+      },
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": null,
+      "requestAttempts": 1,
+      "preview": "Belum, saat ini **Soul of Chogokin Ultraman Hyper X** tidak tersedia di katalog Robot Jadul. Toko ka"
+    }
+  ]
+}

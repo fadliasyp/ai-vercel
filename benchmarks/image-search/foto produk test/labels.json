@@ -1,0 +1,298 @@
+{
+  "version": 1,
+  "description": "Label foto internet untuk benchmark pencarian gambar Robot Jadul. File berstatus review tidak diimpor sampai identitas visualnya cukup jelas.",
+  "cases": [
+    {
+      "file": "max_factory_gokin_mazinkaiser_misb_chogokin_1563452329_19100a9e_progressive.jpg",
+      "case_id": "internet-full-5387-mazinkaiser-01",
+      "product_id": 5387,
+      "source_type": "internet",
+      "view_type": "full",
+      "notes": "Mazinkaiser Max Gokin, tampilan figur penuh."
+    },
+    {
+      "file": "Mazinger-Mazinkaiser-Max-Factory-Max-Gokin-Mazinkaiser.webp",
+      "case_id": "internet-box-5387-mazinkaiser-02",
+      "product_id": 5387,
+      "source_type": "internet",
+      "view_type": "box",
+      "notes": "Kemasan Mazinkaiser Max Gokin."
+    },
+    {
+      "file": "OIP.jpg",
+      "case_id": "internet-detail-5387-mazinkaiser-03",
+      "product_id": 5387,
+      "source_type": "internet",
+      "view_type": "detail",
+      "notes": "Figur dan aksesori Mazinkaiser dalam tray."
+    },
+    {
+      "file": "figurine-ufo-robo-grendizer-soul-of-chogokin-gx-76x-dc-spazer-set-bandai.jpg",
+      "case_id": "internet-box-5381-grendizer-spazer-01",
+      "product_id": 5381,
+      "source_type": "internet",
+      "view_type": "box",
+      "notes": "Kemasan GX-76X Grendizer D.C. Spazer Set."
+    },
+    {
+      "file": "OIP (1).jpg",
+      "case_id": "internet-box-5381-grendizer-spazer-02",
+      "product_id": 5381,
+      "source_type": "internet",
+      "view_type": "box",
+      "notes": "Dua kemasan GX-76X dari sudut berbeda."
+    },
+    {
+      "file": "OIP (2).jpg",
+      "case_id": "internet-detail-5381-grendizer-spazer-03",
+      "product_id": 5381,
+      "source_type": "internet",
+      "view_type": "detail",
+      "notes": "Spazer dan unit kendaraan tanpa kemasan."
+    },
+    {
+      "file": "OIP (3).jpg",
+      "case_id": "internet-different-angle-5009-black-getter-01",
+      "product_id": 5009,
+      "source_type": "internet",
+      "view_type": "different_angle",
+      "notes": "Fewture Black Getter Changing Set, tampak depan dan belakang."
+    },
+    {
+      "file": "OIP (4).jpg",
+      "case_id": "internet-full-5009-black-getter-02",
+      "product_id": 5009,
+      "source_type": "internet",
+      "view_type": "full",
+      "notes": "Fewture Black Getter Changing Set, tampak figur penuh."
+    },
+    {
+      "file": "OIP (5).jpg",
+      "case_id": "internet-different-angle-5009-black-getter-03",
+      "product_id": 5009,
+      "source_type": "internet",
+      "view_type": "different_angle",
+      "notes": "Fewture Black Getter Changing Set dalam pose berbeda."
+    },
+    {
+      "file": "OIP (6).jpg",
+      "enabled": false,
+      "status": "review",
+      "source_type": "internet",
+      "view_type": "full",
+      "notes": "Foto memuat beberapa robot sekaligus sehingga produk target tidak tunggal."
+    },
+    {
+      "file": "OIP (7).jpg",
+      "case_id": "internet-different-angle-4979-combattler-01",
+      "product_id": 4979,
+      "acceptable_product_ids": [
+        516
+      ],
+      "source_type": "internet",
+      "view_type": "different_angle",
+      "notes": "Combattler V versi vintage; varian toko terdekat SMP atau Soul of Chogokin."
+    },
+    {
+      "file": "OIP (8).jpg",
+      "case_id": "internet-detail-4979-combattler-02",
+      "product_id": 4979,
+      "acceptable_product_ids": [
+        516
+      ],
+      "source_type": "internet",
+      "view_type": "detail",
+      "notes": "Unit kendaraan pembentuk Combattler V; dua varian Combattler di katalog diterima."
+    },
+    {
+      "file": "OIP (9).jpg",
+      "case_id": "internet-full-2003-grendizer-u-01",
+      "product_id": 2003,
+      "source_type": "internet",
+      "view_type": "full",
+      "notes": "Grendizer U, figur penuh."
+    },
+    {
+      "file": "uR0nr0fU9f064nN7-_HqO0iqIoRgscqjNOigiSwCeVk.webp",
+      "case_id": "internet-detail-2003-grendizer-u-02",
+      "product_id": 2003,
+      "source_type": "internet",
+      "view_type": "detail",
+      "notes": "Grendizer U dengan aksesori."
+    },
+    {
+      "file": "OIP (10).jpg",
+      "case_id": "internet-box-2003-grendizer-u-03",
+      "product_id": 2003,
+      "source_type": "internet",
+      "view_type": "box",
+      "notes": "Kemasan Grendizer U."
+    },
+    {
+      "file": "OIP (11).jpg",
+      "case_id": "internet-crop-3346-vcd-black-getter-01",
+      "product_id": 3346,
+      "source_type": "internet",
+      "view_type": "crop",
+      "notes": "Close-up kepala dan badan VCD Black Getter."
+    },
+    {
+      "file": "OIP (12).jpg",
+      "case_id": "internet-full-3346-vcd-black-getter-02",
+      "product_id": 3346,
+      "source_type": "internet",
+      "view_type": "full",
+      "notes": "VCD Black Getter dalam pose penuh."
+    },
+    {
+      "file": "OIP (13).jpg",
+      "case_id": "internet-crop-3346-vcd-black-getter-03",
+      "product_id": 3346,
+      "source_type": "internet",
+      "view_type": "crop",
+      "notes": "Close-up kaki dan badan bawah VCD Black Getter."
+    },
+    {
+      "file": "$_12.jpg",
+      "case_id": "internet-full-4979-combattler-03",
+      "product_id": 4979,
+      "acceptable_product_ids": [
+        516
+      ],
+      "source_type": "internet",
+      "view_type": "full",
+      "notes": "Combattler V vintage; varian toko terdekat SMP atau Soul of Chogokin."
+    },
+    {
+      "file": "OIP (14).jpg",
+      "case_id": "internet-box-4979-combattler-04",
+      "product_id": 4979,
+      "acceptable_product_ids": [
+        516
+      ],
+      "source_type": "internet",
+      "view_type": "box",
+      "notes": "Artwork produk Combattler V vintage."
+    },
+    {
+      "file": "OIP (15).jpg",
+      "case_id": "internet-full-1974-voltes-v-legacy-01",
+      "product_id": 1974,
+      "source_type": "internet",
+      "view_type": "full",
+      "notes": "Robot Damashii Voltes V Legacy, figur penuh."
+    },
+    {
+      "file": "OIP (16).jpg",
+      "case_id": "internet-box-4979-combattler-smp-05",
+      "product_id": 4979,
+      "source_type": "internet",
+      "view_type": "box",
+      "notes": "Kemasan SMP Combattler V Let's Combine Set."
+    },
+    {
+      "file": "OIP (17).jpg",
+      "case_id": "internet-detail-4979-combattler-smp-06",
+      "product_id": 4979,
+      "source_type": "internet",
+      "view_type": "detail",
+      "notes": "Isi dan komponen SMP Combattler V Let's Combine Set."
+    },
+    {
+      "file": "OIP (18).jpg",
+      "case_id": "internet-different-angle-1974-voltes-v-legacy-02",
+      "product_id": 1974,
+      "source_type": "internet",
+      "view_type": "different_angle",
+      "notes": "Robot Damashii Voltes V Legacy dalam pose berbeda."
+    },
+    {
+      "file": "OIP (19).jpg",
+      "case_id": "internet-full-4483-sasuraiger-01",
+      "product_id": 4483,
+      "source_type": "internet",
+      "view_type": "full",
+      "notes": "Vintage Sasuraiger Mastertec, figur penuh."
+    },
+    {
+      "file": "OIP (20).jpg",
+      "case_id": "internet-different-angle-4483-sasuraiger-02",
+      "product_id": 4483,
+      "source_type": "internet",
+      "view_type": "different_angle",
+      "notes": "Vintage Sasuraiger Mastertec dalam pose berbeda."
+    },
+    {
+      "file": "OIP (21).jpg",
+      "case_id": "internet-different-angle-4483-sasuraiger-03",
+      "product_id": 4483,
+      "source_type": "internet",
+      "view_type": "different_angle",
+      "notes": "Vintage Sasuraiger Mastertec dengan pedang."
+    },
+    {
+      "file": "OIP (22).jpg",
+      "case_id": "internet-full-4965-kamen-rider-black-rx-01",
+      "product_id": 4965,
+      "source_type": "internet",
+      "view_type": "full",
+      "notes": "Kamen Rider Black RX, figur penuh."
+    },
+    {
+      "file": "OIP (23).jpg",
+      "case_id": "internet-box-4965-kamen-rider-black-rx-02",
+      "product_id": 4965,
+      "source_type": "internet",
+      "view_type": "box",
+      "notes": "Kemasan SHF Kamen Rider Black RX."
+    },
+    {
+      "file": "OIP (24).jpg",
+      "case_id": "internet-box-4965-kamen-rider-black-rx-03",
+      "product_id": 4965,
+      "source_type": "internet",
+      "view_type": "box",
+      "notes": "Kemasan dan figur SHF Kamen Rider Black RX."
+    },
+    {
+      "file": "OIP (25).jpg",
+      "case_id": "negative-full-gundam-01",
+      "negative": true,
+      "source_type": "negative",
+      "view_type": "full",
+      "notes": "Karakter Gundam yang tidak ditemukan sebagai produk di katalog."
+    },
+    {
+      "file": "OIP (26).jpg",
+      "case_id": "negative-full-gundam-02",
+      "negative": true,
+      "source_type": "negative",
+      "view_type": "full",
+      "notes": "Karakter Gundam versi proporsi berbeda yang tidak ditemukan di katalog."
+    },
+    {
+      "file": "OIP (27).jpg",
+      "case_id": "negative-full-gundam-03",
+      "negative": true,
+      "source_type": "negative",
+      "view_type": "full",
+      "notes": "Mecha Gundam merah yang tidak ditemukan sebagai produk di katalog."
+    },
+    {
+      "file": "OIP (28).jpg",
+      "case_id": "negative-full-ultraman-01",
+      "negative": true,
+      "source_type": "negative",
+      "view_type": "full",
+      "notes": "Karakter Ultraman yang tidak ditemukan sebagai produk di katalog."
+    },
+    {
+      "file": "OIP (29).jpg",
+      "case_id": "negative-full-ultraman-02",
+      "negative": true,
+      "source_type": "negative",
+      "view_type": "full",
+      "notes": "Sekelompok karakter Ultraman yang tidak ditemukan sebagai produk di katalog."
+    }
+  ]
+}

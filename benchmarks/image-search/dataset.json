@@ -1,0 +1,668 @@
+{
+  "version": 1,
+  "name": "Robot Jadul Image Search Benchmark",
+  "description": "Dataset foto independen untuk mengukur akurasi pencarian produk melalui gambar.",
+  "cases": [
+    {
+      "id": "store-full-5480-reference",
+      "enabled": true,
+      "image": "images/store-full-5480-reference.jpg",
+      "source_type": "store",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama dengan foto referensi katalog ini.",
+      "expected": {
+        "product_id": 5480,
+        "product_name": "Soul of Chogokin GX-91 Getter 2 &amp; 3 Dynamic Classic",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Baseline foto katalog. Jangan dipakai sebagai bukti akurasi foto internet."
+    },
+    {
+      "id": "store-full-5020-reference",
+      "enabled": true,
+      "image": "images/store-full-5020-reference.jpg",
+      "source_type": "store",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama dengan foto referensi katalog ini.",
+      "expected": {
+        "product_id": 5020,
+        "product_name": "Fewture Getter Set 1,2,3 Black Version",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Baseline foto katalog. Jangan dipakai sebagai bukti akurasi foto internet."
+    },
+    {
+      "id": "store-full-4819-reference",
+      "enabled": true,
+      "image": "images/store-full-4819-reference.jpg",
+      "source_type": "store",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama dengan foto referensi katalog ini.",
+      "expected": {
+        "product_id": 4819,
+        "product_name": "Transformers Masterpiece MP-25L LOUDPEDAL Takara Tomy",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Baseline foto katalog. Jangan dipakai sebagai bukti akurasi foto internet."
+    },
+    {
+      "id": "store-full-4649-reference",
+      "enabled": true,
+      "image": "images/store-full-4649-reference.jpg",
+      "source_type": "store",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama dengan foto referensi katalog ini.",
+      "expected": {
+        "product_id": 4649,
+        "product_name": "Mecha Labo Sengoku Majin Goshogun",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Baseline foto katalog. Jangan dipakai sebagai bukti akurasi foto internet."
+    },
+    {
+      "id": "store-full-4539-reference",
+      "enabled": true,
+      "image": "images/store-full-4539-reference.jpg",
+      "source_type": "store",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama dengan foto referensi katalog ini.",
+      "expected": {
+        "product_id": 4539,
+        "product_name": "DX Chogokin Biorobo",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Baseline foto katalog. Jangan dipakai sebagai bukti akurasi foto internet."
+    },
+    {
+      "id": "store-full-4454-reference",
+      "enabled": true,
+      "image": "images/store-full-4454-reference.jpg",
+      "source_type": "store",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama dengan foto referensi katalog ini.",
+      "expected": {
+        "product_id": 4454,
+        "product_name": "SATURN The 13 Inch Giant Walking Robot",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Baseline foto katalog. Jangan dipakai sebagai bukti akurasi foto internet."
+    },
+    {
+      "id": "store-full-4375-reference",
+      "enabled": true,
+      "image": "images/store-full-4375-reference.jpg",
+      "source_type": "store",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama dengan foto referensi katalog ini.",
+      "expected": {
+        "product_id": 4375,
+        "product_name": "Custom Action Figure Megaloman",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Baseline foto katalog. Jangan dipakai sebagai bukti akurasi foto internet."
+    },
+    {
+      "id": "store-full-4301-reference",
+      "enabled": true,
+      "image": "images/store-full-4301-reference.jpg",
+      "source_type": "store",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama dengan foto referensi katalog ini.",
+      "expected": {
+        "product_id": 4301,
+        "product_name": "HG Plastic Model Kit Getter ARC Bandai",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Baseline foto katalog. Jangan dipakai sebagai bukti akurasi foto internet."
+    },
+    {
+      "id": "store-full-4197-reference",
+      "enabled": true,
+      "image": "images/store-full-4197-reference.jpg",
+      "source_type": "store",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama dengan foto referensi katalog ini.",
+      "expected": {
+        "product_id": 4197,
+        "product_name": "Super Robot Chogokin Gaogaigar Key of Victory Set 1",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Baseline foto katalog. Jangan dipakai sebagai bukti akurasi foto internet."
+    },
+    {
+      "id": "store-full-1994-reference",
+      "enabled": true,
+      "image": "images/store-full-1994-reference.jpg",
+      "source_type": "store",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama dengan foto referensi katalog ini.",
+      "expected": {
+        "product_id": 1994,
+        "product_name": "Shokugan Modeling Project : Tosho Daimos",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Baseline foto katalog. Jangan dipakai sebagai bukti akurasi foto internet."
+    },
+    {
+      "id": "internet-full-5387-mazinkaiser-01",
+      "enabled": true,
+      "image": "images/internet-full-5387-mazinkaiser-01.jpg",
+      "source_type": "internet",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 5387,
+        "product_name": "Mazinkaiser Max Gokin By Max Factory",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Mazinkaiser Max Gokin, tampilan figur penuh."
+    },
+    {
+      "id": "internet-box-5387-mazinkaiser-02",
+      "enabled": true,
+      "image": "images/internet-box-5387-mazinkaiser-02.webp",
+      "source_type": "internet",
+      "view_type": "box",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 5387,
+        "product_name": "Mazinkaiser Max Gokin By Max Factory",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Kemasan Mazinkaiser Max Gokin."
+    },
+    {
+      "id": "internet-detail-5387-mazinkaiser-03",
+      "enabled": true,
+      "image": "images/internet-detail-5387-mazinkaiser-03.jpg",
+      "source_type": "internet",
+      "view_type": "detail",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 5387,
+        "product_name": "Mazinkaiser Max Gokin By Max Factory",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Figur dan aksesori Mazinkaiser dalam tray."
+    },
+    {
+      "id": "internet-box-5381-grendizer-spazer-01",
+      "enabled": true,
+      "image": "images/internet-box-5381-grendizer-spazer-01.jpg",
+      "source_type": "internet",
+      "view_type": "box",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 5381,
+        "product_name": "Soul of Chogokin GX-76X Grendizer D.C. Spazer Set",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Kemasan GX-76X Grendizer D.C. Spazer Set."
+    },
+    {
+      "id": "internet-box-5381-grendizer-spazer-02",
+      "enabled": true,
+      "image": "images/internet-box-5381-grendizer-spazer-02.jpg",
+      "source_type": "internet",
+      "view_type": "box",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 5381,
+        "product_name": "Soul of Chogokin GX-76X Grendizer D.C. Spazer Set",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Dua kemasan GX-76X dari sudut berbeda."
+    },
+    {
+      "id": "internet-detail-5381-grendizer-spazer-03",
+      "enabled": true,
+      "image": "images/internet-detail-5381-grendizer-spazer-03.jpg",
+      "source_type": "internet",
+      "view_type": "detail",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 5381,
+        "product_name": "Soul of Chogokin GX-76X Grendizer D.C. Spazer Set",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Spazer dan unit kendaraan tanpa kemasan."
+    },
+    {
+      "id": "internet-different-angle-5009-black-getter-01",
+      "enabled": true,
+      "image": "images/internet-different-angle-5009-black-getter-01.jpg",
+      "source_type": "internet",
+      "view_type": "different_angle",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 5009,
+        "product_name": "Fewture Shin Getter 1 Changing Black Getter",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Fewture Black Getter Changing Set, tampak depan dan belakang."
+    },
+    {
+      "id": "internet-full-5009-black-getter-02",
+      "enabled": true,
+      "image": "images/internet-full-5009-black-getter-02.jpg",
+      "source_type": "internet",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 5009,
+        "product_name": "Fewture Shin Getter 1 Changing Black Getter",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Fewture Black Getter Changing Set, tampak figur penuh."
+    },
+    {
+      "id": "internet-different-angle-5009-black-getter-03",
+      "enabled": true,
+      "image": "images/internet-different-angle-5009-black-getter-03.jpg",
+      "source_type": "internet",
+      "view_type": "different_angle",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 5009,
+        "product_name": "Fewture Shin Getter 1 Changing Black Getter",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Fewture Black Getter Changing Set dalam pose berbeda."
+    },
+    {
+      "id": "internet-different-angle-4979-combattler-01",
+      "enabled": true,
+      "image": "images/internet-different-angle-4979-combattler-01.jpg",
+      "source_type": "internet",
+      "view_type": "different_angle",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 4979,
+        "product_name": "Combattler V Shokugan Modeling Project Let's Combine Set",
+        "acceptable_product_ids": [
+          516
+        ],
+        "acceptable_product_names": [
+          "Soul of Chogokin GX-50SP Combattler V 50th Anniversary"
+        ]
+      },
+      "notes": "Combattler V versi vintage; varian toko terdekat SMP atau Soul of Chogokin."
+    },
+    {
+      "id": "internet-detail-4979-combattler-02",
+      "enabled": true,
+      "image": "images/internet-detail-4979-combattler-02.jpg",
+      "source_type": "internet",
+      "view_type": "detail",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 4979,
+        "product_name": "Combattler V Shokugan Modeling Project Let's Combine Set",
+        "acceptable_product_ids": [
+          516
+        ],
+        "acceptable_product_names": [
+          "Soul of Chogokin GX-50SP Combattler V 50th Anniversary"
+        ]
+      },
+      "notes": "Unit kendaraan pembentuk Combattler V; dua varian Combattler di katalog diterima."
+    },
+    {
+      "id": "internet-full-2003-grendizer-u-01",
+      "enabled": true,
+      "image": "images/internet-full-2003-grendizer-u-01.jpg",
+      "source_type": "internet",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 2003,
+        "product_name": "Shokugan Modeling Project Grendizer U",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Grendizer U, figur penuh."
+    },
+    {
+      "id": "internet-detail-2003-grendizer-u-02",
+      "enabled": true,
+      "image": "images/internet-detail-2003-grendizer-u-02.webp",
+      "source_type": "internet",
+      "view_type": "detail",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 2003,
+        "product_name": "Shokugan Modeling Project Grendizer U",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Grendizer U dengan aksesori."
+    },
+    {
+      "id": "internet-box-2003-grendizer-u-03",
+      "enabled": true,
+      "image": "images/internet-box-2003-grendizer-u-03.jpg",
+      "source_type": "internet",
+      "view_type": "box",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 2003,
+        "product_name": "Shokugan Modeling Project Grendizer U",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Kemasan Grendizer U."
+    },
+    {
+      "id": "internet-crop-3346-vcd-black-getter-01",
+      "enabled": true,
+      "image": "images/internet-crop-3346-vcd-black-getter-01.jpg",
+      "source_type": "internet",
+      "view_type": "crop",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 3346,
+        "product_name": "Vinyl Collectible Dolls Shin Getter Armagedon : Black Getter",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Close-up kepala dan badan VCD Black Getter."
+    },
+    {
+      "id": "internet-full-3346-vcd-black-getter-02",
+      "enabled": true,
+      "image": "images/internet-full-3346-vcd-black-getter-02.jpg",
+      "source_type": "internet",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 3346,
+        "product_name": "Vinyl Collectible Dolls Shin Getter Armagedon : Black Getter",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "VCD Black Getter dalam pose penuh."
+    },
+    {
+      "id": "internet-crop-3346-vcd-black-getter-03",
+      "enabled": true,
+      "image": "images/internet-crop-3346-vcd-black-getter-03.jpg",
+      "source_type": "internet",
+      "view_type": "crop",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 3346,
+        "product_name": "Vinyl Collectible Dolls Shin Getter Armagedon : Black Getter",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Close-up kaki dan badan bawah VCD Black Getter."
+    },
+    {
+      "id": "internet-full-4979-combattler-03",
+      "enabled": true,
+      "image": "images/internet-full-4979-combattler-03.jpg",
+      "source_type": "internet",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 4979,
+        "product_name": "Combattler V Shokugan Modeling Project Let's Combine Set",
+        "acceptable_product_ids": [
+          516
+        ],
+        "acceptable_product_names": [
+          "Soul of Chogokin GX-50SP Combattler V 50th Anniversary"
+        ]
+      },
+      "notes": "Combattler V vintage; varian toko terdekat SMP atau Soul of Chogokin."
+    },
+    {
+      "id": "internet-box-4979-combattler-04",
+      "enabled": true,
+      "image": "images/internet-box-4979-combattler-04.jpg",
+      "source_type": "internet",
+      "view_type": "box",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 4979,
+        "product_name": "Combattler V Shokugan Modeling Project Let's Combine Set",
+        "acceptable_product_ids": [
+          516
+        ],
+        "acceptable_product_names": [
+          "Soul of Chogokin GX-50SP Combattler V 50th Anniversary"
+        ]
+      },
+      "notes": "Artwork produk Combattler V vintage."
+    },
+    {
+      "id": "internet-full-1974-voltes-v-legacy-01",
+      "enabled": true,
+      "image": "images/internet-full-1974-voltes-v-legacy-01.jpg",
+      "source_type": "internet",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 1974,
+        "product_name": "Robot Damashii Voltes V Legacy",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Robot Damashii Voltes V Legacy, figur penuh."
+    },
+    {
+      "id": "internet-box-4979-combattler-smp-05",
+      "enabled": true,
+      "image": "images/internet-box-4979-combattler-smp-05.jpg",
+      "source_type": "internet",
+      "view_type": "box",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 4979,
+        "product_name": "Combattler V Shokugan Modeling Project Let's Combine Set",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Kemasan SMP Combattler V Let's Combine Set."
+    },
+    {
+      "id": "internet-detail-4979-combattler-smp-06",
+      "enabled": true,
+      "image": "images/internet-detail-4979-combattler-smp-06.jpg",
+      "source_type": "internet",
+      "view_type": "detail",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 4979,
+        "product_name": "Combattler V Shokugan Modeling Project Let's Combine Set",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Isi dan komponen SMP Combattler V Let's Combine Set."
+    },
+    {
+      "id": "internet-different-angle-1974-voltes-v-legacy-02",
+      "enabled": true,
+      "image": "images/internet-different-angle-1974-voltes-v-legacy-02.jpg",
+      "source_type": "internet",
+      "view_type": "different_angle",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 1974,
+        "product_name": "Robot Damashii Voltes V Legacy",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Robot Damashii Voltes V Legacy dalam pose berbeda."
+    },
+    {
+      "id": "internet-full-4483-sasuraiger-01",
+      "enabled": true,
+      "image": "images/internet-full-4483-sasuraiger-01.jpg",
+      "source_type": "internet",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 4483,
+        "product_name": "Vintage Sasuraiger Mastertec Toys",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Vintage Sasuraiger Mastertec, figur penuh."
+    },
+    {
+      "id": "internet-different-angle-4483-sasuraiger-02",
+      "enabled": true,
+      "image": "images/internet-different-angle-4483-sasuraiger-02.jpg",
+      "source_type": "internet",
+      "view_type": "different_angle",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 4483,
+        "product_name": "Vintage Sasuraiger Mastertec Toys",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Vintage Sasuraiger Mastertec dalam pose berbeda."
+    },
+    {
+      "id": "internet-different-angle-4483-sasuraiger-03",
+      "enabled": true,
+      "image": "images/internet-different-angle-4483-sasuraiger-03.jpg",
+      "source_type": "internet",
+      "view_type": "different_angle",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 4483,
+        "product_name": "Vintage Sasuraiger Mastertec Toys",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Vintage Sasuraiger Mastertec dengan pedang."
+    },
+    {
+      "id": "internet-full-4965-kamen-rider-black-rx-01",
+      "enabled": true,
+      "image": "images/internet-full-4965-kamen-rider-black-rx-01.jpg",
+      "source_type": "internet",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 4965,
+        "product_name": "SHF Kamen Rider Black RX",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Kamen Rider Black RX, figur penuh."
+    },
+    {
+      "id": "internet-box-4965-kamen-rider-black-rx-02",
+      "enabled": true,
+      "image": "images/internet-box-4965-kamen-rider-black-rx-02.jpg",
+      "source_type": "internet",
+      "view_type": "box",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 4965,
+        "product_name": "SHF Kamen Rider Black RX",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Kemasan SHF Kamen Rider Black RX."
+    },
+    {
+      "id": "internet-box-4965-kamen-rider-black-rx-03",
+      "enabled": true,
+      "image": "images/internet-box-4965-kamen-rider-black-rx-03.jpg",
+      "source_type": "internet",
+      "view_type": "box",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 4965,
+        "product_name": "SHF Kamen Rider Black RX",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Kemasan dan figur SHF Kamen Rider Black RX."
+    },
+    {
+      "id": "negative-full-gundam-01",
+      "enabled": true,
+      "image": "images/negative-full-gundam-01.jpg",
+      "source_type": "negative",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "no_match": true
+      },
+      "notes": "Karakter Gundam yang tidak ditemukan sebagai produk di katalog."
+    },
+    {
+      "id": "negative-full-gundam-02",
+      "enabled": true,
+      "image": "images/negative-full-gundam-02.jpg",
+      "source_type": "negative",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "no_match": true
+      },
+      "notes": "Karakter Gundam versi proporsi berbeda yang tidak ditemukan di katalog."
+    },
+    {
+      "id": "negative-full-gundam-03",
+      "enabled": true,
+      "image": "images/negative-full-gundam-03.jpg",
+      "source_type": "negative",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "no_match": true
+      },
+      "notes": "Mecha Gundam merah yang tidak ditemukan sebagai produk di katalog."
+    },
+    {
+      "id": "negative-full-ultraman-01",
+      "enabled": true,
+      "image": "images/negative-full-ultraman-01.jpg",
+      "source_type": "negative",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "no_match": true
+      },
+      "notes": "Karakter Ultraman yang tidak ditemukan sebagai produk di katalog."
+    },
+    {
+      "id": "negative-full-ultraman-02",
+      "enabled": true,
+      "image": "images/negative-full-ultraman-02.jpg",
+      "source_type": "negative",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "no_match": true
+      },
+      "notes": "Sekelompok karakter Ultraman yang tidak ditemukan sebagai produk di katalog."
+    }
+  ]
+}

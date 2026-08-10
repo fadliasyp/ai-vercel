@@ -1,0 +1,260 @@
+{
+  "version": 1,
+  "source": "Simulasi-pelanggan.md",
+  "conversations": [
+    {
+      "id": "junk-detail",
+      "scenario": "Pemburu JUNK dan suku cadang",
+      "turns": [
+        {
+          "question": "Halo, part tangan kanan Mazinger Z ini masuk JUNK ya? Ada patah di engsel atau cuma lecet cat?",
+          "expect": {
+            "scope": "in_scope",
+            "customer_state": "distressed",
+            "entities": { "conditions": ["JUNK"] }
+          }
+        },
+        {
+          "question": "barang junk ini engselnya pataah atau hanya lecet?",
+          "expect": {
+            "scope": "in_scope",
+            "customer_state": "distressed",
+            "entities": { "conditions": ["JUNK"] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "visual-nostalgia",
+      "scenario": "Nostalgia dan pencarian visual",
+      "turns": [
+        {
+          "question": "Dulu saya punya robot di foto ini, tapi lupa serinya. Carikan yang mirip dengan budget di bawah 2 juta.",
+          "expect": {
+            "scope": "in_scope",
+            "customer_state": "confused",
+            "entities": { "budget_max": 2000000 }
+          }
+        },
+        {
+          "question": "lupa nama robotnya, tolong cariin dari foto yang saya kirim max 2jt",
+          "expect": {
+            "scope": "in_scope",
+            "customer_state": "confused",
+            "entities": { "budget_max": 2000000 }
+          }
+        }
+      ]
+    },
+    {
+      "id": "secure-shipping",
+      "scenario": "Pengiriman produk premium",
+      "turns": [
+        {
+          "question": "Ongkir ke Surabaya untuk Getter Robo GX-74 berapa? Pengirimannya aman kan, bisa asuransi dan packing kayu?",
+          "expect": {
+            "scope": "in_scope",
+            "explicit_intent": "shipping_transaction",
+            "customer_state": "worried",
+            "entities": { "shipping_destination": "Surabaya" },
+            "signals": {
+              "shipping_quote": true,
+              "insurance": true,
+              "packing_protection": true,
+              "transaction_policy": true
+            },
+            "policy_includes": ["Asuransi Pengiriman", "Packing kayu"]
+          },
+          "context_after": {
+            "lastIntent": "shipping_transaction",
+            "pendingType": "shipping_quote"
+          }
+        },
+        {
+          "question": "Surabaya, Wonokromo",
+          "expect": {
+            "signals": { "shipping_quote_followup": true },
+            "entities": {
+              "followup_city": "Surabaya",
+              "followup_district": "Wonokromo"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "order-status",
+      "scenario": "Pembeli tidak sabar menunggu pesanan",
+      "turns": [
+        {
+          "question": "Cek status pesanan Order #5007 dong, kok dari kemarin belum dikirim?",
+          "expect": {
+            "scope": "in_scope",
+            "explicit_intent": "transaction_status",
+            "customer_state": "worried",
+            "entities": { "order_id": "5007" },
+            "signals": { "transaction_status": true },
+            "policy_includes": ["email atau nomor telepon tagihan"]
+          },
+          "context_after": {
+            "lastIntent": "transaction_status",
+            "pendingType": "transaction_status"
+          }
+        },
+        {
+          "question": "email tagihan saya pelanggan@example.invalid",
+          "expect": {
+            "signals": { "order_verification": true }
+          }
+        }
+      ]
+    },
+    {
+      "id": "store-visit",
+      "scenario": "Pemeriksaan produk di toko fisik",
+      "turns": [
+        {
+          "question": "Toko fisiknya di Blok M Square lantai berapa dan blok apa? Hari ini buka sampai jam berapa?",
+          "expect": {
+            "scope": "in_scope",
+            "signals": { "store_location": true, "store_hours": true },
+            "policy_includes": ["lantai 3A", "11.00-20.00 WIB"]
+          }
+        },
+        {
+          "question": "tokonya di blok m lantai brp, tutup jam brp?",
+          "expect": {
+            "scope": "in_scope",
+            "signals": { "store_location": true, "store_hours": true }
+          }
+        }
+      ]
+    },
+    {
+      "id": "return-damaged",
+      "scenario": "Pembeli panik mengajukan retur",
+      "turns": [
+        {
+          "question": "Pesanan Getter Robo baru sampai, tapi cat dadanya terkelupas padahal dibilang mint. Bisa retur dan uang saya kembali?",
+          "expect": {
+            "scope": "in_scope",
+            "customer_state": "distressed",
+            "signals": { "return_policy": true },
+            "policy_includes": ["2 x 24 jam", "1-3 hari kerja", "3-7 hari kerja", "tidak otomatis disetujui"]
+          }
+        },
+        {
+          "question": "barangnya caccat dan tidak sesuai deskripsi, bisa refund ga?",
+          "expect": {
+            "scope": "in_scope",
+            "customer_state": "distressed",
+            "signals": { "return_policy": true }
+          }
+        }
+      ]
+    },
+    {
+      "id": "gift-recommendation",
+      "scenario": "Pemula mencari kado",
+      "turns": [
+        {
+          "question": "Saya bingung cari kado untuk suami yang suka robot 80an. Rekomendasikan yang cocok untuk pajangan, budget sekitar 3 jutaan.",
+          "expect": {
+            "scope": "in_scope",
+            "explicit_intent": "recommendation",
+            "customer_state": "confused",
+            "entities": { "budget_max": 3000000 },
+            "signals": { "recommendation": true }
+          },
+          "context_after": {
+            "lastIntent": "recommendation",
+            "hasRecentProducts": true
+          }
+        },
+        {
+          "question": "yang ready dan paling cocok buat display yang mana?",
+          "expect": {
+            "scope": "in_scope",
+            "explicit_intent": "stock_availability",
+            "signals": { "recommendation": true }
+          }
+        }
+      ]
+    },
+    {
+      "id": "safe-payment",
+      "scenario": "Keraguan finansial pelanggan",
+      "turns": [
+        {
+          "question": "Barangnya mahal sampai 8 juta. Bisa COD tidak? Metode pembayaran apa saja yang aman?",
+          "expect": {
+            "scope": "in_scope",
+            "customer_state": "neutral",
+            "signals": {
+              "cod": true,
+              "payment_methods": true,
+              "transaction_policy": true
+            },
+            "policy_includes": ["COD / bayar di tempat belum tersedia", "QRIS"]
+          }
+        },
+        {
+          "question": "kalau bayar pake qris aman ga?",
+          "expect": {
+            "scope": "in_scope",
+            "customer_state": "worried",
+            "signals": { "payment_methods": true, "transaction_policy": true }
+          }
+        }
+      ]
+    },
+    {
+      "id": "promo-urgency",
+      "scenario": "Pembeli impulsif mengejar promo",
+      "turns": [
+        {
+          "question": "Mazinger Z yang diskon masih ready? Kalau bayar sekarang bisa langsung dikirim hari ini?",
+          "expect": {
+            "scope": "in_scope",
+            "explicit_intent": "stock_availability",
+            "customer_state": "urgent",
+            "signals": { "same_day_dispatch": true, "transaction_policy": true },
+            "policy_includes": ["tidak dapat dijamin otomatis", "1-2 hari kerja"]
+          },
+          "context_after": {
+            "lastIntent": "stock_availability",
+            "hasRecentProducts": true
+          }
+        },
+        {
+          "question": "kalau checkout skrg bisa kirim hari ini juga?",
+          "expect": {
+            "scope": "in_scope",
+            "customer_state": "urgent",
+            "signals": { "same_day_dispatch": true }
+          }
+        }
+      ]
+    },
+    {
+      "id": "out-of-domain",
+      "scenario": "Pengguna iseng atau keluar topik",
+      "turns": [
+        {
+          "question": "Robot yang paling kuat menang lawan Godzilla yang mana?",
+          "expect": {
+            "scope": "out_of_scope",
+            "policy_includes": ["di luar topik", "asisten ecommerce Robot Jadul"]
+          }
+        },
+        {
+          "question": "1 + 1 berapa?",
+          "expect": {
+            "scope": "out_of_scope",
+            "policy_includes": ["di luar topik"]
+          }
+        }
+      ]
+    }
+  ]
+}

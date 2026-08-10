@@ -1,0 +1,422 @@
+{
+  "source": "intent-ml-api/Data yg dilatih dan di test/dataset_intent_13_hard_test.csv",
+  "count": 104,
+  "cases": [
+    {
+      "question": "halo min, aku baru mampir nih",
+      "expected_intent": "greeting"
+    },
+    {
+      "question": "permisi kak, boleh tanya sedikit?",
+      "expected_intent": "greeting"
+    },
+    {
+      "question": "hai admin, bantu kasih info ya",
+      "expected_intent": "greeting"
+    },
+    {
+      "question": "pagi, saya mau nanya-nanya dulu",
+      "expected_intent": "greeting"
+    },
+    {
+      "question": "misi, ada yang bisa dibantu?",
+      "expected_intent": "greeting"
+    },
+    {
+      "question": "hello kak admin",
+      "expected_intent": "greeting"
+    },
+    {
+      "question": "sore min, saya baru pertama kali di sini",
+      "expected_intent": "greeting"
+    },
+    {
+      "question": "izin tanya dulu ya kak",
+      "expected_intent": "greeting"
+    },
+    {
+      "question": "kalau dana cuma sekitar sejuta, opsinya apa aja",
+      "expected_intent": "price_promo"
+    },
+    {
+      "question": "under 2 jt ada barang apa yang oke",
+      "expected_intent": "price_promo"
+    },
+    {
+      "question": "lagi ada sale item apa nih",
+      "expected_intent": "price_promo"
+    },
+    {
+      "question": "barang kisaran 700 ribuan apa aja",
+      "expected_intent": "price_promo"
+    },
+    {
+      "question": "diskon untuk produk chogokin bulan ini berapa",
+      "expected_intent": "price_promo"
+    },
+    {
+      "question": "maks budget saya 500rb, dapet apa",
+      "expected_intent": "price_promo"
+    },
+    {
+      "question": "selisih harga mahal dan murahnya karena apa",
+      "expected_intent": "price_promo"
+    },
+    {
+      "question": "harga pas atau masih bisa nego tipis",
+      "expected_intent": "price_promo"
+    },
+    {
+      "question": "ini ori bandai kah",
+      "expected_intent": "product_detail"
+    },
+    {
+      "question": "ukuran exact-nya berapa cm ya",
+      "expected_intent": "product_detail"
+    },
+    {
+      "question": "apakah full diecast",
+      "expected_intent": "product_detail"
+    },
+    {
+      "question": "isi box lengkapnya apa",
+      "expected_intent": "product_detail"
+    },
+    {
+      "question": "bagian tangan-kaki bisa digerakin?",
+      "expected_intent": "product_detail"
+    },
+    {
+      "question": "rilis tahun berapa yang ini",
+      "expected_intent": "product_detail"
+    },
+    {
+      "question": "kondisi item-nya misb atau loose",
+      "expected_intent": "product_detail"
+    },
+    {
+      "question": "edisi ini limited bukan",
+      "expected_intent": "product_detail"
+    },
+    {
+      "question": "ada robot vintage yg ready buat dilihat",
+      "expected_intent": "product_discovery"
+    },
+    {
+      "question": "saya cari voltron, ada pilihan apa",
+      "expected_intent": "product_discovery"
+    },
+    {
+      "question": "lagi nyari chogokin, tersedia apa aja",
+      "expected_intent": "product_discovery"
+    },
+    {
+      "question": "produk bandai di toko ini ada apa saja",
+      "expected_intent": "product_discovery"
+    },
+    {
+      "question": "cari barang display tema robot, ada?",
+      "expected_intent": "product_discovery"
+    },
+    {
+      "question": "mainan robot kisaran sejuta ada tidak",
+      "expected_intent": "product_discovery"
+    },
+    {
+      "question": "ada gundam atau sejenisnya?",
+      "expected_intent": "product_discovery"
+    },
+    {
+      "question": "lagi cari figure robot lawas",
+      "expected_intent": "product_discovery"
+    },
+    {
+      "question": "buat hadiah, enaknya pilih yang mana",
+      "expected_intent": "recommendation"
+    },
+    {
+      "question": "yang paling cocok buat pajangan meja apa",
+      "expected_intent": "recommendation"
+    },
+    {
+      "question": "tolong rekomendasiin yg worth it dong",
+      "expected_intent": "recommendation"
+    },
+    {
+      "question": "kalau buat kolektor baru, bagusnya mulai dari mana",
+      "expected_intent": "recommendation"
+    },
+    {
+      "question": "mending ambil yang mana kalau budget 1 jutaan",
+      "expected_intent": "recommendation"
+    },
+    {
+      "question": "saran robot keren buat display",
+      "expected_intent": "recommendation"
+    },
+    {
+      "question": "yang value for money buat koleksi apa",
+      "expected_intent": "recommendation"
+    },
+    {
+      "question": "menurut admin, yg paling cakep buat pajangan apa",
+      "expected_intent": "recommendation"
+    },
+    {
+      "question": "kalau barang sampai lecet bisa komplain?",
+      "expected_intent": "return_product"
+    },
+    {
+      "question": "proses refund biasanya berapa hari",
+      "expected_intent": "return_product"
+    },
+    {
+      "question": "isi box kurang bisa retur gak",
+      "expected_intent": "return_product"
+    },
+    {
+      "question": "barang gak sesuai foto bisa pengembalian?",
+      "expected_intent": "return_product"
+    },
+    {
+      "question": "salah kirim item bisa tukar barang?",
+      "expected_intent": "return_product"
+    },
+    {
+      "question": "box penyok parah bisa klaim?",
+      "expected_intent": "return_product"
+    },
+    {
+      "question": "aturan refund di toko ini gimana",
+      "expected_intent": "return_product"
+    },
+    {
+      "question": "uang kembali untuk retur kapan masuk",
+      "expected_intent": "return_product"
+    },
+    {
+      "question": "barang dikirim dari kota mana",
+      "expected_intent": "shipping_origin"
+    },
+    {
+      "question": "alamat toko offline kalian di mana",
+      "expected_intent": "shipping_origin"
+    },
+    {
+      "question": "kalau mau pickup langsung ke mana",
+      "expected_intent": "shipping_origin"
+    },
+    {
+      "question": "asal kirim paketnya dari mana ya",
+      "expected_intent": "shipping_origin"
+    },
+    {
+      "question": "warehouse kalian lokasinya di mana",
+      "expected_intent": "shipping_origin"
+    },
+    {
+      "question": "kalian base di kota mana sih",
+      "expected_intent": "shipping_origin"
+    },
+    {
+      "question": "paket nanti berangkat dari mana",
+      "expected_intent": "shipping_origin"
+    },
+    {
+      "question": "bisa info alamat lengkap toko",
+      "expected_intent": "shipping_origin"
+    },
+    {
+      "question": "ongkir ke bekasi kira-kira berapa",
+      "expected_intent": "shipping_transaction"
+    },
+    {
+      "question": "bayarnya bisa qris gak",
+      "expected_intent": "shipping_transaction"
+    },
+    {
+      "question": "kurir yang tersedia apa aja",
+      "expected_intent": "shipping_transaction"
+    },
+    {
+      "question": "cara membeli produk ini gimana",
+      "expected_intent": "shipping_transaction"
+    },
+    {
+      "question": "estimasi nyampe surabaya berapa lama",
+      "expected_intent": "shipping_transaction"
+    },
+    {
+      "question": "barang ini bisa diasuransikan?",
+      "expected_intent": "shipping_transaction"
+    },
+    {
+      "question": "bisa cod atau transfer aja",
+      "expected_intent": "shipping_transaction"
+    },
+    {
+      "question": "kirim pakai jne/jnt ada kah",
+      "expected_intent": "shipping_transaction"
+    },
+    {
+      "question": "masih ready stock kan",
+      "expected_intent": "stock_availability"
+    },
+    {
+      "question": "sisa unitnya ada berapa",
+      "expected_intent": "stock_availability"
+    },
+    {
+      "question": "barang ini sold out belum",
+      "expected_intent": "stock_availability"
+    },
+    {
+      "question": "ready atau po ya item ini",
+      "expected_intent": "stock_availability"
+    },
+    {
+      "question": "restock berikutnya kapan",
+      "expected_intent": "stock_availability"
+    },
+    {
+      "question": "stok gudangnya masih aman?",
+      "expected_intent": "stock_availability"
+    },
+    {
+      "question": "produk ini masih tersedia sekarang",
+      "expected_intent": "stock_availability"
+    },
+    {
+      "question": "udah habis atau masih ada",
+      "expected_intent": "stock_availability"
+    },
+    {
+      "question": "status order 7001 gimana",
+      "expected_intent": "transaction_status"
+    },
+    {
+      "question": "tolong cek pesanan saya udah diproses belum",
+      "expected_intent": "transaction_status"
+    },
+    {
+      "question": "invoice 5120 status pembayarannya apa",
+      "expected_intent": "transaction_status"
+    },
+    {
+      "question": "status proses order 86420 saat ini bagaimana",
+      "expected_intent": "transaction_status"
+    },
+    {
+      "question": "pesanan saya lagi di tahap mana",
+      "expected_intent": "transaction_status"
+    },
+    {
+      "question": "cek orderan terbaru saya dong",
+      "expected_intent": "transaction_status"
+    },
+    {
+      "question": "boleh cek perkembangan pesanan nomor 97531",
+      "expected_intent": "transaction_status"
+    },
+    {
+      "question": "status transaksi saya masih pending kah",
+      "expected_intent": "transaction_status"
+    },
+    {
+      "question": "sekarang pukul berapa ya",
+      "expected_intent": "general"
+    },
+    {
+      "question": "tolong kasih prakiraan cuaca besok",
+      "expected_intent": "general"
+    },
+    {
+      "question": "siapa kepala negara indonesia saat ini",
+      "expected_intent": "general"
+    },
+    {
+      "question": "bantu buat program sederhana dong",
+      "expected_intent": "general"
+    },
+    {
+      "question": "tokonya buka setiap hari atau tidak",
+      "expected_intent": "general"
+    },
+    {
+      "question": "admin robot jadul bisa dihubungi lewat apa",
+      "expected_intent": "general"
+    },
+    {
+      "question": "robot jadul itu toko khusus apa",
+      "expected_intent": "general"
+    },
+    {
+      "question": "ada cabang toko di luar jakarta tidak",
+      "expected_intent": "general"
+    },
+    {
+      "question": "gx 47 sama gx 48 beda apa",
+      "expected_intent": "compare"
+    },
+    {
+      "question": "kalau voltes dan daimos enakan pilih mana",
+      "expected_intent": "compare"
+    },
+    {
+      "question": "tolong komparasi grendizer lawan mazinger",
+      "expected_intent": "compare"
+    },
+    {
+      "question": "antara versi bandai dan takara lebih oke mana",
+      "expected_intent": "compare"
+    },
+    {
+      "question": "figure loose vs misb lebih worth it yang mana",
+      "expected_intent": "compare"
+    },
+    {
+      "question": "dari dua robot tadi mana yang lebih murah",
+      "expected_intent": "compare"
+    },
+    {
+      "question": "produk pertama dibanding kedua unggul mana",
+      "expected_intent": "compare"
+    },
+    {
+      "question": "mau tahu perbedaan getter one dan getter two",
+      "expected_intent": "compare"
+    },
+    {
+      "question": "resi saya JX9988776655 sudah bergerak belum",
+      "expected_intent": "shipment_tracking"
+    },
+    {
+      "question": "paket jne saya sekarang ada di kota mana",
+      "expected_intent": "shipment_tracking"
+    },
+    {
+      "question": "tolong tracking kiriman dengan nomor SC88776655",
+      "expected_intent": "shipment_tracking"
+    },
+    {
+      "question": "barang sudah diserahkan ke kurir tapi belum sampai",
+      "expected_intent": "shipment_tracking"
+    },
+    {
+      "question": "nomor resinya bisa dilacak dari sini tidak",
+      "expected_intent": "shipment_tracking"
+    },
+    {
+      "question": "update terakhir perjalanan paket saya apa",
+      "expected_intent": "shipment_tracking"
+    },
+    {
+      "question": "paket jnt saya kenapa tidak bergerak",
+      "expected_intent": "shipment_tracking"
+    },
+    {
+      "question": "cek posisi kiriman POS77665544",
+      "expected_intent": "shipment_tracking"
+    }
+  ]
+}
