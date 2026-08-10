@@ -1,8 +1,8 @@
 {
   "endpoint": "https://ai-vercel-ten-sigma.vercel.app/api/ask",
-  "generated_at": "2026-08-10T09:57:14.922Z",
-  "passed": 5,
-  "total": 5,
+  "generated_at": "2026-08-10T11:51:37.601Z",
+  "passed": 6,
+  "total": 6,
   "results": [
     {
       "id": "store_visit",
@@ -10,6 +10,7 @@
       "expectedIntent": "general",
       "expectedType": "text",
       "expectedCustomerState": "neutral",
+      "minActions": 3,
       "requiredText": [
         "Blok M Square",
         "3A",
@@ -22,14 +23,20 @@
       "actualIntent": "general",
       "type": "text",
       "productCount": 0,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 3,
+      "actionCountValid": true,
       "productPrices": [],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
       "missingRequiredText": [],
       "presentForbiddenText": [],
       "assistantMeta": {
         "provider": "groq",
         "model": "openai/gpt-oss-20b",
-        "naturalized": true,
-        "reason": "success",
+        "naturalized": false,
+        "reason": "unsafe_rewrite_rejected",
         "customer_state": "neutral",
         "router": {
           "provider": "local_rules_ml"
@@ -37,6 +44,9 @@
       },
       "customerStateValid": true,
       "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
       "coverageValid": true,
       "answerCoverage": null,
       "requestAttempts": 1,
@@ -47,6 +57,7 @@
       "question": "Barang Getter Robo saya terkelupas dan cacat, bisa retur dan refund?",
       "expectedIntent": "return_product",
       "expectedCustomerState": "distressed",
+      "minActions": 3,
       "requiredText": [
         "2 x 24 jam",
         "1-3 hari kerja",
@@ -57,7 +68,13 @@
       "actualIntent": "return_product",
       "type": "text",
       "productCount": 0,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 3,
+      "actionCountValid": true,
       "productPrices": [],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
       "missingRequiredText": [],
       "presentForbiddenText": [],
       "assistantMeta": {
@@ -73,10 +90,78 @@
       },
       "customerStateValid": true,
       "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
       "coverageValid": true,
       "answerCoverage": null,
       "requestAttempts": 1,
       "preview": "Maaf atas kendalanya. Untuk **barang rusak atau cacat**, retur atau refund **bisa diajukan**, tetapi"
+    },
+    {
+      "id": "compound_secure_shipping_multiturn",
+      "questions": [
+        "Ongkir ke Surabaya untuk Getter Robo GX-74 berapa? Pengirimannya aman kan, bisa asuransi dan packing kayu?",
+        "Surabaya, Wonokromo"
+      ],
+      "expectedIntent": "shipping_transaction",
+      "checkCoverage": true,
+      "minRequestedFacets": 3,
+      "question": "Ongkir ke Surabaya untuk Getter Robo GX-74 berapa? Pengirimannya aman kan, bisa asuransi dan packing kayu? -> Surabaya, Wonokromo",
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "shipping_transaction",
+      "type": "text",
+      "productCount": 0,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 0,
+      "actionCountValid": true,
+      "productPrices": [],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "naturalized": true,
+        "reason": "success",
+        "customer_state": "neutral",
+        "router": {
+          "provider": "groq",
+          "model": "openai/gpt-oss-20b"
+        }
+      },
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": {
+        "requested": [
+          "shipping_quote",
+          "insurance",
+          "packing"
+        ],
+        "status": {
+          "shipping_quote": "answered",
+          "insurance": "answered",
+          "packing": "answered"
+        },
+        "answered": [
+          "shipping_quote",
+          "insurance",
+          "packing"
+        ],
+        "clarified": [],
+        "missing": [],
+        "coverage": 1,
+        "passed": true
+      },
+      "requestAttempts": 2,
+      "preview": "Ongkir estimasi (±1kg) ke **SURABAYA - WONOKROMO**: • JNE Reg: Rp 20.000 • Tiki Reg: Rp 19.000 • Pos"
     },
     {
       "id": "compound_product_detail_stock",
@@ -89,9 +174,15 @@
       "actualIntent": "stock_availability",
       "type": "products",
       "productCount": 1,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 3,
+      "actionCountValid": true,
       "productPrices": [
         2000000
       ],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
       "missingRequiredText": [],
       "presentForbiddenText": [],
       "assistantMeta": {
@@ -106,6 +197,13 @@
       },
       "customerStateValid": true,
       "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": {
+        "status": "matched",
+        "confidence": 0.95,
+        "reason": "strong_catalog_match"
+      },
+      "requiredAnyTextValid": true,
       "coverageValid": true,
       "answerCoverage": {
         "requested": [
@@ -142,7 +240,13 @@
       "actualIntent": "shipping_transaction",
       "type": "text",
       "productCount": 0,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 3,
+      "actionCountValid": true,
       "productPrices": [],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
       "missingRequiredText": [],
       "presentForbiddenText": [],
       "assistantMeta": {
@@ -157,6 +261,9 @@
       },
       "customerStateValid": true,
       "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
       "coverageValid": true,
       "answerCoverage": {
         "requested": [
@@ -199,9 +306,15 @@
       "actualIntent": "shipping_transaction",
       "type": "products",
       "productCount": 1,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 0,
+      "actionCountValid": true,
       "productPrices": [
         2000000
       ],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
       "missingRequiredText": [],
       "presentForbiddenText": [],
       "assistantMeta": {
@@ -216,6 +329,13 @@
       },
       "customerStateValid": true,
       "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": {
+        "status": "matched",
+        "confidence": 0.95,
+        "reason": "strong_catalog_match"
+      },
+      "requiredAnyTextValid": true,
       "coverageValid": true,
       "answerCoverage": {
         "requested": [

@@ -141,6 +141,7 @@ import {
   buildCatalogOverview,
   isCatalogOverviewQuestion,
   isPriceOrderingFollowUp,
+  resolveProductQueryScope,
   isStoreAssortmentQuestion,
 } from "../lib/chatbot/catalogIntent.js";
 import {
@@ -5098,6 +5099,13 @@ export default async function handler(req, res) {
     // UNIVERSAL CONVERSATION FOLLOW-UP
     // ===============================
     const universalFollowUp = detectUniversalFollowUp(rawQuestion);
+    const productQueryScope = resolveProductQueryScope(rawQuestion);
+
+    if (universalFollowUp && productQueryScope === "catalog") {
+      clearFollowUpOffer(session);
+      session.lastProducts = null;
+      session.lastTopic = null;
+    }
 
     const PRODUCT_CONTEXT_INTENTS = new Set([
       "product_discovery",
@@ -5109,6 +5117,7 @@ export default async function handler(req, res) {
 
     if (
       universalFollowUp &&
+      productQueryScope !== "catalog" &&
       Array.isArray(session.lastProducts) &&
       session.lastProducts.length > 0 &&
       PRODUCT_CONTEXT_INTENTS.has(session.lastIntent)
@@ -5243,6 +5252,7 @@ export default async function handler(req, res) {
 
     if (
       contextFollowUp &&
+      productQueryScope !== "catalog" &&
       Array.isArray(session.lastProducts) &&
       session.lastProducts.length > 0
     ) {

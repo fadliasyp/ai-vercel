@@ -1,0 +1,383 @@
+{
+  "endpoint": "local",
+  "generated_at": "2026-08-10T12:00:00.717Z",
+  "passed": 8,
+  "total": 8,
+  "results": [
+    {
+      "id": "store_visit",
+      "question": "Saya mau cek langsung kelengkapannya. Toko fisiknya di Blok M Square lantai berapa dan blok apa? Hari ini buka sampai jam berapa?",
+      "expectedIntent": "general",
+      "expectedType": "text",
+      "expectedCustomerState": "neutral",
+      "minActions": 3,
+      "requiredText": [
+        "Blok M Square",
+        "3A",
+        "Blok A",
+        "11.00",
+        "20.00"
+      ],
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "general",
+      "type": "text",
+      "productCount": 0,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 3,
+      "actionCountValid": true,
+      "productPrices": [],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "naturalized": false,
+        "reason": "unsafe_rewrite_rejected",
+        "customer_state": "neutral",
+        "router": {
+          "provider": "local_rules_ml"
+        }
+      },
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": null,
+      "requestAttempts": 1,
+      "preview": "Lokasi toko fisik Robot Jadul: Robot Jadul, Blok M Square lantai 3A, Blok A nomor 36-37, Jl. Melawai"
+    },
+    {
+      "id": "secure_shipping_policy",
+      "question": "barang ini bisa diasuransikan?",
+      "expectedIntent": "shipping_transaction",
+      "expectedCustomerState": "neutral",
+      "expectedNaturalized": true,
+      "minActions": 3,
+      "requiredText": [
+        "asuransi"
+      ],
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "shipping_transaction",
+      "type": "text",
+      "productCount": 0,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 3,
+      "actionCountValid": true,
+      "productPrices": [],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "naturalized": true,
+        "reason": "success",
+        "customer_state": "neutral",
+        "router": {
+          "provider": "local_rules_ml"
+        }
+      },
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": null,
+      "requestAttempts": 1,
+      "preview": "**Asuransi Pengiriman** Pengiriman bisa diasuransikan, terutama untuk produk koleksi atau barang ber"
+    },
+    {
+      "id": "out_of_scope_fiction",
+      "question": "Robot yang paling kuat menang lawan Godzilla yang mana?",
+      "expectedIntent": "general",
+      "expectedType": "text",
+      "requiredText": [
+        "di luar topik"
+      ],
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "general",
+      "type": "text",
+      "productCount": 0,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 0,
+      "actionCountValid": true,
+      "productPrices": [],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "naturalized": true,
+        "reason": "success",
+        "customer_state": "neutral",
+        "router": {
+          "provider": "local_rules_ml"
+        }
+      },
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": null,
+      "requestAttempts": 1,
+      "preview": "Maaf, pertanyaan itu berada di luar topik yang bisa aku bantu sebagai asisten ecommerce Robot Jadul."
+    },
+    {
+      "id": "return_policy",
+      "question": "Barang Getter Robo saya terkelupas dan cacat, bisa retur dan refund?",
+      "expectedIntent": "return_product",
+      "expectedCustomerState": "distressed",
+      "minActions": 3,
+      "requiredText": [
+        "2 x 24 jam",
+        "1-3 hari kerja",
+        "3-7 hari kerja"
+      ],
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "return_product",
+      "type": "text",
+      "productCount": 0,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 3,
+      "actionCountValid": true,
+      "productPrices": [],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "naturalized": false,
+        "reason": "unsafe_rewrite_rejected",
+        "customer_state": "distressed",
+        "router": {
+          "provider": "groq",
+          "model": "openai/gpt-oss-20b"
+        }
+      },
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": null,
+      "requestAttempts": 1,
+      "preview": "Maaf atas kendalanya. Untuk **barang rusak atau cacat**, retur atau refund **bisa diajukan**, tetapi"
+    },
+    {
+      "id": "order_requires_verification",
+      "question": "cek status pesanan Order #5007 dong",
+      "expectedIntent": "transaction_status",
+      "expectedType": "text",
+      "expectedAssistantProvider": "template",
+      "expectedAssistantReason": "sensitive_intent",
+      "requiredText": [
+        "email atau nomor telepon",
+        "tidak disimpan"
+      ],
+      "forbiddenText": [
+        "Status Transaksi Pesanan",
+        "Total:"
+      ],
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "transaction_status",
+      "type": "text",
+      "productCount": 0,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 0,
+      "actionCountValid": true,
+      "productPrices": [],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "template",
+        "naturalized": false,
+        "reason": "sensitive_intent",
+        "customer_state": "neutral",
+        "router": {
+          "provider": "local_rules_ml"
+        }
+      },
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": null,
+      "requestAttempts": 1,
+      "preview": "Untuk melindungi data pesanan **#5007**, kirim **email atau nomor telepon tagihan** yang dipakai saa"
+    },
+    {
+      "id": "catalog_scope_overrides_history",
+      "questions": [
+        "Bro apa aja stok yg ada",
+        "adakah robot termurah disini"
+      ],
+      "expectedIntent": "price_promo",
+      "minProducts": 1,
+      "forbiddenText": [
+        "hasil sebelumnya"
+      ],
+      "question": "Bro apa aja stok yg ada -> adakah robot termurah disini",
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "price_promo",
+      "type": "products",
+      "productCount": 5,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 3,
+      "actionCountValid": true,
+      "productPrices": [
+        150000,
+        225000,
+        250000,
+        275000,
+        500000
+      ],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "naturalized": true,
+        "reason": "success",
+        "customer_state": "neutral",
+        "router": {
+          "provider": "groq",
+          "model": "openai/gpt-oss-20b"
+        }
+      },
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": null,
+      "requestAttempts": 2,
+      "preview": "💸 Ini pilihan produk paling hemat yang aku rekomendasikan: Aku pilih berdasarkan harga yang paling "
+    },
+    {
+      "id": "previous_scope_keeps_history",
+      "questions": [
+        "Bro apa aja stok yg ada",
+        "Urutkan hasil sebelumnya dari harga termurah"
+      ],
+      "expectedIntent": "price_promo",
+      "minProducts": 2,
+      "ascendingPrices": true,
+      "requiredText": [
+        "hasil sebelumnya"
+      ],
+      "question": "Bro apa aja stok yg ada -> Urutkan hasil sebelumnya dari harga termurah",
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "price_promo",
+      "type": "products",
+      "productCount": 3,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 3,
+      "actionCountValid": true,
+      "productPrices": [
+        275000,
+        1350000,
+        1750000
+      ],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "naturalized": true,
+        "reason": "success",
+        "customer_state": "neutral",
+        "router": {
+          "provider": "local_rules_ml"
+        }
+      },
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": null,
+      "requestAttempts": 2,
+      "preview": "Oke, ini yang paling murah dari hasil sebelumnya:"
+    },
+    {
+      "id": "shipping_quote_multiturn",
+      "questions": [
+        "cek ongkir ke Tangerang",
+        "Tangerang, Rajeg"
+      ],
+      "expectedIntent": "shipping_transaction",
+      "question": "cek ongkir ke Tangerang -> Tangerang, Rajeg",
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "shipping_transaction",
+      "type": "text",
+      "productCount": 0,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 0,
+      "actionCountValid": true,
+      "productPrices": [],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "naturalized": true,
+        "reason": "success",
+        "customer_state": "neutral",
+        "router": {
+          "provider": "groq",
+          "model": "openai/gpt-oss-20b"
+        }
+      },
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": null,
+      "requestAttempts": 2,
+      "preview": "Ongkir estimasi (±1kg) ke **KAB.TANGERANG - RAJEG**: • JNE Reg: Rp 10.000 • Tiki Reg: Rp 9.000 • Wah"
+    }
+  ]
+}

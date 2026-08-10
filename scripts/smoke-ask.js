@@ -94,6 +94,27 @@ const CASES = [
     ascendingPrices: true,
   },
   {
+    id: "catalog_scope_overrides_history",
+    questions: [
+      "Bro apa aja stok yg ada",
+      "adakah robot termurah disini",
+    ],
+    expectedIntent: "price_promo",
+    minProducts: 1,
+    forbiddenText: ["hasil sebelumnya"],
+  },
+  {
+    id: "previous_scope_keeps_history",
+    questions: [
+      "Bro apa aja stok yg ada",
+      "Urutkan hasil sebelumnya dari harga termurah",
+    ],
+    expectedIntent: "price_promo",
+    minProducts: 2,
+    ascendingPrices: true,
+    requiredText: ["hasil sebelumnya"],
+  },
+  {
     id: "shipping_quote_multiturn",
     questions: ["cek ongkir ke Tangerang", "Tangerang, Rajeg"],
     expectedIntent: "shipping_transaction",
@@ -174,6 +195,8 @@ const CASES = [
 ];
 
 const CONTROLLED_CASE_IDS = new Set([
+  "catalog_scope_overrides_history",
+  "previous_scope_keeps_history",
   "store_visit",
   "secure_shipping_policy",
   "return_policy",

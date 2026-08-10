@@ -5,6 +5,7 @@ import {
   buildCatalogOverview,
   isCatalogOverviewQuestion,
   isPriceOrderingFollowUp,
+  resolveProductQueryScope,
   isStoreAssortmentQuestion,
 } from "../lib/chatbot/catalogIntent.js";
 import {
@@ -45,6 +46,22 @@ test("recognizes conversational price ordering follow-up", () => {
   assert.equal(isPriceOrderingFollowUp("Iyaa boleh menurut harga"), true);
   assert.equal(isPriceOrderingFollowUp("urutkan berdasarkan harga"), true);
   assert.equal(isPriceOrderingFollowUp("harga GX-91 berapa"), false);
+});
+
+test("distinguishes the whole catalog from previous product results", () => {
+  assert.equal(
+    resolveProductQueryScope("adakah robot termurah disini"),
+    "catalog",
+  );
+  assert.equal(
+    resolveProductQueryScope("tampilkan produk promo di toko ini"),
+    "catalog",
+  );
+  assert.equal(
+    resolveProductQueryScope("urutkan hasil sebelumnya dari harga termurah"),
+    "previous",
+  );
+  assert.equal(resolveProductQueryScope("yang termurah"), "unspecified");
 });
 
 test("accepts natural affirmative variants", () => {
