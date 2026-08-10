@@ -57,3 +57,18 @@ test("states honestly when catalog completeness is not documented", () => {
   assert.match(message, /Kelengkapan:.*belum tercantum secara rinci/i);
   assert.match(message, /konfirmasikan ke admin/i);
 });
+
+test("cleans WooCommerce HTML and explains an unspecified incomplete JUNK item", () => {
+  const message = buildProductDetailMessage({
+    name: "Popy ST Dynaman",
+    condition:
+      '<p><b>Condition:</b> JUNK (Missing Components)</p><p><b>Note:</b> sold for parts or restoration only.</p>',
+    stock: "instock",
+    numericPrice: 500000,
+  });
+
+  assert.match(message, /Condition: JUNK \(Missing Components\)/);
+  assert.match(message, /produk tidak lengkap/i);
+  assert.match(message, /bagian yang hilang belum dirinci/i);
+  assert.doesNotMatch(message, /<\/?(?:p|b)>/i);
+});

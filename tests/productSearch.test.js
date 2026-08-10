@@ -186,11 +186,24 @@ test("ignores product-fact clauses in compound catalog questions", () => {
     catalog,
     { preferPromo: false },
   );
+  const junkDetail = assessProductSearchConfidence(
+    "Popy ST Dynaman ini kondisi dan kelengkapannya gimana? Ada bagian yang hilang atau rusak?",
+    [
+      {
+        id: 4,
+        name: "Popy ST Dynaman",
+        category: "Vintage",
+        stock: "instock",
+      },
+    ],
+  );
 
   assert.equal(detail.status, "matched");
   assert.equal(detail.product?.id, 3);
   assert.equal(promo.status, "matched");
   assert.equal(promo.product?.id, 3);
+  assert.equal(junkDetail.status, "matched");
+  assert.equal(junkDetail.product?.id, 4);
 });
 
 test("prefers the matching promo product for a compound request", () => {
@@ -245,6 +258,12 @@ test("extracts the merchandise object instead of the store context", () => {
   );
   assert.equal(
     looksLikeSpecificCatalogAvailabilityQuestion("stok Mazinger Z masih ada?"),
+    false,
+  );
+  assert.equal(
+    looksLikeSpecificCatalogAvailabilityQuestion(
+      "Popy ST Dynaman ini kondisinya bagaimana, ada bagian yang hilang atau rusak?",
+    ),
     false,
   );
 });

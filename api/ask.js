@@ -5881,8 +5881,9 @@ export default async function handler(req, res) {
       }
 
       cleanProducts = products.map((p) => {
-        const condition =
-          p.condition || getMetaValue(p.meta_data, "condition") || "";
+        const condition = stripHtml(
+          p.condition || getMetaValue(p.meta_data, "condition") || "",
+        );
 
         const length = cleanNumberString(p.dimensions?.length);
         const width = cleanNumberString(p.dimensions?.width);
@@ -5953,8 +5954,9 @@ export default async function handler(req, res) {
     }
 
     function mapWooProductToClean(p) {
-      const condition =
-        p.condition || getMetaValue(p.meta_data, "condition") || "";
+      const condition = stripHtml(
+        p.condition || getMetaValue(p.meta_data, "condition") || "",
+      );
 
       const price = toNum(p.price);
       const regular = toNum(p.regular_price);

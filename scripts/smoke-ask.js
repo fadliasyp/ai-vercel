@@ -53,6 +53,20 @@ const CASES = [
     requiredText: ["2 x 24 jam", "1-3 hari kerja", "3-7 hari kerja"],
   },
   {
+    id: "junk_detail_transparency",
+    question:
+      "Popy ST Dynaman ini kondisi dan kelengkapannya gimana? Ada bagian yang hilang atau rusak?",
+    expectedIntent: "product_detail",
+    expectedType: "products",
+    expectedProductName: "Popy ST Dynaman",
+    minProducts: 1,
+    requiredText: [
+      "JUNK (Missing Components)",
+      "bagian yang hilang belum dirinci",
+    ],
+    forbiddenText: ["<p data-path", "<b>Condition"],
+  },
+  {
     question: "boleh cek perkembangan pesanan",
     expectedIntent: "transaction_status",
   },
@@ -200,6 +214,7 @@ const CONTROLLED_CASE_IDS = new Set([
   "store_visit",
   "secure_shipping_policy",
   "return_policy",
+  "junk_detail_transparency",
   "out_of_scope_fiction",
   "order_requires_verification",
   "shipping_quote_multiturn",
