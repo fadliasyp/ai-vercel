@@ -1,8 +1,8 @@
 {
   "endpoint": "https://ai-vercel-ten-sigma.vercel.app/api/ask",
-  "generated_at": "2026-08-10T13:33:05.155Z",
+  "generated_at": "2026-08-10T13:44:07.487Z",
   "passed": 9,
-  "total": 9,
+  "total": 10,
   "results": [
     {
       "id": "store_visit",
@@ -46,6 +46,7 @@
       "customerStateValid": true,
       "naturalizedValid": true,
       "matchStatusValid": true,
+      "recommendationMetadataValid": true,
       "productMatch": null,
       "requiredAnyTextValid": true,
       "coverageValid": true,
@@ -95,6 +96,7 @@
       "customerStateValid": true,
       "naturalizedValid": true,
       "matchStatusValid": true,
+      "recommendationMetadataValid": true,
       "productMatch": null,
       "requiredAnyTextValid": true,
       "coverageValid": true,
@@ -138,6 +140,7 @@
       "customerStateValid": true,
       "naturalizedValid": true,
       "matchStatusValid": true,
+      "recommendationMetadataValid": true,
       "productMatch": null,
       "requiredAnyTextValid": true,
       "coverageValid": true,
@@ -185,6 +188,7 @@
       "customerStateValid": true,
       "naturalizedValid": true,
       "matchStatusValid": true,
+      "recommendationMetadataValid": true,
       "productMatch": null,
       "requiredAnyTextValid": true,
       "coverageValid": true,
@@ -238,6 +242,7 @@
       "customerStateValid": true,
       "naturalizedValid": true,
       "matchStatusValid": true,
+      "recommendationMetadataValid": true,
       "productMatch": {
         "status": "matched",
         "confidence": 0.95,
@@ -247,7 +252,7 @@
       "coverageValid": true,
       "answerCoverage": null,
       "requestAttempts": 1,
-      "preview": "Maaf, aku paham ini membuat tidak nyaman. Aku bantu dari informasi yang bisa dipastikan. Ini detail "
+      "preview": "Maaf, aku paham ini membuat tidak nyaman. Aku bantu dari informasi yang bisa dipastikan. Oke, aku ba"
     },
     {
       "id": "order_requires_verification",
@@ -291,12 +296,70 @@
       "customerStateValid": true,
       "naturalizedValid": true,
       "matchStatusValid": true,
+      "recommendationMetadataValid": true,
       "productMatch": null,
       "requiredAnyTextValid": true,
       "coverageValid": true,
       "answerCoverage": null,
       "requestAttempts": 1,
       "preview": "Untuk melindungi data pesanan **#5007**, kirim **email atau nomor telepon tagihan** yang dipakai saa"
+    },
+    {
+      "id": "gift_display_recommendation",
+      "question": "Saya bingung cari kado untuk suami yang suka robot lawas tahun 80-an. Rekomendasikan yang cocok untuk pajangan, budget sekitar 3 jutaan.",
+      "expectedIntent": "recommendation",
+      "expectedType": "products",
+      "minProducts": 1,
+      "maxProductPrice": 3000000,
+      "expectedRecommendation": {
+        "decade": 1980,
+        "displaySuitable": true,
+        "giftSuitable": true
+      },
+      "requiredText": [
+        "era franchise 1980-an",
+        "hadiah",
+        "pajangan"
+      ],
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "recommendation",
+      "type": "products",
+      "productCount": 3,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 3,
+      "actionCountValid": true,
+      "productPrices": [
+        3000000,
+        2500000,
+        2500000
+      ],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "qwen/qwen3.6-27b",
+        "naturalized": false,
+        "reason": "unsafe_rewrite_rejected",
+        "customer_state": "confused",
+        "router": {
+          "provider": "local_rules_ml"
+        }
+      },
+      "allowedAssistantReasonValid": true,
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "recommendationMetadataValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": null,
+      "requestAttempts": 1,
+      "preview": "Tidak apa-apa kalau masih bingung memilih. Aku bantu menyaringnya dari kebutuhanmu. Ini rekomendasi "
     },
     {
       "id": "catalog_scope_overrides_history",
@@ -345,6 +408,7 @@
       "customerStateValid": true,
       "naturalizedValid": true,
       "matchStatusValid": true,
+      "recommendationMetadataValid": true,
       "productMatch": null,
       "requiredAnyTextValid": true,
       "coverageValid": true,
@@ -365,7 +429,7 @@
         "hasil sebelumnya"
       ],
       "question": "Bro apa aja stok yg ada -> Urutkan hasil sebelumnya dari harga termurah",
-      "passed": true,
+      "passed": false,
       "statusCode": 200,
       "actualIntent": "price_promo",
       "type": "products",
@@ -381,13 +445,15 @@
       ],
       "maxProductCountValid": true,
       "expectedProductNameValid": true,
-      "missingRequiredText": [],
+      "missingRequiredText": [
+        "hasil sebelumnya"
+      ],
       "presentForbiddenText": [],
       "assistantMeta": {
         "provider": "groq",
         "model": "qwen/qwen3.6-27b",
-        "naturalized": false,
-        "reason": "error_429",
+        "naturalized": true,
+        "reason": "success",
         "customer_state": "neutral",
         "router": {
           "provider": "local_rules_ml"
@@ -397,12 +463,13 @@
       "customerStateValid": true,
       "naturalizedValid": true,
       "matchStatusValid": true,
+      "recommendationMetadataValid": true,
       "productMatch": null,
       "requiredAnyTextValid": true,
       "coverageValid": true,
       "answerCoverage": null,
       "requestAttempts": 2,
-      "preview": "Oke, ini yang paling murah dari hasil sebelumnya:"
+      "preview": "Siap, ini daftar sebelumnya yang sudah diurutkan dari harga termurah:"
     },
     {
       "id": "shipping_quote_multiturn",
@@ -433,13 +500,15 @@
         "reason": "success",
         "customer_state": "neutral",
         "router": {
-          "provider": "local_rules_ml"
+          "provider": "groq",
+          "model": "qwen/qwen3.6-27b"
         }
       },
       "allowedAssistantReasonValid": true,
       "customerStateValid": true,
       "naturalizedValid": true,
       "matchStatusValid": true,
+      "recommendationMetadataValid": true,
       "productMatch": null,
       "requiredAnyTextValid": true,
       "coverageValid": true,
