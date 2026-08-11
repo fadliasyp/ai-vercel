@@ -1,0 +1,77 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+
+import { summarizeChatMetrics } from "../lib/chatbot/observabilityReport.js";
+
+test("summarizes chatbot reliability, latency, and model usage", () => {
+  const rows = [
+    {
+      status: "success",
+      intent: "price_promo",
+      intent_score: 0.9,
+      assistant_provider: "groq",
+      assistant_model: "openai/gpt-oss-20b",
+      router_provider: "groq",
+      router_model: "openai/gpt-oss-20b",
+      latency_ms: 100,
+      product_count: 3,
+      error_code: "none",
+    },
+    {
+      status: "success",
+      intent: "price_promo",
+      intent_score: 0.7,
+      assistant_provider: "template",
+      assistant_model: "unknown",
+      router_provider: "local_rules_ml",
+      router_model: "unknown",
+      latency_ms: 200,
+      product_count: 1,
+      error_code: "none",
+    },
+    {
+      status: "error",
+      intent: "price_promo",
+      intent_score: null,
+      assistant_provider: "none",
+      assistant_model: "unknown",
+      router_provider: "unknown",
+      router_model: "unknown",
+      latency_ms: 500,
+      product_count: 0,
+      error_code: "aborterror",
+    },
+    {
+      status: "success",
+      intent: "general",
+      intent_score: 1,
+      assistant_provider: "groq",
+      assistant_model: "openai/gpt-oss-20b",
+      router_provider: "local_rules_ml",
+      router_model: "unknown",
+      latency_ms: 300,
+      product_count: 0,
+      error_code: "none",
+    },
+  ];
+
+  const report = summarizeChatMetrics(rows);
+
+  assert.equal(report.requests, 4);
+  assert.equal(report.errors, 1);
+  assert.equal(report.successRate, 0.75);
+  assert.equal(report.averageLatencyMs, 275);
+  assert.equal(report.p95LatencyMs, 500);
+  assert.equal(report.productsReturned, 4);
+  assert.equal(report.byIntent[0].name, "price_promo");
+  assert.equal(report.byIntent[0].averageConfidence, 0.8);
+  assert.equal(report.byAssistant[0].name, "groq/openai/gpt-oss-20b");
+  assert.equal(report.byError[0].name, "aborterror");
+});
+
+test("returns a stable empty report", () => {
+  const report = summarizeChatMetrics([]);
+  assert.equal(report.requests, 0);
+  assert.equal(report.successRate, 0);
+  assert.deepEqual(report.byIntent, []);
+});
