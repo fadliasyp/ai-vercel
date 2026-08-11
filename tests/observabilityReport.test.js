@@ -1,7 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { summarizeChatMetrics } from "../lib/chatbot/observabilityReport.js";
+import {
+  summarizeChatFeedback,
+  summarizeChatMetrics,
+} from "../lib/chatbot/observabilityReport.js";
 
 test("summarizes chatbot reliability, latency, and model usage", () => {
   const rows = [
@@ -74,4 +77,41 @@ test("returns a stable empty report", () => {
   assert.equal(report.requests, 0);
   assert.equal(report.successRate, 0);
   assert.deepEqual(report.byIntent, []);
+});
+
+test("summarizes customer satisfaction without conversation content", () => {
+  const feedback = summarizeChatFeedback([
+    {
+      rating: "helpful",
+      intent: "price_promo",
+      response_type: "products",
+      assistant_provider: "groq",
+      assistant_reason: "success",
+      question: "teks pelanggan tidak boleh masuk laporan",
+    },
+    {
+      rating: "unhelpful",
+      intent: "price_promo",
+      response_type: "products",
+      assistant_provider: "template",
+      assistant_reason: "timeout",
+    },
+    {
+      rating: "helpful",
+      intent: "shipping_transaction",
+      response_type: "text",
+      assistant_provider: "groq",
+      assistant_reason: "success",
+    },
+    { rating: "invalid", intent: "general" },
+  ]);
+
+  assert.equal(feedback.responses, 3);
+  assert.equal(feedback.helpful, 2);
+  assert.equal(feedback.unhelpful, 1);
+  assert.equal(feedback.helpfulRate, 2 / 3);
+  assert.equal(feedback.byIntent[0].name, "price_promo");
+  assert.equal(feedback.byIntent[0].helpfulRate, 0.5);
+  assert.equal("question" in feedback, false);
+  assert.doesNotMatch(JSON.stringify(feedback), /teks pelanggan/);
 });

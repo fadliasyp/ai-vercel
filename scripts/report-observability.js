@@ -1,7 +1,10 @@
 import "dotenv/config";
 import { createClient } from "@supabase/supabase-js";
 
-import { summarizeChatMetrics } from "../lib/chatbot/observabilityReport.js";
+import {
+  summarizeChatFeedback,
+  summarizeChatMetrics,
+} from "../lib/chatbot/observabilityReport.js";
 
 function readDays() {
   const index = process.argv.indexOf("--days");
@@ -9,17 +12,15 @@ function readDays() {
   return Number.isFinite(value) ? Math.min(90, Math.max(1, Math.round(value))) : 7;
 }
 
-async function fetchMetrics(client, since, limit = 10_000) {
+async function fetchRows(client, table, columns, since, limit = 10_000) {
   const rows = [];
   const pageSize = 1000;
 
   while (rows.length < limit) {
     const from = rows.length;
     const { data, error } = await client
-      .from("chat_observability")
-      .select(
-        "status,intent,intent_score,assistant_provider,assistant_model,router_provider,router_model,latency_ms,product_count,error_code,created_at",
-      )
+      .from(table)
+      .select(columns)
       .gte("created_at", since)
       .order("created_at", { ascending: false })
       .range(from, Math.min(from + pageSize - 1, limit - 1));
@@ -62,6 +63,24 @@ function printGroups(title, groups, includeConfidence = false) {
   );
 }
 
+function printFeedbackGroups(title, groups) {
+  console.log(`\n${title}`);
+  if (!groups.length) {
+    console.log("  Belum ada data.");
+    return;
+  }
+
+  console.table(
+    groups.map((group) => ({
+      nama: group.name,
+      penilaian: group.responses,
+      membantu: group.helpful,
+      belum_membantu: group.unhelpful,
+      helpful_rate: percent(group.helpfulRate),
+    })),
+  );
+}
+
 const url = process.env.SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!url || !key) {
@@ -70,8 +89,26 @@ if (!url || !key) {
 
 const days = readDays();
 const since = new Date(Date.now() - days * 86_400_000).toISOString();
-const rows = await fetchMetrics(createClient(url, key), since);
+const client = createClient(url, key);
+const [rows, feedbackRows] = await Promise.all([
+  fetchRows(
+    client,
+    "chat_observability",
+    "status,intent,intent_score,assistant_provider,assistant_model,router_provider,router_model,latency_ms,product_count,error_code,created_at",
+    since,
+  ),
+  fetchRows(
+    client,
+    "chat_feedback",
+    "rating,intent,response_type,assistant_provider,assistant_reason,created_at",
+    since,
+  ).catch((error) => {
+    console.warn(`Feedback belum tersedia: ${error.message}`);
+    return [];
+  }),
+]);
 const report = summarizeChatMetrics(rows);
+const feedback = summarizeChatFeedback(feedbackRows);
 
 console.log(`Observability chatbot: ${days} hari terakhir`);
 console.log(`Request       : ${report.requests}`);
@@ -85,3 +122,12 @@ printGroups("Per intent", report.byIntent, true);
 printGroups("Editor jawaban", report.byAssistant);
 printGroups("Router intent", report.byRouter);
 if (report.errors) printGroups("Kode error", report.byError);
+
+console.log(`\nKepuasan pelanggan`);
+console.log(`Penilaian      : ${feedback.responses}`);
+console.log(`Membantu       : ${feedback.helpful}`);
+console.log(`Belum membantu : ${feedback.unhelpful}`);
+console.log(`Helpful rate   : ${percent(feedback.helpfulRate)}`);
+printFeedbackGroups("Feedback per intent", feedback.byIntent);
+printFeedbackGroups("Feedback per editor", feedback.byAssistant);
+printFeedbackGroups("Feedback per tipe respons", feedback.byResponseType);
