@@ -6,6 +6,7 @@ import {
   buildNegotiationPolicyMessage,
   buildReturnPolicyMessage,
   detectReturnIssue,
+  detectReturnQuestionType,
   getReturnActionContext,
   looksLikeGeneralStockPolicyQuestion,
   looksLikeNegotiationPolicyQuestion,
@@ -73,7 +74,7 @@ test("keeps return and refund policy deterministic and non-committal", () => {
   assert.match(first, new RegExp(RETURN_POLICY.claimWindow));
   assert.match(first, new RegExp(RETURN_POLICY.reviewTime));
   assert.match(first, new RegExp(RETURN_POLICY.refundTime));
-  assert.match(first, /refund sebagian.*penuh/i);
+  assert.match(first, /refund sebagian.*refund penuh/i);
 });
 
 test("explains wrong-item and JUNK claims without promising an automatic refund", () => {
@@ -102,6 +103,26 @@ test("directs return questions according to the customer's issue", () => {
   );
   assert.match(
     buildReturnPolicyMessage("Saya berubah pikiran dan ingin retur"),
-    /belum digunakan.*kelengkapannya masih utuh/i,
+    /belum digunakan.*seluruh kelengkapan/i,
   );
+});
+
+test("answers each return follow-up with correlated but different policy", () => {
+  const procedure = buildReturnPolicyMessage("Cara return gimana?");
+  const evidence = buildReturnPolicyMessage(
+    "Apa bukti yang perlu disiapkan untuk retur barang rusak?",
+  );
+  const timing = buildReturnPolicyMessage("Berapa lama proses refund?");
+  const status = buildReturnPolicyMessage("Bagaimana status pengajuan retur saya?");
+
+  assert.equal(detectReturnQuestionType("Berapa lama proses refund?"), "refund_timing");
+  assert.match(procedure, /Berikut alur retur/i);
+  assert.match(evidence, /foto close-up bagian yang rusak/i);
+  assert.match(timing, /Waktu refund dihitung/i);
+  assert.match(status, /belum dapat membuka status laporan retur pribadi/i);
+  assert.equal(new Set([procedure, evidence, timing, status]).size, 4);
+
+  for (const answer of [procedure, evidence, timing, status]) {
+    assert.match(answer, /Laporkan ke Admin Robot Jadul/i);
+  }
 });

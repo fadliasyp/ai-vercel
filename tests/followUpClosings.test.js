@@ -66,7 +66,18 @@ test("offers issue choices before directing a generic return claim", () => {
     [
       "Apa bukti yang perlu disiapkan untuk retur?",
       "Berapa lama proses refund?",
-      "Bagaimana menghubungi admin Robot Jadul?",
+      "Bagaimana menghubungi admin untuk retur?",
+    ],
+  );
+
+  assert.deepEqual(
+    buildControlledActions("return_product", {
+      _actionContext: "return_refund_next",
+    }),
+    [
+      "Bagaimana status pengajuan retur saya?",
+      "Bagaimana menghubungi admin untuk retur?",
+      "Apa bukti yang perlu disiapkan untuk retur?",
     ],
   );
 });
