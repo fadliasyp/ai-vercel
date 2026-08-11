@@ -169,6 +169,7 @@ import {
   buildGeneralStockPolicyMessage,
   buildNegotiationPolicyMessage,
   buildReturnPolicyMessage,
+  getReturnActionContext,
   looksLikeGeneralStockPolicyQuestion,
   looksLikeNegotiationPolicyQuestion,
   looksLikeReturnPolicyQuestion,
@@ -5853,7 +5854,7 @@ export default async function handler(req, res) {
         {
           type: "text",
           message: buildReturnPolicyMessage(rawQuestion),
-          _actionContext: "return_policy",
+          _actionContext: getReturnActionContext(rawQuestion),
         },
         "return_product",
       );

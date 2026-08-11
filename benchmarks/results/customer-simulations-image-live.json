@@ -1,0 +1,182 @@
+{
+  "generated_at": "2026-08-11T17:45:06.299Z",
+  "target": "https://ai-vercel-ten-sigma.vercel.app/api/ask-image",
+  "dataset": {
+    "path": "C:\\kumpulan-coding-fadli\\ai-vercel\\benchmarks\\image-search\\dataset.json",
+    "fingerprint": "c3b4709ceef88218433d8ec5aa3dc76458c1f2c44ddecb6aeaa5b6599cb21d67",
+    "total_cases": 45,
+    "evaluated_cases": 1
+  },
+  "settings": {
+    "delay_ms": 0,
+    "timeout_ms": 85000,
+    "retries": 1,
+    "source_filter": null,
+    "view_filter": null,
+    "case_filter": "internet-full-5387-mazinkaiser-01"
+  },
+  "production_gate": {
+    "passed": false,
+    "checks": {
+      "at_least_30_positive_cases": false,
+      "at_least_5_negative_cases": false,
+      "at_least_10_internet_cases": false,
+      "at_least_10_crop_cases": false,
+      "top1_at_least_80_percent": true,
+      "top3_at_least_95_percent": true,
+      "false_confident_at_most_5_percent": true,
+      "api_success_at_least_95_percent": true,
+      "p95_latency_at_most_60_seconds": false
+    }
+  },
+  "metrics": {
+    "overall": {
+      "total": 1,
+      "successes": 1,
+      "failures": 0,
+      "positive_cases": 1,
+      "negative_cases": 0,
+      "top1_accuracy": 1,
+      "top3_accuracy": 1,
+      "top5_accuracy": 1,
+      "negative_rejection_accuracy": 0,
+      "abstention_rate": 0,
+      "false_confident_count": 0,
+      "false_confident_rate": 0,
+      "confidence_distribution": {
+        "high": 1
+      },
+      "latency_ms": {
+        "average": 61175,
+        "p50": 61175,
+        "p95": 61175,
+        "max": 61175
+      }
+    },
+    "by_source_type": {
+      "internet": {
+        "total": 1,
+        "successes": 1,
+        "failures": 0,
+        "positive_cases": 1,
+        "negative_cases": 0,
+        "top1_accuracy": 1,
+        "top3_accuracy": 1,
+        "top5_accuracy": 1,
+        "negative_rejection_accuracy": 0,
+        "abstention_rate": 0,
+        "false_confident_count": 0,
+        "false_confident_rate": 0,
+        "confidence_distribution": {
+          "high": 1
+        },
+        "latency_ms": {
+          "average": 61175,
+          "p50": 61175,
+          "p95": 61175,
+          "max": 61175
+        }
+      }
+    },
+    "by_view_type": {
+      "full": {
+        "total": 1,
+        "successes": 1,
+        "failures": 0,
+        "positive_cases": 1,
+        "negative_cases": 0,
+        "top1_accuracy": 1,
+        "top3_accuracy": 1,
+        "top5_accuracy": 1,
+        "negative_rejection_accuracy": 0,
+        "abstention_rate": 0,
+        "false_confident_count": 0,
+        "false_confident_rate": 0,
+        "confidence_distribution": {
+          "high": 1
+        },
+        "latency_ms": {
+          "average": 61175,
+          "p50": 61175,
+          "p95": 61175,
+          "max": 61175
+        }
+      }
+    }
+  },
+  "errors": [],
+  "results": [
+    {
+      "id": "internet-full-5387-mazinkaiser-01",
+      "image": "images/internet-full-5387-mazinkaiser-01.jpg",
+      "source_type": "internet",
+      "view_type": "full",
+      "question": "Dulu waktu kecil saya punya robot seperti ini, tetapi lupa serinya. Tolong carikan yang sama atau paling mirip dengan budget maksimal 2 juta.",
+      "expected": {
+        "product_id": 5387,
+        "product_name": "Mazinkaiser Max Gokin By Max Factory",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": [],
+        "constraints": {
+          "max_price": 2000000
+        }
+      },
+      "negative": false,
+      "status_code": 200,
+      "api_succeeded": true,
+      "latency_ms": 61175,
+      "vision_evaluated": true,
+      "confidence_level": "high",
+      "confidence": {
+        "level": "high",
+        "top_score": 95,
+        "score_gap": 27,
+        "visually_reranked": true
+      },
+      "expected_rank": 1,
+      "top1_correct": true,
+      "top3_correct": true,
+      "top5_correct": true,
+      "negative_correct": false,
+      "constraints_correct": true,
+      "correct": true,
+      "abstained": false,
+      "false_confident": false,
+      "candidates": [
+        {
+          "rank": 1,
+          "id": 5387,
+          "name": "Mazinkaiser Max Gokin By Max Factory",
+          "numeric_price": 2000000,
+          "visual_score": 95,
+          "lexical_score": 82,
+          "confidence": "high",
+          "matches_expected": true
+        },
+        {
+          "rank": 2,
+          "id": 4858,
+          "name": "Super Robot Chogokin Mazinger Z 2016 Year Monkey",
+          "numeric_price": 900000,
+          "visual_score": 68,
+          "lexical_score": 108,
+          "confidence": "medium",
+          "matches_expected": false
+        },
+        {
+          "rank": 3,
+          "id": 3323,
+          "name": "Soul of Chogokin GX-47T Energer Z Test Type",
+          "numeric_price": 2000000,
+          "visual_score": 45,
+          "lexical_score": 82,
+          "confidence": "medium",
+          "matches_expected": false
+        }
+      ],
+      "response_intro": "Aku sudah membandingkan foto itu dengan katalog. Kandidat pertama punya kecocokan visual yang kuat:",
+      "error": null,
+      "attempts": 1
+    }
+  ]
+}

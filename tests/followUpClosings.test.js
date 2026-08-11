@@ -47,6 +47,30 @@ test("adds contextual choices only to explicitly completed information", () => {
   assert.equal("_actionContext" in result, false);
 });
 
+test("offers issue choices before directing a generic return claim", () => {
+  assert.deepEqual(
+    buildControlledActions("return_product", {
+      _actionContext: "return_issue_selection",
+    }),
+    [
+      "Retur: barang rusak atau cacat",
+      "Retur: part atau aksesori kurang",
+      "Retur: barang salah atau tidak sesuai",
+    ],
+  );
+
+  assert.deepEqual(
+    buildControlledActions("return_product", {
+      _actionContext: "return_claim_help",
+    }),
+    [
+      "Apa bukti yang perlu disiapkan untuk retur?",
+      "Berapa lama proses refund?",
+      "Bagaimana menghubungi admin Robot Jadul?",
+    ],
+  );
+});
+
 test("does not force choices onto a required shipping clarification", () => {
   const result = applyControlledFollowUpPolicy(
     {

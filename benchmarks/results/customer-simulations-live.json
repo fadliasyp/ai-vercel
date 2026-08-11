@@ -1,0 +1,99 @@
+{
+  "generatedAt": "2026-08-11T17:45:06.346Z",
+  "endpoint": "https://ai-vercel-ten-sigma.vercel.app/api/ask",
+  "passed": 10,
+  "failed": 0,
+  "total": 10,
+  "results": [
+    {
+      "id": "junk_detail_transparency",
+      "scenario": "Pemburu JUNK dan suku cadang",
+      "channel": "teks",
+      "passed": true,
+      "expected": "product_detail",
+      "actual": "product_detail",
+      "detail": "Maaf, aku paham ini membuat tidak nyaman. Aku bantu dari informasi yang bisa dipastikan. Ini detail "
+    },
+    {
+      "id": "internet-full-5387-mazinkaiser-01",
+      "scenario": "Nostalgia dan pencarian visual",
+      "channel": "foto",
+      "passed": true,
+      "expected": "Mazinkaiser Max Gokin By Max Factory",
+      "actual": "Mazinkaiser Max Gokin By Max Factory",
+      "detail": "rank=1, confidence=high, budget=sesuai"
+    },
+    {
+      "id": "compound_secure_shipping_multiturn",
+      "scenario": "Pengiriman produk premium",
+      "channel": "teks",
+      "passed": true,
+      "expected": "shipping_transaction",
+      "actual": "shipping_transaction",
+      "detail": "Estimasi ongkir (±1kg) ke **SURABAYA - WONOKROMO**: • JNE Reg: Rp 20.000 • Tiki Reg: Rp 19.000 • Pos"
+    },
+    {
+      "id": "order_requires_verification",
+      "scenario": "Status pesanan",
+      "channel": "teks",
+      "passed": true,
+      "expected": "transaction_status",
+      "actual": "transaction_status",
+      "detail": "Untuk melindungi data pesanan **#5007**, kirim **email atau nomor telepon tagihan** yang dipakai saa"
+    },
+    {
+      "id": "store_visit",
+      "scenario": "Kunjungan toko fisik",
+      "channel": "teks",
+      "passed": true,
+      "expected": "general",
+      "actual": "general",
+      "detail": "Lokasi toko fisik Robot Jadul: Robot Jadul, Blok M Square lantai 3A, Blok A nomor 36-37, Jl. Melawai"
+    },
+    {
+      "id": "return_policy",
+      "scenario": "Retur produk cacat",
+      "channel": "teks",
+      "passed": true,
+      "expected": "return_product",
+      "actual": "return_product",
+      "detail": "Maaf atas kendalanya. Untuk **barang rusak atau cacat**, retur atau refund **bisa diajukan**, tetapi"
+    },
+    {
+      "id": "gift_display_recommendation",
+      "scenario": "Rekomendasi kado",
+      "channel": "teks",
+      "passed": true,
+      "expected": "recommendation",
+      "actual": "recommendation",
+      "detail": "Tidak apa-apa kalau masih bingung memilih. Aku bantu menyaringnya dari kebutuhanmu. Ini rekomendasi "
+    },
+    {
+      "id": "safe_payment_policy",
+      "scenario": "Pembayaran aman",
+      "channel": "teks",
+      "passed": true,
+      "expected": "shipping_transaction",
+      "actual": "shipping_transaction",
+      "detail": "**COD / bayar di tempat tersedia** untuk area atau kondisi tertentu. Ketersediaannya tetap mengikuti"
+    },
+    {
+      "id": "compound_stock_promo_dispatch",
+      "scenario": "Stok promo dan pengiriman",
+      "channel": "teks",
+      "passed": true,
+      "expected": "shipping_transaction",
+      "actual": "shipping_transaction",
+      "detail": "Aku paham kamu butuh kepastian cepat. Ini yang bisa dipastikan sekarang. **Soul of Chogokin GX-47T E"
+    },
+    {
+      "id": "out_of_scope_fiction",
+      "scenario": "Pertanyaan di luar topik",
+      "channel": "teks",
+      "passed": true,
+      "expected": "general",
+      "actual": "general",
+      "detail": "Maaf, aku nggak bisa bantu jawab soal robot lawan Godzilla karena di luar topik ecommerce. Aku khusu"
+    }
+  ]
+}

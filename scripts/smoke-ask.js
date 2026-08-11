@@ -287,6 +287,18 @@ const CONFIDENCE_CASE_IDS = new Set([
   "confidence_unknown_mixed_name",
 ]);
 
+const SIMULATION_CASE_IDS = new Set([
+  "junk_detail_transparency",
+  "compound_secure_shipping_multiturn",
+  "order_requires_verification",
+  "store_visit",
+  "return_policy",
+  "gift_display_recommendation",
+  "safe_payment_policy",
+  "compound_stock_promo_dispatch",
+  "out_of_scope_fiction",
+]);
+
 function selectedCases(argv = []) {
   const caseIndex = argv.indexOf("--case");
   if (caseIndex >= 0 && argv[caseIndex + 1]) {
@@ -315,6 +327,10 @@ function selectedCases(argv = []) {
         id: `${testCase.id}_run_${run}`,
       })),
     );
+  }
+
+  if (argv.includes("--simulations")) {
+    return CASES.filter((testCase) => SIMULATION_CASE_IDS.has(testCase.id));
   }
 
   const intentIndex = argv.indexOf("--intent");

@@ -5,6 +5,8 @@ import {
   buildGeneralStockPolicyMessage,
   buildNegotiationPolicyMessage,
   buildReturnPolicyMessage,
+  detectReturnIssue,
+  getReturnActionContext,
   looksLikeGeneralStockPolicyQuestion,
   looksLikeNegotiationPolicyQuestion,
   RETURN_POLICY,
@@ -86,4 +88,20 @@ test("explains wrong-item and JUNK claims without promising an automatic refund"
   assert.match(junkItem, /cacat yang sudah tertulis.*bukan dasar klaim/i);
   assert.match(junkItem, /kerusakan tambahan.*tetap bisa diajukan/i);
   assert.doesNotMatch(wrongItem, /pasti.*refund|refund.*pasti/i);
+});
+
+test("directs return questions according to the customer's issue", () => {
+  assert.equal(detectReturnIssue("Saya mau retur karena part-nya kurang"), "incomplete");
+  assert.equal(
+    getReturnActionContext("Bagaimana ketentuan retur di toko ini?"),
+    "return_issue_selection",
+  );
+  assert.equal(
+    getReturnActionContext("Barang saya pecah saat diterima"),
+    "return_claim_help",
+  );
+  assert.match(
+    buildReturnPolicyMessage("Saya berubah pikiran dan ingin retur"),
+    /belum digunakan.*kelengkapannya masih utuh/i,
+  );
 });

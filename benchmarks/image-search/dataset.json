@@ -177,14 +177,17 @@
       "image": "images/internet-full-5387-mazinkaiser-01.jpg",
       "source_type": "internet",
       "view_type": "full",
-      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "question": "Dulu waktu kecil saya punya robot seperti ini, tetapi lupa serinya. Tolong carikan yang sama atau paling mirip dengan budget maksimal 2 juta.",
       "expected": {
         "product_id": 5387,
         "product_name": "Mazinkaiser Max Gokin By Max Factory",
         "acceptable_product_ids": [],
-        "acceptable_product_names": []
+        "acceptable_product_names": [],
+        "constraints": {
+          "max_price": 2000000
+        }
       },
-      "notes": "Mazinkaiser Max Gokin, tampilan figur penuh."
+      "notes": "Simulasi pelanggan nostalgia: foto internet, nama seri tidak diketahui, dan budget maksimal Rp2 juta."
     },
     {
       "id": "internet-box-5387-mazinkaiser-02",
