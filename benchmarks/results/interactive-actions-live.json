@@ -1,6 +1,6 @@
 {
   "endpoint": "https://ai-vercel-ten-sigma.vercel.app/api/ask",
-  "generated_at": "2026-08-10T15:34:20.477Z",
+  "generated_at": "2026-08-11T00:21:47.758Z",
   "passed": 9,
   "total": 10,
   "results": [
@@ -252,7 +252,7 @@
       "coverageValid": true,
       "answerCoverage": null,
       "requestAttempts": 1,
-      "preview": "Maaf, aku paham ini membuat tidak nyaman. Aku bantu dari informasi yang bisa dipastikan. Ini detail "
+      "preview": "Maaf, aku paham ini membuat tidak nyaman. Aku bantu dari informasi yang bisa dipastikan. Siap, ini i"
     },
     {
       "id": "order_requires_verification",

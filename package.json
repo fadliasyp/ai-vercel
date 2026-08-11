@@ -11,6 +11,7 @@
     "benchmark:compound-live": "node scripts/smoke-ask.js --compound --endpoint https://ai-vercel-ten-sigma.vercel.app/api/ask --output benchmarks/results/compound-answers-live.json",
     "benchmark:confidence-live": "node scripts/smoke-ask.js --confidence --endpoint https://ai-vercel-ten-sigma.vercel.app/api/ask --output benchmarks/results/product-confidence-live.json",
     "benchmark:interactive-live": "node scripts/smoke-ask.js --controlled --endpoint https://ai-vercel-ten-sigma.vercel.app/api/ask --output benchmarks/results/interactive-actions-live.json",
+    "benchmark:consistency-live": "node scripts/smoke-ask.js --consistency --endpoint https://ai-vercel-ten-sigma.vercel.app/api/ask --output benchmarks/results/response-consistency-live.json",
     "benchmark:images": "node scripts/benchmark-image-search.js",
     "dataset:images": "node scripts/manage-image-benchmark-dataset.js",
     "smoke:domain": "node scripts/smoke-fadli-site.js",

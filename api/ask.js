@@ -5805,6 +5805,20 @@ export default async function handler(req, res) {
       });
     }
 
+    if (intentResult.intent === "return_product") {
+      session.lastIntent = "return_product";
+      session.lastTopic = "return_product";
+
+      return await send(
+        {
+          type: "text",
+          message: buildReturnPolicyMessage(rawQuestion),
+          _actionContext: "return_policy",
+        },
+        "return_product",
+      );
+    }
+
     //===========================
     // Guard agar tidak masuk fetch Pencarian Produk
     // ===========================
@@ -8764,24 +8778,6 @@ Kembalikan JSON valid:
           );
         }
       }
-    }
-
-    // ===============================
-    // RETURN PRODUCT HANDLER
-    // ===============================
-
-    if (intentResult.intent === "return_product") {
-      session.lastIntent = "return_product";
-      session.lastTopic = "return_product";
-
-      return await send(
-        {
-          type: "text",
-          message: buildReturnPolicyMessage(rawQuestion),
-          _actionContext: "return_policy",
-        },
-        "return_product",
-      );
     }
 
     // Stock intent: kalau ada kata kunci produk -> cari produk & tampilkan stoknya

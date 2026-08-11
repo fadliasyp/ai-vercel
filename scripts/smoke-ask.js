@@ -5,6 +5,10 @@ import path from "node:path";
 import { evaluateAnswerCoverage } from "../lib/chatbot/answerCoverage.js";
 
 let localHandlerPromise = null;
+const COD_POLICY_TEXT =
+  String(process.env.COD_ENABLED || "false").toLowerCase() === "true"
+    ? "COD / bayar di tempat tersedia"
+    : "COD / bayar di tempat belum tersedia";
 
 const CASES = [
   { id: "greeting", question: "halo", expectedIntent: "greeting" },
@@ -34,6 +38,17 @@ const CASES = [
     requiredText: ["asuransi"],
   },
   {
+    id: "safe_payment_policy",
+    question:
+      "Barangnya mahal sampai 8 juta. Bisa COD tidak? Metode pembayaran apa saja yang aman?",
+    expectedIntent: "shipping_transaction",
+    expectedType: "text",
+    minActions: 3,
+    checkCoverage: true,
+    minRequestedFacets: 2,
+    requiredText: [COD_POLICY_TEXT, "QRIS"],
+  },
+  {
     question: "ada cabang toko di luar jakarta tidak",
     expectedIntent: "general",
   },
@@ -49,6 +64,16 @@ const CASES = [
     id: "return_policy",
     question: "Barang Getter Robo saya terkelupas dan cacat, bisa retur dan refund?",
     expectedIntent: "return_product",
+    expectedCustomerState: "distressed",
+    minActions: 3,
+    requiredText: ["2 x 24 jam", "1-3 hari kerja", "3-7 hari kerja"],
+  },
+  {
+    id: "return_policy_consistency",
+    question:
+      "Barang rusak bisa diretur atau refund? Apa syarat dan berapa lama prosesnya?",
+    expectedIntent: "return_product",
+    expectedType: "text",
     expectedCustomerState: "distressed",
     minActions: 3,
     requiredText: ["2 x 24 jam", "1-3 hari kerja", "3-7 hari kerja"],
@@ -142,7 +167,7 @@ const CASES = [
     expectedIntent: "price_promo",
     minProducts: 2,
     ascendingPrices: true,
-    requiredText: ["hasil sebelumnya"],
+    requiredAnyText: ["hasil sebelumnya", "daftar sebelumnya"],
   },
   {
     id: "shipping_quote_multiturn",
@@ -229,12 +254,21 @@ const CONTROLLED_CASE_IDS = new Set([
   "previous_scope_keeps_history",
   "store_visit",
   "secure_shipping_policy",
+  "safe_payment_policy",
   "return_policy",
   "junk_detail_transparency",
   "gift_display_recommendation",
   "out_of_scope_fiction",
   "order_requires_verification",
   "shipping_quote_multiturn",
+]);
+
+const CONSISTENCY_CASE_IDS = new Set([
+  "store_visit",
+  "safe_payment_policy",
+  "return_policy_consistency",
+  "out_of_scope_fiction",
+  "order_requires_verification",
 ]);
 
 const COMPOUND_CASE_IDS = new Set([
@@ -270,6 +304,17 @@ function selectedCases(argv = []) {
 
   if (argv.includes("--confidence")) {
     return CASES.filter((testCase) => CONFIDENCE_CASE_IDS.has(testCase.id));
+  }
+
+  if (argv.includes("--consistency")) {
+    return CASES.filter((testCase) =>
+      CONSISTENCY_CASE_IDS.has(testCase.id),
+    ).flatMap((testCase) =>
+      [1, 2].map((run) => ({
+        ...testCase,
+        id: `${testCase.id}_run_${run}`,
+      })),
+    );
   }
 
   const intentIndex = argv.indexOf("--intent");
