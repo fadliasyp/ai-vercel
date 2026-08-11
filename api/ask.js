@@ -3181,6 +3181,7 @@ export default async function handler(req, res) {
 
   const body = req.body || {};
   const isSuggestionClick = !!body.isSuggestionClick;
+  const isBootstrapRequest = body.isBootstrap === true;
   const pageContext =
     body.pageContext && typeof body.pageContext === "object"
       ? body.pageContext
@@ -3190,6 +3191,8 @@ export default async function handler(req, res) {
   if (!rawQuestion) {
     return res.status(400).json({ type: "text", message: "Pertanyaan kosong" });
   }
+  const isBootstrapGreeting =
+    isBootstrapRequest && isGreetingOnly(rawQuestion);
 
   const privacySafeQuestion = () => redactOrderVerification(rawQuestion);
   const customerState = detectCustomerState(privacySafeQuestion());
@@ -4137,24 +4140,26 @@ export default async function handler(req, res) {
           method: session.lastIntentMethod || "fallback_rule_low_confidence",
           score: session.lastIntentScore ?? 0,
         }),
-        logChatMetricToSupabase({
-          sessionId,
-          status: "success",
-          intent: finalIntent,
-          intentMethod:
-            session.lastIntentMethod || "fallback_rule_low_confidence",
-          intentScore: session.lastIntentScore,
-          responseType: finalPayload.type,
-          assistantProvider: assistantMeta.provider,
-          assistantModel: assistantMeta.model,
-          assistantReason: assistantMeta.reason,
-          routerProvider: assistantMeta.router?.provider,
-          routerModel: assistantMeta.router?.model,
-          latencyMs: Date.now() - requestStartedAt,
-          productCount: finalPayload.products?.length,
-          optionCount: finalPayload.options?.length,
-          actionCount: finalPayload.actions?.length,
-        }),
+        isBootstrapGreeting
+          ? Promise.resolve()
+          : logChatMetricToSupabase({
+              sessionId,
+              status: "success",
+              intent: finalIntent,
+              intentMethod:
+                session.lastIntentMethod || "fallback_rule_low_confidence",
+              intentScore: session.lastIntentScore,
+              responseType: finalPayload.type,
+              assistantProvider: assistantMeta.provider,
+              assistantModel: assistantMeta.model,
+              assistantReason: assistantMeta.reason,
+              routerProvider: assistantMeta.router?.provider,
+              routerModel: assistantMeta.router?.model,
+              latencyMs: Date.now() - requestStartedAt,
+              productCount: finalPayload.products?.length,
+              optionCount: finalPayload.options?.length,
+              actionCount: finalPayload.actions?.length,
+            }),
       ]);
 
       await saveSessionState(supabase, sessionId, {

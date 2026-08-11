@@ -1,15 +1,29 @@
 import "dotenv/config";
 import { createClient } from "@supabase/supabase-js";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
+  renderObservabilityMarkdown,
   summarizeChatFeedback,
   summarizeChatMetrics,
 } from "../lib/chatbot/observabilityReport.js";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 function readDays() {
   const index = process.argv.indexOf("--days");
   const value = index >= 0 ? Number(process.argv[index + 1]) : 7;
   return Number.isFinite(value) ? Math.min(90, Math.max(1, Math.round(value))) : 7;
+}
+
+function readOutputPath() {
+  const index = process.argv.indexOf("--output");
+  const value = index >= 0 ? String(process.argv[index + 1] || "").trim() : "";
+  return value
+    ? path.resolve(root, value)
+    : path.join(root, "benchmarks", "results", "observability-latest.md");
 }
 
 async function fetchRows(client, table, columns, since, limit = 10_000) {
@@ -88,6 +102,7 @@ if (!url || !key) {
 }
 
 const days = readDays();
+const outputPath = readOutputPath();
 const since = new Date(Date.now() - days * 86_400_000).toISOString();
 const client = createClient(url, key);
 const [rows, feedbackRows] = await Promise.all([
@@ -109,10 +124,17 @@ const [rows, feedbackRows] = await Promise.all([
 ]);
 const report = summarizeChatMetrics(rows);
 const feedback = summarizeChatFeedback(feedbackRows);
+const markdown = renderObservabilityMarkdown(report, feedback, { days });
+
+await mkdir(path.dirname(outputPath), { recursive: true });
+await writeFile(outputPath, markdown, "utf8");
 
 console.log(`Observability chatbot: ${days} hari terakhir`);
 console.log(`Request       : ${report.requests}`);
-console.log(`Success rate  : ${percent(report.successRate)}`);
+console.log(`Greeting skip : ${report.excludedGreetings}`);
+console.log(
+  `Success rate  : ${report.requests ? percent(report.successRate) : "-"}`,
+);
 console.log(`Error         : ${report.errors}`);
 console.log(`Latency avg   : ${report.averageLatencyMs} ms`);
 console.log(`Latency p95   : ${report.p95LatencyMs} ms`);
@@ -131,3 +153,4 @@ console.log(`Helpful rate   : ${percent(feedback.helpfulRate)}`);
 printFeedbackGroups("Feedback per intent", feedback.byIntent);
 printFeedbackGroups("Feedback per editor", feedback.byAssistant);
 printFeedbackGroups("Feedback per tipe respons", feedback.byResponseType);
+console.log(`\nFile laporan  : ${outputPath}`);

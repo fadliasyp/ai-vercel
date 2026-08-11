@@ -2,3 +2,4 @@
 .agents
 .env*
 node_modules
+benchmarks/results/observability-latest.md
