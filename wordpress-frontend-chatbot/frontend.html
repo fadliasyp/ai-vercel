@@ -153,8 +153,21 @@
     }
     const sessionId = getSessionId();
     const SESSION_KEY = `${CHAT_HISTORY_KEY_PREFIX}:${sessionId}`;
+    const FEEDBACK_DONE_KEY = `ai_feedback_done:${sessionId}`;
+    const FEEDBACK_COUNT_KEY = `ai_feedback_question_count:${sessionId}`;
 
     let chatHistory = [];
+    let feedbackDoneInSession = false;
+    let feedbackQuestionCountInSession = 0;
+
+    try {
+      feedbackDoneInSession =
+        sessionStorage.getItem(FEEDBACK_DONE_KEY) === "1";
+      feedbackQuestionCountInSession = Math.max(
+        0,
+        Number(sessionStorage.getItem(FEEDBACK_COUNT_KEY) || 0),
+      );
+    } catch (e) {}
 
     // ==============================
     // TOGGLE CHAT
@@ -361,7 +374,9 @@
         } else if (
           item.type === "feedback" &&
           !item.submitted &&
-          isActiveTail
+          isActiveTail &&
+          customerQuestionCount() >= 2 &&
+          !hasSessionFeedback()
         ) {
           renderFeedbackPrompt(item);
         }
@@ -426,6 +441,36 @@
         .querySelectorAll(".chat-feedback")
         .forEach((el) => el.remove());
       if (changed) saveChat();
+    }
+
+    function hasSessionFeedback() {
+      return feedbackDoneInSession;
+    }
+
+    function markSessionFeedbackDone() {
+      feedbackDoneInSession = true;
+      try {
+        sessionStorage.setItem(FEEDBACK_DONE_KEY, "1");
+      } catch (e) {}
+    }
+
+    function customerQuestionCount() {
+      return feedbackQuestionCountInSession;
+    }
+
+    function countCustomerQuestion(text = "", isBootstrap = false) {
+      const value = String(text || "").trim();
+      if (isBootstrap || !value || /^(?:halo|hai|hi|hello)$/i.test(value)) {
+        return;
+      }
+
+      feedbackQuestionCountInSession += 1;
+      try {
+        sessionStorage.setItem(
+          FEEDBACK_COUNT_KEY,
+          String(feedbackQuestionCountInSession),
+        );
+      } catch (e) {}
     }
 
     function feedbackTopic(intent = "") {
@@ -497,6 +542,7 @@
         stored.rating = rating;
         saveChat();
       }
+      markSessionFeedbackDone();
 
       fetch("https://ai-vercel-ten-sigma.vercel.app/api/feedback", {
         method: "POST",
@@ -547,6 +593,7 @@
     function shouldOfferFeedback(data = {}) {
       if (!data || data.intent === "greeting") return false;
       if (["suggestions", "options"].includes(data.type)) return false;
+      if (hasSessionFeedback() || customerQuestionCount() < 2) return false;
 
       const text = [data.message, data.intro, data.closing]
         .filter(Boolean)
@@ -1170,9 +1217,14 @@
     // ==============================
     // ADD MESSAGE (WITH SAVE)
     // ==============================
-    function addUserMessage(text, imageDataUrl = "") {
+    function addUserMessage(
+      text,
+      imageDataUrl = "",
+      { isBootstrap = false } = {},
+    ) {
       renderUser(text, imageDataUrl);
-      chatHistory.push({ type: "user", text });
+      chatHistory.push({ type: "user", text, isBootstrap });
+      countCustomerQuestion(text, isBootstrap);
       saveChat();
 
       scrollBottom(); // ✅ langsung scroll ke pertanyaan user
@@ -1363,13 +1415,14 @@
       if (!question && !hasImage) return;
 
       const isSuggestionClick = options.isSuggestionClick === true;
+      const isBootstrap = options.isBootstrap === true;
       const imageToSend = hasImage ? selectedImage : null;
       const pageContext = getCurrentProductPageContext();
 
       removeSuggestions();
       dismissOpenFeedback();
 
-      addUserMessage(question, imageToSend?.dataUrl || "");
+      addUserMessage(question, imageToSend?.dataUrl || "", { isBootstrap });
       input.value = "";
       input.style.height = "auto";
       if (hasImage) {
@@ -1505,7 +1558,10 @@
     setMobileViewportVars();
 
     if (isFreshSession()) {
-      window.sendQuestion("halo", { isSuggestionClick: false });
+      window.sendQuestion("halo", {
+        isSuggestionClick: false,
+        isBootstrap: true,
+      });
     }
   });
 </script>

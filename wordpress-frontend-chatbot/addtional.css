@@ -1066,40 +1066,74 @@
 }
 
 /* Chat-suggestion */
-.chat-suggestions,
-.rj-options {
-  display: flex;
-  flex-wrap: wrap;
+#ai-chat-box .chat-suggestions,
+#ai-chat-box .rj-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-  margin-top: 8px;
+  margin: 8px 0 4px;
   width: 100%;
   min-width: 0;
   align-self: stretch;
 }
 
-.suggestion-btn,
-.rj-opt-btn {
-  border: none;
-  border-radius: 14px;
-  padding: 8px 12px;
-  cursor: pointer;
-  background: #f1f1f1;
-  font-size: 13px;
-  max-width: 100%;
+#ai-chat-box .suggestion-btn,
+#ai-chat-box .rj-opt-btn {
+  appearance: none;
+  display: block;
+  width: 100%;
   min-width: 0;
-  height: auto;
-  line-height: 1.35;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 1px solid #dbe7f6 !important;
+  border-left: 3px solid #3b82f6 !important;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  background: #ffffff !important;
+  color: #243b53 !important;
+  box-shadow: 0 2px 7px rgba(15, 23, 42, 0.05);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
   text-align: left;
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: clip !important;
   overflow-wrap: anywhere;
   word-break: normal;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
-.suggestion-btn:hover,
-.rj-opt-btn:hover {
-  background: #e5e5e5;
+#ai-chat-box .suggestion-btn:last-child:nth-child(odd),
+#ai-chat-box .rj-opt-btn:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+#ai-chat-box .suggestion-btn:hover,
+#ai-chat-box .rj-opt-btn:hover {
+  border-color: #93c5fd !important;
+  background: #eff6ff !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+}
+
+#ai-chat-box .suggestion-btn:focus-visible,
+#ai-chat-box .rj-opt-btn:focus-visible {
+  outline: 3px solid rgba(59, 130, 246, 0.25);
+  outline-offset: 1px;
+}
+
+#ai-chat-box .suggestion-btn:disabled,
+#ai-chat-box .rj-opt-btn:disabled {
+  cursor: default;
+  border-color: #e5e7eb !important;
+  background: #f8fafc !important;
+  color: #94a3b8 !important;
+  box-shadow: none;
 }
 
 @media (max-width: 600px) {
@@ -1113,10 +1147,13 @@
 
   #ai-chat-box .suggestion-btn,
   #ai-chat-box .rj-opt-btn {
-    display: block;
-    width: 100%;
     padding: 10px 12px;
     font-size: 12.5px;
+  }
+
+  #ai-chat-box .suggestion-btn:last-child:nth-child(odd),
+  #ai-chat-box .rj-opt-btn:last-child:nth-child(odd) {
+    grid-column: auto;
   }
 }
 
@@ -1359,13 +1396,17 @@
 
 /* Feedback jawaban dan handoff admin */
 #ai-chat-box .chat-feedback {
-  width: min(100%, 520px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
   box-sizing: border-box;
-  margin: 2px 0 10px;
-  padding: 10px 12px;
-  border: 1px solid #dbe7f6;
-  border-radius: 8px;
-  background: #f8fbff;
+  margin: 4px 0 8px;
+  padding: 10px 4px 2px;
+  border: 0;
+  border-top: 1px solid #e5edf7;
+  background: transparent;
   color: #334155;
 }
 
@@ -1376,8 +1417,9 @@
 }
 
 #ai-chat-box .chat-feedback__label {
-  margin-bottom: 8px;
-  font-weight: 800;
+  margin: 0;
+  color: #64748b;
+  font-weight: 700;
 }
 
 #ai-chat-box .chat-feedback__actions {
@@ -1387,7 +1429,7 @@
 }
 
 #ai-chat-box .chat-feedback__status + .chat-feedback__actions {
-  margin-top: 9px;
+  margin-top: 0;
 }
 
 #ai-chat-box .chat-feedback__actions button,
@@ -1397,8 +1439,8 @@
   border: 1px solid #bfdbfe;
   border-radius: 8px;
   padding: 8px 12px;
-  background: #ffffff;
-  color: #1d4ed8;
+  background: #ffffff !important;
+  color: #1d4ed8 !important;
   font: inherit;
   font-size: 12.5px;
   font-weight: 800;
@@ -1411,7 +1453,7 @@
 #ai-chat-box .chat-feedback__actions button:hover,
 #ai-chat-box .chat-feedback__actions a:hover {
   border-color: #60a5fa;
-  background: #eff6ff;
+  background: #eff6ff !important;
 }
 
 #ai-chat-box .chat-feedback__actions button:disabled {
@@ -1421,7 +1463,9 @@
 
 @media (max-width: 480px) {
   #ai-chat-box .chat-feedback {
-    width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    padding-top: 10px;
   }
 
   #ai-chat-box .chat-feedback__actions {
