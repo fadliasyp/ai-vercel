@@ -189,6 +189,7 @@ import {
   getWooProductsCached,
 } from "../lib/chatbot/wooCatalog.js";
 import { buildWordPressUrl } from "../lib/chatbot/siteConfig.js";
+import { buildChatMetric } from "../lib/chatbot/observability.js";
 import {
   extractDistrictFollowUp,
   findCityWithDistrict,
@@ -217,6 +218,20 @@ const supabase =
         process.env.SUPABASE_SERVICE_ROLE_KEY,
       )
     : null;
+
+async function logChatMetricToSupabase(input) {
+  if (!supabase) return;
+
+  try {
+    const { error } = await supabase
+      .from("chat_observability")
+      .insert(buildChatMetric(input));
+
+    if (error) console.error("OBSERVABILITY INSERT ERROR:", error.message);
+  } catch (error) {
+    console.error("OBSERVABILITY INSERT ERROR:", error?.message || error);
+  }
+}
 
 console.log("SUPABASE URL:", process.env.SUPABASE_URL);
 
@@ -3139,6 +3154,7 @@ function isGlobalStockQuestion(q = "") {
 // ==================== Logic utama handler API ====================
 
 export default async function handler(req, res) {
+  const requestStartedAt = Date.now();
   console.log("ASK HIT:", req.method, req.url);
   // ===============================
   // 🔥 CORS FIX
@@ -4113,14 +4129,33 @@ export default async function handler(req, res) {
 
       console.log("AI RESPONSE EDITOR:", assistantMeta);
 
-      await logIntentToSupabase({
-        sessionId,
-        rawQuestion: privacySafeQuestion(),
-        intent:
-          forceIntent ?? payload.intent ?? session.lastIntent ?? "general",
-        method: session.lastIntentMethod || "fallback_rule_low_confidence",
-        score: session.lastIntentScore ?? 0,
-      });
+      await Promise.all([
+        logIntentToSupabase({
+          sessionId,
+          rawQuestion: privacySafeQuestion(),
+          intent: finalIntent,
+          method: session.lastIntentMethod || "fallback_rule_low_confidence",
+          score: session.lastIntentScore ?? 0,
+        }),
+        logChatMetricToSupabase({
+          sessionId,
+          status: "success",
+          intent: finalIntent,
+          intentMethod:
+            session.lastIntentMethod || "fallback_rule_low_confidence",
+          intentScore: session.lastIntentScore,
+          responseType: finalPayload.type,
+          assistantProvider: assistantMeta.provider,
+          assistantModel: assistantMeta.model,
+          assistantReason: assistantMeta.reason,
+          routerProvider: assistantMeta.router?.provider,
+          routerModel: assistantMeta.router?.model,
+          latencyMs: Date.now() - requestStartedAt,
+          productCount: finalPayload.products?.length,
+          optionCount: finalPayload.options?.length,
+          actionCount: finalPayload.actions?.length,
+        }),
+      ]);
 
       await saveSessionState(supabase, sessionId, {
         lastIntent: session.lastIntent,
@@ -9476,6 +9511,19 @@ ${JSON.stringify(facts, null, 2)}
     );
   } catch (err) {
     console.error("FATAL ERROR:", err?.stack || err);
+    await logChatMetricToSupabase({
+      sessionId,
+      status: "error",
+      intent: session?.lastIntent || "general",
+      intentMethod: session?.lastIntentMethod || "unknown",
+      intentScore: session?.lastIntentScore,
+      responseType: "error",
+      assistantProvider: "none",
+      assistantReason: "unhandled_error",
+      routerProvider: "unknown",
+      latencyMs: Date.now() - requestStartedAt,
+      errorCode: err?.code || err?.name || "unhandled_error",
+    });
     return res.status(500).json({
       type: "text",
       message: "Server error",
