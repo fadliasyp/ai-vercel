@@ -122,9 +122,11 @@ import {
 
 import {
   applyControlledFollowUpPolicy,
+  buildControlledActions,
   buildBudgetOptions,
   buildStandaloneAffirmationResponse,
   isOptionalFollowUpType,
+  isRequiredClarificationPayload,
   pickSupportedClosing,
 } from "../lib/chatbot/followUpClosings.js";
 import { extractBudgetRange } from "../lib/chatbot/priceIntent.js";
@@ -4050,9 +4052,21 @@ export default async function handler(req, res) {
         rawQuestion,
       });
 
+      const suggestionQuestion = privacySafeQuestion();
+      const actionCandidates =
+        !finalPayload._actionContext &&
+        isRequiredClarificationPayload(finalPayload)
+          ? []
+          : buildControlledActions(finalIntent, finalPayload, {
+              recentActions: session.lastSuggestedActions || [],
+              limit: 8,
+              userQuestion: suggestionQuestion,
+            });
+
       finalPayload = applyControlledFollowUpPolicy(finalPayload, {
         intent: finalIntent,
         recentActions: session.lastSuggestedActions || [],
+        userQuestion: suggestionQuestion,
       });
 
       if (Array.isArray(finalPayload.actions) && finalPayload.actions.length) {
@@ -4095,6 +4109,7 @@ export default async function handler(req, res) {
           userQuestion: privacySafeQuestion(),
           intent: finalIntent,
           conversationContext: groqContext,
+          actionCandidates,
           config: naturalizerConfig,
           onStatus(status) {
             assistantMeta = status;

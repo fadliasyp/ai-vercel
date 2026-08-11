@@ -7,6 +7,7 @@ import {
   buildControlledActions,
   buildStandaloneAffirmationResponse,
   isOptionalFollowUpType,
+  isRequiredClarificationPayload,
 } from "../lib/chatbot/followUpClosings.js";
 
 const products = [
@@ -94,6 +95,73 @@ test("does not force choices onto a required shipping clarification", () => {
   assert.equal("actions" in result, false);
 });
 
+test("provides grounded follow-up choices for every completed intent", () => {
+  const intents = [
+    "greeting",
+    "product_discovery",
+    "product_detail",
+    "price_promo",
+    "stock_availability",
+    "recommendation",
+    "compare",
+    "shipping_transaction",
+    "shipping_origin",
+    "return_product",
+    "transaction_status",
+    "shipment_tracking",
+    "image_product_search",
+    "general",
+  ];
+
+  for (const intent of intents) {
+    const result = applyControlledFollowUpPolicy(
+      { type: "text", message: "Informasi sudah lengkap." },
+      { intent },
+    );
+    assert.ok(result.actions?.length >= 2, `${intent} tidak punya saran`);
+    assert.ok(result.actions.length <= 3, `${intent} terlalu banyak saran`);
+  }
+});
+
+test("suppresses unrelated choices while required customer data is missing", () => {
+  const clarification = {
+    type: "text",
+    message: "Untuk melanjutkan, tulis nomor resinya.",
+  };
+
+  assert.equal(isRequiredClarificationPayload(clarification), true);
+  assert.equal(
+    "actions" in
+      applyControlledFollowUpPolicy(clarification, {
+        intent: "shipment_tracking",
+      }),
+    false,
+  );
+});
+
+test("grounds image-search choices in actual product candidates", () => {
+  assert.deepEqual(
+    buildControlledActions("image_product_search", { products }),
+    [
+      "Tampilkan detail Robot A",
+      "Cek stok Robot A",
+      "Cek harga Robot A",
+    ],
+  );
+});
+
+test("does not suggest repeating a completed cheapest-price request", () => {
+  const actions = buildControlledActions(
+    "price_promo",
+    { products },
+    { userQuestion: "Robot apa yang paling termurah di toko ini?" },
+  );
+
+  assert.equal(actions.some((action) => /termurah/i.test(action)), false);
+  assert.match(actions[0], /tampilkan detail/i);
+  assert.ok(actions.some((action) => /stok|bandingkan|detail/i.test(action)));
+});
+
 test("replaces an optional closing with explicit product actions", () => {
   const result = applyControlledFollowUpPolicy(
     {
@@ -137,7 +205,7 @@ test("compare actions contain both product names and a clear command", () => {
   ]);
 });
 
-test("removes only a trailing optional invitation from message text", () => {
+test("replaces a trailing optional invitation with correlated choices", () => {
   const result = applyControlledFollowUpPolicy(
     {
       type: "text",
@@ -148,7 +216,11 @@ test("removes only a trailing optional invitation from message text", () => {
   );
 
   assert.equal(result.message, "Pengiriman berasal dari Jakarta.");
-  assert.equal("actions" in result, false);
+  assert.deepEqual(result.actions, [
+    "Cek ongkir ke kota tujuan",
+    "Apakah bisa kirim ke luar pulau?",
+    "Berapa lama estimasi pengiriman?",
+  ]);
 });
 
 test("standalone affirmation without a required field returns choices", () => {

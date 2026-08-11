@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   isSafeNaturalizedResponse,
   naturalizeResponseWithGroq,
+  rankSuggestedActions,
   resolveGroqNaturalizerConfig,
 } from "../lib/chatbot/responseNaturalizer.js";
 
@@ -102,6 +103,37 @@ test("rejects a rewrite that changes a protected price", async () => {
   assert.equal(result.message, payload.message);
 });
 
+test("lets Groq rank only safe follow-up candidates", async () => {
+  const actions = [
+    "Tampilkan detail Robot A",
+    "Cek stok Robot A",
+    "Bandingkan Robot A dengan Robot B",
+    "Urutkan hasil dari harga termurah",
+  ];
+  const result = await naturalizeResponseWithGroq(
+    { ...payload, actions: actions.slice(0, 3) },
+    {
+      userQuestion: "robot termurah yang mana?",
+      intent: "price_promo",
+      actionCandidates: actions,
+      config: config(),
+      fetchImpl: mockFetch({
+        intro: "",
+        message: payload.message,
+        reasoning_text: "",
+        closing: payload.closing,
+        action_indexes: [0, 2, 1, 99],
+      }),
+    },
+  );
+
+  assert.deepEqual(result.actions, [actions[0], actions[2], actions[1]]);
+  assert.deepEqual(
+    rankSuggestedActions(actions.slice(0, 3), actions, [99]),
+    actions.slice(0, 3),
+  );
+});
+
 test("safe-result validator rejects new URLs and missing product names", () => {
   assert.equal(
     isSafeNaturalizedResponse(payload, {
@@ -193,5 +225,50 @@ test("sends compact conversation context to the Groq editor", async () => {
       negated: true,
       question_type: "yes_no",
     },
+  });
+});
+
+test("sends only bounded safe action candidates to the same Groq request", async () => {
+  let requestBody = null;
+  const candidates = Array.from({ length: 10 }, (_, index) => `Pilihan ${index}`);
+  const fetchImpl = async (_url, options) => {
+    requestBody = JSON.parse(options.body);
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                intro: "",
+                message: payload.message,
+                reasoning_text: "",
+                closing: payload.closing,
+                action_indexes: [1, 0],
+              }),
+            },
+          },
+        ],
+      }),
+    };
+  };
+
+  await naturalizeResponseWithGroq(
+    { ...payload, actions: candidates.slice(0, 3) },
+    {
+      userQuestion: "setelah ini apa yang perlu saya cek?",
+      intent: "product_detail",
+      actionCandidates: candidates,
+      config: config(),
+      fetchImpl,
+    },
+  );
+
+  const userMessage = JSON.parse(requestBody.messages[1].content);
+  assert.equal(userMessage.safe_action_candidates.length, 8);
+  assert.deepEqual(userMessage.safe_action_candidates[0], {
+    index: 0,
+    action: "Pilihan 0",
   });
 });

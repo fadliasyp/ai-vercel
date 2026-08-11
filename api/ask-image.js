@@ -20,6 +20,11 @@ import {
   plausibleVisualProducts,
 } from "../lib/chatbot/imageCandidatePool.js";
 import { buildChatMetric } from "../lib/chatbot/observability.js";
+import {
+  applyControlledFollowUpPolicy,
+  buildControlledActions,
+  isRequiredClarificationPayload,
+} from "../lib/chatbot/followUpClosings.js";
 
 export const config = {
   runtime: "nodejs",
@@ -1062,9 +1067,28 @@ export default async function handler(req, res) {
   }
 
   function naturalizeImagePayload(payload, question) {
-    return naturalizeResponseWithGroq(payload, {
+    const history = Array.isArray(req.body?.history) ? req.body.history : [];
+    const recentActions = [...history]
+      .reverse()
+      .find((item) => item?.type === "suggestions")?.suggestions;
+    const safeRecentActions = Array.isArray(recentActions) ? recentActions : [];
+    const actionCandidates = isRequiredClarificationPayload(payload)
+      ? []
+      : buildControlledActions("image_product_search", payload, {
+          recentActions: safeRecentActions,
+          limit: 8,
+          userQuestion: question,
+        });
+    const controlledPayload = applyControlledFollowUpPolicy(payload, {
+      intent: "image_product_search",
+      recentActions: safeRecentActions,
+      userQuestion: question,
+    });
+
+    return naturalizeResponseWithGroq(controlledPayload, {
       userQuestion: question,
       intent: "image_product_search",
+      actionCandidates,
       onStatus(status) {
         responseEditorMeta = status;
       },
