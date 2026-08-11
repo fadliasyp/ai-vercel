@@ -2,4 +2,6 @@ untuk redeploy
 
 vercel --prod 
 
-iyaaa saya setuju sangat bagus, kita beri pelanggan bisa menekan pilihan saja, agar jadi interaktif juga chatbot kita, dan tetap sesuai konteks dan tepat sasaran, yuk lanjut tahap berikutnya
+
+mau lihat catatan intent gagal/berhasil dlm 7 hari terakhir
+npm run report:observability -- --days 7

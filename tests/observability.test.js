@@ -22,6 +22,8 @@ test("builds bounded privacy-safe chatbot metrics", () => {
       optionCount: -2,
       actionCount: 2,
       question: "email pelanggan@example.com dan 081234567890",
+      image: "data:image/jpeg;base64,rahasia-foto-pelanggan",
+      imageName: "koleksi-pribadi.jpg",
     },
     {
       salt: "test-salt",
@@ -37,7 +39,11 @@ test("builds bounded privacy-safe chatbot metrics", () => {
   assert.equal(metric.option_count, 0);
   assert.equal(metric.assistant_model, "openai/gpt-oss-20b");
   assert.equal("question" in metric, false);
-  assert.doesNotMatch(JSON.stringify(metric), /pelanggan@example\.com|081234567890/);
+  assert.equal("image" in metric, false);
+  assert.doesNotMatch(
+    JSON.stringify(metric),
+    /pelanggan@example\.com|081234567890|rahasia-foto|koleksi-pribadi/,
+  );
 });
 
 test("rejects invalid metric status and session", () => {

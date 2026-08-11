@@ -1,4 +1,5 @@
 import { createPartFromBase64 } from "@google/genai";
+import { createClient } from "@supabase/supabase-js";
 import {
   GEMINI_MODEL_FALLBACKS,
   genai,
@@ -18,6 +19,7 @@ import {
   interleaveUniqueProducts,
   plausibleVisualProducts,
 } from "../lib/chatbot/imageCandidatePool.js";
+import { buildChatMetric } from "../lib/chatbot/observability.js";
 
 export const config = {
   runtime: "nodejs",
@@ -33,6 +35,28 @@ const MIN_GEMINI_STEP_MS = 9000;
 const GEMINI_QUOTA_COOLDOWN_MS = Number(
   process.env.GEMINI_QUOTA_COOLDOWN_MS || 10 * 60 * 1000,
 );
+
+const observabilitySupabase =
+  process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
+    ? createClient(
+        process.env.SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE_KEY,
+      )
+    : null;
+
+async function logImageMetric(input) {
+  if (!observabilitySupabase) return;
+
+  try {
+    const { error } = await observabilitySupabase
+      .from("chat_observability")
+      .insert(buildChatMetric(input));
+
+    if (error) console.error("IMAGE OBSERVABILITY ERROR:", error.message);
+  } catch (error) {
+    console.error("IMAGE OBSERVABILITY ERROR:", error?.message || error);
+  }
+}
 
 function createDeadline(ms = IMAGE_SEARCH_BUDGET_MS) {
   const endAt = Date.now() + ms;
@@ -992,6 +1016,61 @@ function buildReasoning({
 }
 
 export default async function handler(req, res) {
+  const requestStartedAt = Date.now();
+  const sessionId = req.headers["x-session-id"] || "anon";
+  let responseEditorMeta = {
+    provider: "template",
+    model: "unknown",
+    reason: "not_run",
+  };
+
+  async function sendObserved(statusCode, payload, errorCode = "none") {
+    const hasAnalysis = Boolean(payload?.image_analysis);
+    const analysisFallback = payload?.image_analysis?.analysis_fallback;
+    const visuallyReranked = payload?.match_confidence?.visually_reranked;
+
+    await logImageMetric({
+      sessionId,
+      status: statusCode >= 400 ? "error" : "success",
+      intent: "image_product_search",
+      intentMethod:
+        statusCode >= 400
+          ? statusCode < 500
+            ? "request_validation"
+            : "image_pipeline_error"
+          : analysisFallback
+            ? "visual_index_fallback"
+            : visuallyReranked
+              ? "gemini_visual_rerank"
+              : "image_candidate_pipeline",
+      responseType: payload?.type,
+      assistantProvider: responseEditorMeta.provider,
+      assistantModel: responseEditorMeta.model,
+      assistantReason: responseEditorMeta.reason,
+      routerProvider: !hasAnalysis
+        ? "none"
+        : analysisFallback
+          ? "local_visual_index"
+          : "gemini",
+      latencyMs: Date.now() - requestStartedAt,
+      productCount: payload?.products?.length,
+      actionCount: payload?.actions?.length,
+      errorCode,
+    });
+
+    return sendJson(res, statusCode, payload);
+  }
+
+  function naturalizeImagePayload(payload, question) {
+    return naturalizeResponseWithGroq(payload, {
+      userQuestion: question,
+      intent: "image_product_search",
+      onStatus(status) {
+        responseEditorMeta = status;
+      },
+    });
+  }
+
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader(
@@ -1017,11 +1096,11 @@ export default async function handler(req, res) {
     const image = parseImageDataUrl(req.body?.image || "");
 
     if (!image) {
-      return sendJson(res, 400, {
+      return sendObserved(400, {
         type: "text",
         intent: "image_product_search",
         message: "Gambar belum terbaca. Coba upload foto JPG, PNG, atau WEBP ya.",
-      });
+      }, "invalid_image");
     }
 
     const skipImageAnalyze = isImageAnalyzeCoolingDown();
@@ -1221,14 +1300,11 @@ export default async function handler(req, res) {
         image_analysis: analysis,
         search_constraints: constraints,
       };
-      const finalNoConstraintMatchPayload = await naturalizeResponseWithGroq(
+      const finalNoConstraintMatchPayload = await naturalizeImagePayload(
         noConstraintMatchPayload,
-        {
-          userQuestion: question,
-          intent: "image_product_search",
-        },
+        question,
       );
-      return sendJson(res, 200, finalNoConstraintMatchPayload);
+      return sendObserved(200, finalNoConstraintMatchPayload);
     }
 
     if (hasVisualRerank && !finalProducts.length) {
@@ -1245,14 +1321,11 @@ export default async function handler(req, res) {
           visually_reranked: true,
         },
       };
-      const finalNoMatchPayload = await naturalizeResponseWithGroq(
+      const finalNoMatchPayload = await naturalizeImagePayload(
         noMatchPayload,
-        {
-          userQuestion: question,
-          intent: "image_product_search",
-        },
+        question,
       );
-      return sendJson(res, 200, finalNoMatchPayload);
+      return sendObserved(200, finalNoMatchPayload);
     }
 
     const topVisualScore = Number(finalProducts[0]?.visualScore || 0);
@@ -1299,28 +1372,25 @@ export default async function handler(req, res) {
           : "Kalau mau, aku bisa bantu jelaskan kenapa produk pertama paling mirip atau carikan alternatif yang ready stock.",
     };
 
-    const finalPayload = await naturalizeResponseWithGroq(responsePayload, {
-      userQuestion: question,
-      intent: "image_product_search",
-    });
+    const finalPayload = await naturalizeImagePayload(responsePayload, question);
 
-    return sendJson(res, 200, finalPayload);
+    return sendObserved(200, finalPayload);
   } catch (err) {
     console.error("ASK IMAGE ERROR:", err?.message || err);
 
     if (err?.code === "IMAGE_TOO_LARGE") {
-      return sendJson(res, 413, {
+      return sendObserved(413, {
         type: "text",
         intent: "image_product_search",
         message: "Ukuran foto terlalu besar. Coba upload foto maksimal 5 MB ya.",
-      });
+      }, "image_too_large");
     }
 
-    return sendJson(res, 500, {
+    return sendObserved(500, {
       type: "text",
       intent: "image_product_search",
       message:
         "Maaf, fitur scan foto sedang mengalami kendala. Coba lagi sebentar ya.",
-    });
+    }, err?.code || err?.name || "image_search_error");
   }
 }
