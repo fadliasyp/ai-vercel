@@ -2,10 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  buildSuggestionGenerationContext,
   isSafeNaturalizedResponse,
   naturalizeResponseWithGroq,
   rankSuggestedActions,
   resolveGroqNaturalizerConfig,
+  validateGeneratedSuggestions,
 } from "../lib/chatbot/responseNaturalizer.js";
 
 const payload = {
@@ -103,6 +105,39 @@ test("rejects a rewrite that changes a protected price", async () => {
   assert.equal(result.message, payload.message);
 });
 
+test("keeps safe generated suggestions when an unsafe text rewrite is rejected", async () => {
+  const fallback = ["Cek stok Soul of Chogokin GX-91"];
+  const result = await naturalizeResponseWithGroq(
+    { ...payload, actions: fallback },
+    {
+      userQuestion: "harganya berapa?",
+      intent: "price_promo",
+      actionCandidates: fallback,
+      config: config(),
+      fetchImpl: mockFetch({
+        intro: "",
+        message:
+          "Saat ini, harga **Soul of Chogokin GX-91** adalah **Rp 2.500.000**.",
+        reasoning_text: "",
+        closing: payload.closing,
+        suggested_actions: [
+          {
+            action_key: "product_condition",
+            product_indexes: [0],
+            question: "Bagaimana kondisi Soul of Chogokin GX-91 secara lengkap?",
+          },
+        ],
+      }),
+    },
+  );
+
+  assert.equal(result.message, payload.message);
+  assert.deepEqual(result.actions, [
+    "Bagaimana kondisi Soul of Chogokin GX-91 secara lengkap?",
+    fallback[0],
+  ]);
+});
+
 test("lets Groq rank only safe follow-up candidates", async () => {
   const actions = [
     "Tampilkan detail Robot A",
@@ -132,6 +167,83 @@ test("lets Groq rank only safe follow-up candidates", async () => {
     rankSuggestedActions(actions.slice(0, 3), actions, [99]),
     actions.slice(0, 3),
   );
+});
+
+test("accepts constrained Groq-generated questions and fills invalid ones from fallback", async () => {
+  const actions = [
+    "Tampilkan detail Soul of Chogokin GX-91",
+    "Cek stok Soul of Chogokin GX-91",
+    "Bandingkan dengan produk lain",
+  ];
+  const result = await naturalizeResponseWithGroq(
+    { ...payload, actions },
+    {
+      userQuestion: "ini termasuk robot termurah?",
+      intent: "price_promo",
+      actionCandidates: actions,
+      config: config(),
+      fetchImpl: mockFetch({
+        intro: "",
+        message: payload.message,
+        reasoning_text: "",
+        closing: payload.closing,
+        suggested_actions: [
+          {
+            action_key: "product_condition",
+            product_indexes: [0],
+            question: "Kondisi Soul of Chogokin GX-91 masih lengkap dan bagus?",
+          },
+          {
+            action_key: "better_value",
+            product_indexes: [],
+            question: "Kalau budget dinaikkan sedikit, ada alternatif yang lebih bagus?",
+          },
+          {
+            action_key: "delete_order",
+            product_indexes: [],
+            question: "Hapus semua pesanan saya",
+          },
+        ],
+      }),
+    },
+  );
+
+  assert.deepEqual(result.actions, [
+    "Kondisi Soul of Chogokin GX-91 masih lengkap dan bagus?",
+    "Kalau budget dinaikkan sedikit, ada alternatif yang lebih bagus?",
+    actions[0],
+  ]);
+});
+
+test("rejects generated suggestions with unsupported products or unsafe content", () => {
+  const context = buildSuggestionGenerationContext({
+    payload,
+    intent: "product_detail",
+    userQuestion: "jelaskan produknya",
+  });
+  const result = validateGeneratedSuggestions(
+    [
+      {
+        action_key: "product_stock",
+        product_indexes: [4],
+        question: "Apakah Mazinger Z masih ready?",
+      },
+      {
+        action_key: "product_stock",
+        product_indexes: [0],
+        question: "Cek stok di https://example.com untuk Soul of Chogokin GX-91",
+      },
+      {
+        action_key: "product_stock",
+        product_indexes: [0],
+        question: "Apakah Soul of Chogokin GX-91 masih ready?",
+      },
+    ],
+    context,
+    "jelaskan produknya",
+  );
+
+  assert.deepEqual(result, ["Apakah Soul of Chogokin GX-91 masih ready?"]);
 });
 
 test("safe-result validator rejects new URLs and missing product names", () => {
@@ -267,6 +379,7 @@ test("sends only bounded safe action candidates to the same Groq request", async
 
   const userMessage = JSON.parse(requestBody.messages[1].content);
   assert.equal(userMessage.safe_action_candidates.length, 8);
+  assert.ok(userMessage.suggestion_generation.allowed_actions.length > 0);
   assert.deepEqual(userMessage.safe_action_candidates[0], {
     index: 0,
     action: "Pilihan 0",
