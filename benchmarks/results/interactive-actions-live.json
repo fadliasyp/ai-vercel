@@ -1,7 +1,7 @@
 {
   "endpoint": "https://ai-vercel-ten-sigma.vercel.app/api/ask",
-  "generated_at": "2026-08-11T00:42:25.755Z",
-  "passed": 10,
+  "generated_at": "2026-08-11T00:51:05.906Z",
+  "passed": 11,
   "total": 11,
   "results": [
     {
@@ -116,7 +116,7 @@
         "COD / bayar di tempat tersedia",
         "QRIS"
       ],
-      "passed": false,
+      "passed": true,
       "statusCode": 200,
       "actualIntent": "shipping_transaction",
       "type": "text",
@@ -128,9 +128,7 @@
       "productPrices": [],
       "maxProductCountValid": true,
       "expectedProductNameValid": true,
-      "missingRequiredText": [
-        "COD / bayar di tempat tersedia"
-      ],
+      "missingRequiredText": [],
       "presentForbiddenText": [],
       "assistantMeta": {
         "provider": "groq",
@@ -170,7 +168,7 @@
         "passed": true
       },
       "requestAttempts": 1,
-      "preview": "Saat ini **COD / bayar di tempat belum tersedia**. Gunakan metode pembayaran resmi yang tersedia saa"
+      "preview": "**COD / bayar di tempat tersedia** untuk area atau kondisi tertentu. Ketersediaannya tetap mengikuti"
     },
     {
       "id": "out_of_scope_fiction",
@@ -320,7 +318,7 @@
       "coverageValid": true,
       "answerCoverage": null,
       "requestAttempts": 1,
-      "preview": "Maaf, aku paham ini membuat tidak nyaman. Aku bantu dari informasi yang bisa dipastikan. Oke, aku ba"
+      "preview": "Maaf, aku paham ini membuat tidak nyaman. Aku bantu dari informasi yang bisa dipastikan. Siap, ini i"
     },
     {
       "id": "order_requires_verification",

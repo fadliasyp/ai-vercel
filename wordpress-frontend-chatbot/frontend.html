@@ -328,7 +328,9 @@
       saveChat();
 
       chatHistory.forEach((item, index) => {
-        const isLatestItem = index === chatHistory.length - 1;
+        const isActiveTail = !chatHistory
+          .slice(index + 1)
+          .some((nextItem) => nextItem?.type === "user");
 
         if (item.type === "user") {
           renderUser(item.text);
@@ -348,14 +350,20 @@
             closing: item.closing || "",
             intent: item.intent || null,
           });
-        } else if (item.type === "suggestions" && isLatestItem) {
+        } else if (item.type === "suggestions" && isActiveTail) {
           renderSuggestions({ suggestions: item.suggestions || [] });
-        } else if (item.type === "options" && isLatestItem) {
+        } else if (item.type === "options" && isActiveTail) {
           renderOptions("", item.options || []);
         } else if (item.type === "compare") {
           renderCompare(item.payload);
         } else if (item.type === "how_to_buy") {
           renderHowToBuy(item.steps || []);
+        } else if (
+          item.type === "feedback" &&
+          !item.submitted &&
+          isActiveTail
+        ) {
+          renderFeedbackPrompt(item);
         }
       });
 
@@ -403,6 +411,167 @@
       document
         .querySelectorAll(".chat-suggestions")
         .forEach((el) => el.remove());
+    }
+
+    function dismissOpenFeedback() {
+      let changed = false;
+      chatHistory.forEach((item) => {
+        if (item?.type === "feedback" && !item.submitted) {
+          item.submitted = true;
+          item.rating = "dismissed";
+          changed = true;
+        }
+      });
+      document
+        .querySelectorAll(".chat-feedback")
+        .forEach((el) => el.remove());
+      if (changed) saveChat();
+    }
+
+    function feedbackTopic(intent = "") {
+      const topics = {
+        product_discovery: "pencarian produk",
+        product_detail: "detail produk",
+        price_promo: "harga atau promo",
+        stock_availability: "ketersediaan stok",
+        shipping_transaction: "pembayaran atau pengiriman",
+        shipping_origin: "asal pengiriman",
+        recommendation: "rekomendasi produk",
+        compare: "perbandingan produk",
+        return_product: "retur atau refund",
+        transaction_status: "status pesanan",
+        shipment_tracking: "pelacakan paket",
+      };
+      return topics[intent] || "pertanyaan di chatbot";
+    }
+
+    function buildAdminHandoffUrl(intent = "") {
+      const message =
+        `Halo Admin Robot Jadul, saya perlu bantuan terkait ${feedbackTopic(intent)}. ` +
+        "Jawaban chatbot belum menyelesaikan kebutuhan saya.";
+      return `https://wa.me/6285975313930?text=${encodeURIComponent(message)}`;
+    }
+
+    function renderFeedbackPrompt(item = {}) {
+      if (!messages || !item.id) return;
+
+      const wrap = document.createElement("div");
+      wrap.className = "chat-feedback";
+      wrap.dataset.feedbackId = item.id;
+
+      const label = document.createElement("div");
+      label.className = "chat-feedback__label";
+      label.textContent = "Jawaban ini membantu?";
+
+      const actions = document.createElement("div");
+      actions.className = "chat-feedback__actions";
+
+      [
+        ["helpful", "Membantu"],
+        ["unhelpful", "Belum membantu"],
+      ].forEach(([rating, text]) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = text;
+        button.addEventListener("click", () => {
+          submitFeedback(item, rating, wrap);
+        });
+        actions.appendChild(button);
+      });
+
+      wrap.append(label, actions);
+      messages.appendChild(wrap);
+      scrollBottom();
+    }
+
+    function submitFeedback(item, rating, wrap) {
+      wrap
+        .querySelectorAll("button")
+        .forEach((button) => (button.disabled = true));
+
+      const stored = chatHistory.find(
+        (entry) => entry?.type === "feedback" && entry.id === item.id,
+      );
+      if (stored) {
+        stored.submitted = true;
+        stored.rating = rating;
+        saveChat();
+      }
+
+      fetch("https://ai-vercel-ten-sigma.vercel.app/api/feedback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Session-Id": sessionId,
+        },
+        body: JSON.stringify({
+          rating,
+          intent: item.intent || "general",
+          responseType: item.responseType || "text",
+          assistantProvider: item.assistantProvider || "unknown",
+          assistantReason: item.assistantReason || "unknown",
+        }),
+        keepalive: true,
+      }).catch(() => {});
+
+      wrap.innerHTML = "";
+      const status = document.createElement("div");
+      status.className = "chat-feedback__status";
+
+      if (rating === "helpful") {
+        status.textContent = "Terima kasih, feedback kamu sudah dicatat.";
+        wrap.appendChild(status);
+        return;
+      }
+
+      status.textContent = "Maaf jawabannya belum membantu. Kamu bisa lanjut ke admin atau menulis ulang pertanyaanmu.";
+      const nextActions = document.createElement("div");
+      nextActions.className = "chat-feedback__actions";
+
+      const adminLink = document.createElement("a");
+      adminLink.href = buildAdminHandoffUrl(item.intent);
+      adminLink.target = "_blank";
+      adminLink.rel = "noopener";
+      adminLink.textContent = "Hubungi Admin";
+
+      const retryButton = document.createElement("button");
+      retryButton.type = "button";
+      retryButton.textContent = "Tanya ulang";
+      retryButton.addEventListener("click", focusInput);
+
+      nextActions.append(adminLink, retryButton);
+      wrap.append(status, nextActions);
+      scrollBottom();
+    }
+
+    function shouldOfferFeedback(data = {}) {
+      if (!data || data.intent === "greeting") return false;
+      if (["suggestions", "options"].includes(data.type)) return false;
+
+      const text = [data.message, data.intro, data.closing]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return !/(?:untuk (?:melanjutkan|melindungi data pesanan)|silakan pilih|sebutkan (?:kota|kabupaten|kecamatan))/.test(
+        text,
+      );
+    }
+
+    function addFeedbackPrompt(data = {}) {
+      const item = {
+        type: "feedback",
+        id: crypto.randomUUID
+          ? crypto.randomUUID()
+          : `feedback_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+        intent: data.intent || "general",
+        responseType: data.type || "text",
+        assistantProvider: data.assistant_meta?.provider || "unknown",
+        assistantReason: data.assistant_meta?.reason || "unknown",
+        submitted: false,
+      };
+      chatHistory.push(item);
+      saveChat();
+      renderFeedbackPrompt(item);
     }
 
     function isFreshSession() {
@@ -1177,6 +1346,12 @@
       };
     }
 
+    function recentApiHistory() {
+      return chatHistory
+        .filter((item) => item?.type !== "feedback")
+        .slice(-20);
+    }
+
     // ==============================
     // SEND QUESTION
     // ==============================
@@ -1192,6 +1367,7 @@
       const pageContext = getCurrentProductPageContext();
 
       removeSuggestions();
+      dismissOpenFeedback();
 
       addUserMessage(question, imageToSend?.dataUrl || "");
       input.value = "";
@@ -1221,12 +1397,12 @@
                   question,
                   image: imageToSend.dataUrl,
                   imageName: imageToSend.name || "",
-                  history: chatHistory.slice(-20),
+                  history: recentApiHistory(),
                   pageContext,
                 }
                 : {
                     question,
-                    history: chatHistory.slice(-20),
+                    history: recentApiHistory(),
                     isSuggestionClick,
                     pageContext,
                   },
@@ -1279,6 +1455,10 @@
           data.actions.length
         ) {
           addActionSuggestions(data.actions, data.intent || null);
+        }
+
+        if (shouldOfferFeedback(data)) {
+          addFeedbackPrompt(data);
         }
       } catch (err) {
         removeThinking();

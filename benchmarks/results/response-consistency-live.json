@@ -1,7 +1,7 @@
 {
   "endpoint": "https://ai-vercel-ten-sigma.vercel.app/api/ask",
-  "generated_at": "2026-08-11T00:40:31.369Z",
-  "passed": 8,
+  "generated_at": "2026-08-11T00:49:50.580Z",
+  "passed": 10,
   "total": 10,
   "results": [
     {
@@ -116,7 +116,7 @@
         "COD / bayar di tempat tersedia",
         "QRIS"
       ],
-      "passed": false,
+      "passed": true,
       "statusCode": 200,
       "actualIntent": "shipping_transaction",
       "type": "text",
@@ -128,9 +128,7 @@
       "productPrices": [],
       "maxProductCountValid": true,
       "expectedProductNameValid": true,
-      "missingRequiredText": [
-        "COD / bayar di tempat tersedia"
-      ],
+      "missingRequiredText": [],
       "presentForbiddenText": [],
       "assistantMeta": {
         "provider": "groq",
@@ -170,7 +168,7 @@
         "passed": true
       },
       "requestAttempts": 1,
-      "preview": "Saat ini **COD / bayar di tempat belum tersedia**. Gunakan metode pembayaran resmi yang tersedia saa"
+      "preview": "**COD / bayar di tempat tersedia** untuk area atau kondisi tertentu. Ketersediaannya tetap mengikuti"
     },
     {
       "id": "safe_payment_policy_run_2",
@@ -184,7 +182,7 @@
         "COD / bayar di tempat tersedia",
         "QRIS"
       ],
-      "passed": false,
+      "passed": true,
       "statusCode": 200,
       "actualIntent": "shipping_transaction",
       "type": "text",
@@ -196,9 +194,7 @@
       "productPrices": [],
       "maxProductCountValid": true,
       "expectedProductNameValid": true,
-      "missingRequiredText": [
-        "COD / bayar di tempat tersedia"
-      ],
+      "missingRequiredText": [],
       "presentForbiddenText": [],
       "assistantMeta": {
         "provider": "groq",
@@ -238,7 +234,7 @@
         "passed": true
       },
       "requestAttempts": 1,
-      "preview": "Saat ini **COD / bayar di tempat belum tersedia**. Gunakan metode pembayaran resmi yang tersedia saa"
+      "preview": "**COD / bayar di tempat tersedia** untuk area atau kondisi tertentu. Ketersediaannya tetap mengikuti"
     },
     {
       "id": "out_of_scope_fiction_run_1",
