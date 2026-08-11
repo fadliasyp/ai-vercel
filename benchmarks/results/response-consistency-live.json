@@ -1,11 +1,11 @@
 {
   "endpoint": "https://ai-vercel-ten-sigma.vercel.app/api/ask",
-  "generated_at": "2026-08-11T00:42:25.755Z",
-  "passed": 10,
-  "total": 11,
+  "generated_at": "2026-08-11T00:40:31.369Z",
+  "passed": 8,
+  "total": 10,
   "results": [
     {
-      "id": "store_visit",
+      "id": "store_visit_run_1",
       "question": "Saya mau cek langsung kelengkapannya. Toko fisiknya di Blok M Square lantai berapa dan blok apa? Hari ini buka sampai jam berapa?",
       "expectedIntent": "general",
       "expectedType": "text",
@@ -55,22 +55,22 @@
       "preview": "Lokasi toko fisik Robot Jadul: Robot Jadul, Blok M Square lantai 3A, Blok A nomor 36-37, Jl. Melawai"
     },
     {
-      "id": "secure_shipping_policy",
-      "question": "barang ini bisa diasuransikan?",
-      "expectedIntent": "shipping_transaction",
+      "id": "store_visit_run_2",
+      "question": "Saya mau cek langsung kelengkapannya. Toko fisiknya di Blok M Square lantai berapa dan blok apa? Hari ini buka sampai jam berapa?",
+      "expectedIntent": "general",
+      "expectedType": "text",
       "expectedCustomerState": "neutral",
-      "expectedAssistantProvider": "groq",
-      "allowedAssistantReasons": [
-        "success",
-        "unsafe_rewrite_rejected"
-      ],
       "minActions": 3,
       "requiredText": [
-        "asuransi"
+        "Blok M Square",
+        "3A",
+        "Blok A",
+        "11.00",
+        "20.00"
       ],
       "passed": true,
       "statusCode": 200,
-      "actualIntent": "shipping_transaction",
+      "actualIntent": "general",
       "type": "text",
       "productCount": 0,
       "optionCount": 0,
@@ -102,10 +102,10 @@
       "coverageValid": true,
       "answerCoverage": null,
       "requestAttempts": 1,
-      "preview": "**Asuransi Pengiriman** Untuk keamanan pesanan, pengiriman bisa menggunakan asuransi terutama untuk "
+      "preview": "Lokasi toko fisik Robot Jadul: Robot Jadul, Blok M Square lantai 3A, Blok A nomor 36-37, Jl. Melawai"
     },
     {
-      "id": "safe_payment_policy",
+      "id": "safe_payment_policy_run_1",
       "question": "Barangnya mahal sampai 8 juta. Bisa COD tidak? Metode pembayaran apa saja yang aman?",
       "expectedIntent": "shipping_transaction",
       "expectedType": "text",
@@ -173,7 +173,75 @@
       "preview": "Saat ini **COD / bayar di tempat belum tersedia**. Gunakan metode pembayaran resmi yang tersedia saa"
     },
     {
-      "id": "out_of_scope_fiction",
+      "id": "safe_payment_policy_run_2",
+      "question": "Barangnya mahal sampai 8 juta. Bisa COD tidak? Metode pembayaran apa saja yang aman?",
+      "expectedIntent": "shipping_transaction",
+      "expectedType": "text",
+      "minActions": 3,
+      "checkCoverage": true,
+      "minRequestedFacets": 2,
+      "requiredText": [
+        "COD / bayar di tempat tersedia",
+        "QRIS"
+      ],
+      "passed": false,
+      "statusCode": 200,
+      "actualIntent": "shipping_transaction",
+      "type": "text",
+      "productCount": 0,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 3,
+      "actionCountValid": true,
+      "productPrices": [],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [
+        "COD / bayar di tempat tersedia"
+      ],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "qwen/qwen3.6-27b",
+        "naturalized": false,
+        "reason": "unsafe_rewrite_rejected",
+        "customer_state": "neutral",
+        "router": {
+          "provider": "groq",
+          "model": "openai/gpt-oss-20b"
+        }
+      },
+      "allowedAssistantReasonValid": true,
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "recommendationMetadataValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": {
+        "requested": [
+          "cod",
+          "payment_methods"
+        ],
+        "status": {
+          "cod": "answered",
+          "payment_methods": "answered"
+        },
+        "answered": [
+          "cod",
+          "payment_methods"
+        ],
+        "clarified": [],
+        "missing": [],
+        "coverage": 1,
+        "passed": true
+      },
+      "requestAttempts": 1,
+      "preview": "Saat ini **COD / bayar di tempat belum tersedia**. Gunakan metode pembayaran resmi yang tersedia saa"
+    },
+    {
+      "id": "out_of_scope_fiction_run_1",
       "question": "Robot yang paling kuat menang lawan Godzilla yang mana?",
       "expectedIntent": "general",
       "expectedType": "text",
@@ -217,9 +285,54 @@
       "preview": "Maaf, aku nggak bisa bantu jawab soal robot lawan Godzilla karena di luar topik ecommerce. Aku khusu"
     },
     {
-      "id": "return_policy",
-      "question": "Barang Getter Robo saya terkelupas dan cacat, bisa retur dan refund?",
+      "id": "out_of_scope_fiction_run_2",
+      "question": "Robot yang paling kuat menang lawan Godzilla yang mana?",
+      "expectedIntent": "general",
+      "expectedType": "text",
+      "requiredText": [
+        "di luar topik"
+      ],
+      "passed": true,
+      "statusCode": 200,
+      "actualIntent": "general",
+      "type": "text",
+      "productCount": 0,
+      "optionCount": 0,
+      "optionCountValid": true,
+      "actionCount": 0,
+      "actionCountValid": true,
+      "productPrices": [],
+      "maxProductCountValid": true,
+      "expectedProductNameValid": true,
+      "missingRequiredText": [],
+      "presentForbiddenText": [],
+      "assistantMeta": {
+        "provider": "groq",
+        "model": "qwen/qwen3.6-27b",
+        "naturalized": true,
+        "reason": "success",
+        "customer_state": "neutral",
+        "router": {
+          "provider": "local_rules_ml"
+        }
+      },
+      "allowedAssistantReasonValid": true,
+      "customerStateValid": true,
+      "naturalizedValid": true,
+      "matchStatusValid": true,
+      "recommendationMetadataValid": true,
+      "productMatch": null,
+      "requiredAnyTextValid": true,
+      "coverageValid": true,
+      "answerCoverage": null,
+      "requestAttempts": 1,
+      "preview": "Maaf, aku nggak bisa bantu jawab soal robot lawan Godzilla karena di luar topik ecommerce. Aku khusu"
+    },
+    {
+      "id": "return_policy_consistency_run_1",
+      "question": "Barang rusak bisa diretur atau refund? Apa syarat dan berapa lama prosesnya?",
       "expectedIntent": "return_product",
+      "expectedType": "text",
       "expectedCustomerState": "distressed",
       "minActions": 3,
       "requiredText": [
@@ -244,8 +357,8 @@
       "assistantMeta": {
         "provider": "groq",
         "model": "qwen/qwen3.6-27b",
-        "naturalized": false,
-        "reason": "unsafe_rewrite_rejected",
+        "naturalized": true,
+        "reason": "success",
         "customer_state": "distressed",
         "router": {
           "provider": "groq",
@@ -262,35 +375,30 @@
       "coverageValid": true,
       "answerCoverage": null,
       "requestAttempts": 1,
-      "preview": "Maaf atas kendalanya. Untuk **barang rusak atau cacat**, retur atau refund **bisa diajukan**, tetapi"
+      "preview": "Maaf ya, aku paham ini pasti bikin kesal. Tenang, untuk **barang rusak atau cacat**, retur atau refu"
     },
     {
-      "id": "junk_detail_transparency",
-      "question": "Popy ST Dynaman ini kondisi dan kelengkapannya gimana? Ada bagian yang hilang atau rusak?",
-      "expectedIntent": "product_detail",
-      "expectedType": "products",
-      "expectedProductName": "Popy ST Dynaman",
-      "minProducts": 1,
+      "id": "return_policy_consistency_run_2",
+      "question": "Barang rusak bisa diretur atau refund? Apa syarat dan berapa lama prosesnya?",
+      "expectedIntent": "return_product",
+      "expectedType": "text",
+      "expectedCustomerState": "distressed",
+      "minActions": 3,
       "requiredText": [
-        "JUNK (Missing Components)",
-        "bagian yang hilang belum dirinci"
-      ],
-      "forbiddenText": [
-        "<p data-path",
-        "<b>Condition"
+        "2 x 24 jam",
+        "1-3 hari kerja",
+        "3-7 hari kerja"
       ],
       "passed": true,
       "statusCode": 200,
-      "actualIntent": "product_detail",
-      "type": "products",
-      "productCount": 1,
+      "actualIntent": "return_product",
+      "type": "text",
+      "productCount": 0,
       "optionCount": 0,
       "optionCountValid": true,
       "actionCount": 3,
       "actionCountValid": true,
-      "productPrices": [
-        500000
-      ],
+      "productPrices": [],
       "maxProductCountValid": true,
       "expectedProductNameValid": true,
       "missingRequiredText": [],
@@ -298,8 +406,8 @@
       "assistantMeta": {
         "provider": "groq",
         "model": "qwen/qwen3.6-27b",
-        "naturalized": false,
-        "reason": "unsafe_rewrite_rejected",
+        "naturalized": true,
+        "reason": "success",
         "customer_state": "distressed",
         "router": {
           "provider": "groq",
@@ -311,19 +419,15 @@
       "naturalizedValid": true,
       "matchStatusValid": true,
       "recommendationMetadataValid": true,
-      "productMatch": {
-        "status": "matched",
-        "confidence": 0.95,
-        "reason": "strong_catalog_match"
-      },
+      "productMatch": null,
       "requiredAnyTextValid": true,
       "coverageValid": true,
       "answerCoverage": null,
       "requestAttempts": 1,
-      "preview": "Maaf, aku paham ini membuat tidak nyaman. Aku bantu dari informasi yang bisa dipastikan. Oke, aku ba"
+      "preview": "Maaf ya, aku paham ini pasti bikin kesal. Tenang, untuk **barang rusak atau cacat**, retur atau refu"
     },
     {
-      "id": "order_requires_verification",
+      "id": "order_requires_verification_run_1",
       "question": "cek status pesanan Order #5007 dong",
       "expectedIntent": "transaction_status",
       "expectedType": "text",
@@ -373,46 +477,39 @@
       "preview": "Untuk melindungi data pesanan **#5007**, kirim **email atau nomor telepon tagihan** yang dipakai saa"
     },
     {
-      "id": "gift_display_recommendation",
-      "question": "Saya bingung cari kado untuk suami yang suka robot lawas tahun 80-an. Rekomendasikan yang cocok untuk pajangan, budget sekitar 3 jutaan.",
-      "expectedIntent": "recommendation",
-      "expectedType": "products",
-      "minProducts": 1,
-      "maxProductPrice": 3000000,
-      "expectedRecommendation": {
-        "decade": 1980,
-        "displaySuitable": true,
-        "giftSuitable": true
-      },
+      "id": "order_requires_verification_run_2",
+      "question": "cek status pesanan Order #5007 dong",
+      "expectedIntent": "transaction_status",
+      "expectedType": "text",
+      "expectedAssistantProvider": "template",
+      "expectedAssistantReason": "sensitive_intent",
       "requiredText": [
-        "era franchise 1980-an",
-        "hadiah",
-        "pajangan"
+        "email atau nomor telepon",
+        "tidak disimpan"
+      ],
+      "forbiddenText": [
+        "Status Transaksi Pesanan",
+        "Total:"
       ],
       "passed": true,
       "statusCode": 200,
-      "actualIntent": "recommendation",
-      "type": "products",
-      "productCount": 3,
+      "actualIntent": "transaction_status",
+      "type": "text",
+      "productCount": 0,
       "optionCount": 0,
       "optionCountValid": true,
-      "actionCount": 3,
+      "actionCount": 0,
       "actionCountValid": true,
-      "productPrices": [
-        3000000,
-        2500000,
-        2500000
-      ],
+      "productPrices": [],
       "maxProductCountValid": true,
       "expectedProductNameValid": true,
       "missingRequiredText": [],
       "presentForbiddenText": [],
       "assistantMeta": {
-        "provider": "groq",
-        "model": "qwen/qwen3.6-27b",
+        "provider": "template",
         "naturalized": false,
-        "reason": "unsafe_rewrite_rejected",
-        "customer_state": "confused",
+        "reason": "sensitive_intent",
+        "customer_state": "neutral",
         "router": {
           "provider": "local_rules_ml"
         }
@@ -427,161 +524,7 @@
       "coverageValid": true,
       "answerCoverage": null,
       "requestAttempts": 1,
-      "preview": "Tidak apa-apa kalau masih bingung memilih. Aku bantu menyaringnya dari kebutuhanmu. Ini rekomendasi "
-    },
-    {
-      "id": "catalog_scope_overrides_history",
-      "questions": [
-        "Bro apa aja stok yg ada",
-        "adakah robot termurah disini"
-      ],
-      "expectedIntent": "price_promo",
-      "minProducts": 1,
-      "forbiddenText": [
-        "hasil sebelumnya"
-      ],
-      "question": "Bro apa aja stok yg ada -> adakah robot termurah disini",
-      "passed": true,
-      "statusCode": 200,
-      "actualIntent": "price_promo",
-      "type": "products",
-      "productCount": 5,
-      "optionCount": 0,
-      "optionCountValid": true,
-      "actionCount": 3,
-      "actionCountValid": true,
-      "productPrices": [
-        150000,
-        225000,
-        250000,
-        275000,
-        500000
-      ],
-      "maxProductCountValid": true,
-      "expectedProductNameValid": true,
-      "missingRequiredText": [],
-      "presentForbiddenText": [],
-      "assistantMeta": {
-        "provider": "groq",
-        "model": "qwen/qwen3.6-27b",
-        "naturalized": false,
-        "reason": "unsafe_rewrite_rejected",
-        "customer_state": "neutral",
-        "router": {
-          "provider": "groq",
-          "model": "openai/gpt-oss-20b"
-        }
-      },
-      "allowedAssistantReasonValid": true,
-      "customerStateValid": true,
-      "naturalizedValid": true,
-      "matchStatusValid": true,
-      "recommendationMetadataValid": true,
-      "productMatch": null,
-      "requiredAnyTextValid": true,
-      "coverageValid": true,
-      "answerCoverage": null,
-      "requestAttempts": 2,
-      "preview": "💸 Ini pilihan produk paling hemat yang aku rekomendasikan: Aku pilih berdasarkan harga yang paling "
-    },
-    {
-      "id": "previous_scope_keeps_history",
-      "questions": [
-        "Bro apa aja stok yg ada",
-        "Urutkan hasil sebelumnya dari harga termurah"
-      ],
-      "expectedIntent": "price_promo",
-      "minProducts": 2,
-      "ascendingPrices": true,
-      "requiredAnyText": [
-        "hasil sebelumnya",
-        "daftar sebelumnya"
-      ],
-      "question": "Bro apa aja stok yg ada -> Urutkan hasil sebelumnya dari harga termurah",
-      "passed": true,
-      "statusCode": 200,
-      "actualIntent": "price_promo",
-      "type": "products",
-      "productCount": 3,
-      "optionCount": 0,
-      "optionCountValid": true,
-      "actionCount": 3,
-      "actionCountValid": true,
-      "productPrices": [
-        275000,
-        1350000,
-        1750000
-      ],
-      "maxProductCountValid": true,
-      "expectedProductNameValid": true,
-      "missingRequiredText": [],
-      "presentForbiddenText": [],
-      "assistantMeta": {
-        "provider": "groq",
-        "model": "qwen/qwen3.6-27b",
-        "naturalized": true,
-        "reason": "success",
-        "customer_state": "neutral",
-        "router": {
-          "provider": "local_rules_ml"
-        }
-      },
-      "allowedAssistantReasonValid": true,
-      "customerStateValid": true,
-      "naturalizedValid": true,
-      "matchStatusValid": true,
-      "recommendationMetadataValid": true,
-      "productMatch": null,
-      "requiredAnyTextValid": true,
-      "coverageValid": true,
-      "answerCoverage": null,
-      "requestAttempts": 2,
-      "preview": "Siap, ini daftar sebelumnya yang sudah diurutkan dari harga termurah:"
-    },
-    {
-      "id": "shipping_quote_multiturn",
-      "questions": [
-        "cek ongkir ke Tangerang",
-        "Tangerang, Rajeg"
-      ],
-      "expectedIntent": "shipping_transaction",
-      "question": "cek ongkir ke Tangerang -> Tangerang, Rajeg",
-      "passed": true,
-      "statusCode": 200,
-      "actualIntent": "shipping_transaction",
-      "type": "text",
-      "productCount": 0,
-      "optionCount": 0,
-      "optionCountValid": true,
-      "actionCount": 0,
-      "actionCountValid": true,
-      "productPrices": [],
-      "maxProductCountValid": true,
-      "expectedProductNameValid": true,
-      "missingRequiredText": [],
-      "presentForbiddenText": [],
-      "assistantMeta": {
-        "provider": "groq",
-        "model": "qwen/qwen3.6-27b",
-        "naturalized": true,
-        "reason": "success",
-        "customer_state": "neutral",
-        "router": {
-          "provider": "groq",
-          "model": "openai/gpt-oss-20b"
-        }
-      },
-      "allowedAssistantReasonValid": true,
-      "customerStateValid": true,
-      "naturalizedValid": true,
-      "matchStatusValid": true,
-      "recommendationMetadataValid": true,
-      "productMatch": null,
-      "requiredAnyTextValid": true,
-      "coverageValid": true,
-      "answerCoverage": null,
-      "requestAttempts": 2,
-      "preview": "Estimasi ongkir (±1kg) ke **KAB.TANGERANG - RAJEG**: • JNE Reg: Rp 10.000 • Tiki Reg: Rp 9.000 • Wah"
+      "preview": "Untuk melindungi data pesanan **#5007**, kirim **email atau nomor telepon tagihan** yang dipakai saa"
     }
   ]
 }
