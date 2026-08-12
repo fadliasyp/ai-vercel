@@ -125,10 +125,13 @@ import {
   applyControlledFollowUpPolicy,
   buildControlledActions,
   buildBudgetOptions,
+  buildSuggestedActionMetadataList,
   buildStandaloneAffirmationResponse,
   isOptionalFollowUpType,
   isRequiredClarificationPayload,
   pickSupportedClosing,
+  suggestedActionIntent,
+  validateSuggestedActionSelection,
 } from "../lib/chatbot/followUpClosings.js";
 import { extractBudgetRange } from "../lib/chatbot/priceIntent.js";
 import {
@@ -3195,6 +3198,9 @@ export default async function handler(req, res) {
   if (!rawQuestion) {
     return res.status(400).json({ type: "text", message: "Pertanyaan kosong" });
   }
+  const selectedSuggestion = isSuggestionClick
+    ? validateSuggestedActionSelection(body.suggestedAction, rawQuestion)
+    : null;
   const isBootstrapGreeting =
     isBootstrapRequest && isGreetingOnly(rawQuestion);
 
@@ -3567,6 +3573,21 @@ export default async function handler(req, res) {
     session.lastIntent = "shipping_transaction";
     session.lastIntentMethod = "shipping_pending_state_rule";
     session.lastIntentScore = 1;
+  }
+
+  const selectedSuggestionIntent = selectedSuggestion
+    ? suggestedActionIntent(selectedSuggestion)
+    : null;
+  if (selectedSuggestionIntent) {
+    intentResult = {
+      ...intentResult,
+      intent: selectedSuggestionIntent,
+      method: `suggested_action_${selectedSuggestion.action_key}_rule`,
+      score: 1,
+    };
+    session.lastIntent = intentResult.intent;
+    session.lastIntentMethod = intentResult.method;
+    session.lastIntentScore = intentResult.score;
   }
 
   const explicitCurrentIntent = detectExplicitIntentOverride(rawQuestion);
@@ -4132,6 +4153,21 @@ export default async function handler(req, res) {
         state: customerState,
         intent: finalIntent,
       });
+
+      for (const field of ["actions", "suggestions"]) {
+        if (Array.isArray(finalPayload[field])) {
+          finalPayload[field] = buildSuggestedActionMetadataList(
+            finalPayload[field],
+          );
+        }
+      }
+      const finalSuggestedActions =
+        finalPayload.actions || finalPayload.suggestions || [];
+      if (finalSuggestedActions.length) {
+        session.lastSuggestedActions = finalSuggestedActions.map(
+          (action) => action.value,
+        );
+      }
 
       assistantMeta = {
         ...assistantMeta,

@@ -404,7 +404,20 @@
       const wrap = document.createElement("div");
       wrap.className = "chat-suggestions";
 
-      data.suggestions.forEach((text) => {
+      data.suggestions.forEach((suggestion) => {
+        const action =
+          suggestion && typeof suggestion === "object"
+            ? suggestion
+            : {
+                label: String(suggestion || ""),
+                value: String(suggestion || ""),
+                action_key: "follow_up",
+                required_fields: [],
+              };
+        const text = String(action.label || action.value || "").trim();
+        const value = String(action.value || text).trim();
+        if (!text || !value) return;
+
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "suggestion-btn";
@@ -412,7 +425,10 @@
 
         btn.addEventListener("click", () => {
           removeSuggestions();
-          window.sendQuestion(text, { isSuggestionClick: true });
+          window.sendQuestion(value, {
+            isSuggestionClick: true,
+            suggestedAction: action,
+          });
         });
 
         wrap.appendChild(btn);
@@ -1458,6 +1474,7 @@
                     history: recentApiHistory(),
                     isSuggestionClick,
                     isBootstrap,
+                    suggestedAction: options.suggestedAction || null,
                     pageContext,
                   },
             ),

@@ -23,6 +23,7 @@ import { buildChatMetric } from "../lib/chatbot/observability.js";
 import {
   applyControlledFollowUpPolicy,
   buildControlledActions,
+  buildSuggestedActionMetadataList,
   isRequiredClarificationPayload,
 } from "../lib/chatbot/followUpClosings.js";
 
@@ -1071,7 +1072,11 @@ export default async function handler(req, res) {
     const recentActions = [...history]
       .reverse()
       .find((item) => item?.type === "suggestions")?.suggestions;
-    const safeRecentActions = Array.isArray(recentActions) ? recentActions : [];
+    const safeRecentActions = Array.isArray(recentActions)
+      ? recentActions.map((action) =>
+          action && typeof action === "object" ? action.value : action,
+        )
+      : [];
     const actionCandidates = isRequiredClarificationPayload(payload)
       ? []
       : buildControlledActions("image_product_search", payload, {
@@ -1397,6 +1402,13 @@ export default async function handler(req, res) {
     };
 
     const finalPayload = await naturalizeImagePayload(responsePayload, question);
+    for (const field of ["actions", "suggestions"]) {
+      if (Array.isArray(finalPayload[field])) {
+        finalPayload[field] = buildSuggestedActionMetadataList(
+          finalPayload[field],
+        );
+      }
+    }
 
     return sendObserved(200, finalPayload);
   } catch (err) {

@@ -5,9 +5,13 @@ import {
   applyControlledFollowUpPolicy,
   buildBudgetOptions,
   buildControlledActions,
+  buildSuggestedActionMetadata,
+  buildSuggestedActionMetadataList,
   buildStandaloneAffirmationResponse,
   isOptionalFollowUpType,
   isRequiredClarificationPayload,
+  suggestedActionIntent,
+  validateSuggestedActionSelection,
 } from "../lib/chatbot/followUpClosings.js";
 
 const products = [
@@ -28,6 +32,72 @@ test("provides explicit budget choices for recommendation clarification", () => 
     { label: "1 juta - 2 juta", value: "1 juta - 2 juta" },
     { label: "Di atas 2 juta", value: "Di atas 2 juta" },
   ]);
+});
+
+test("adds trusted required-field metadata to every suggestion", () => {
+  const actions = buildSuggestedActionMetadataList([
+    "Minta rekomendasi robot sesuai budget",
+    "Cek ongkir ke kota tujuan",
+    "Cek status pesanan saya",
+    "Bagaimana melacak paket pesanan saya?",
+    "Tampilkan detail Robot A",
+    "Lihat metode pembayaran",
+    "Tanyakan hal lain",
+  ]);
+
+  assert.equal(actions.length, 7);
+  assert.deepEqual(actions[0].required_fields, ["budget"]);
+  assert.deepEqual(actions[1].required_fields, ["destination"]);
+  assert.deepEqual(actions[2].required_fields, ["order_id"]);
+  assert.deepEqual(actions[3].required_fields, ["tracking_number"]);
+  assert.deepEqual(actions[4].required_fields, ["product_name"]);
+  assert.deepEqual(actions[5].required_fields, []);
+  assert.equal(actions[6].action_key, "follow_up");
+  assert.equal(suggestedActionIntent(actions[1]), "shipping_transaction");
+});
+
+test("maps informational suggestion families without requiring extra input", () => {
+  const actions = buildSuggestedActionMetadataList([
+    "Pengiriman diproses dari mana?",
+    "Apakah bisa kirim ke luar pulau?",
+    "Chatbot ini bisa membantu apa saja?",
+    "Bagaimana menghubungi admin terkait pesanan?",
+    "Kenapa Robot A paling mirip dengan foto?",
+  ]);
+
+  assert.deepEqual(
+    actions.map((action) => action.action_key),
+    [
+      "shipping_origin",
+      "shipping_coverage",
+      "assistant_capabilities",
+      "admin_handoff",
+      "image_match_reason",
+    ],
+  );
+  assert.deepEqual(actions[0].required_fields, []);
+  assert.deepEqual(actions[4].required_fields, ["product_name"]);
+});
+
+test("recomputes suggestion metadata and rejects client-side tampering", () => {
+  const action = buildSuggestedActionMetadata(
+    "Minta rekomendasi robot sesuai budget",
+  );
+  assert.deepEqual(
+    validateSuggestedActionSelection(action, action.value),
+    action,
+  );
+  assert.equal(
+    validateSuggestedActionSelection(
+      { ...action, required_fields: [] },
+      action.value,
+    ),
+    null,
+  );
+  assert.deepEqual(
+    validateSuggestedActionSelection(null, "Cek ongkir ke kota tujuan"),
+    buildSuggestedActionMetadata("Cek ongkir ke kota tujuan"),
+  );
 });
 
 test("adds contextual choices only to explicitly completed information", () => {
