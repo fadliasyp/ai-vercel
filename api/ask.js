@@ -125,11 +125,11 @@ import {
   applyControlledFollowUpPolicy,
   buildControlledActions,
   buildBudgetOptions,
-  buildSuggestedActionMetadataList,
   buildStandaloneAffirmationResponse,
   isOptionalFollowUpType,
   isRequiredClarificationPayload,
   pickSupportedClosing,
+  serializeSuggestedActions,
   suggestedActionIntent,
   validateSuggestedActionSelection,
 } from "../lib/chatbot/followUpClosings.js";
@@ -4154,19 +4154,11 @@ export default async function handler(req, res) {
         intent: finalIntent,
       });
 
-      for (const field of ["actions", "suggestions"]) {
-        if (Array.isArray(finalPayload[field])) {
-          finalPayload[field] = buildSuggestedActionMetadataList(
-            finalPayload[field],
-          );
-        }
-      }
+      finalPayload = serializeSuggestedActions(finalPayload);
       const finalSuggestedActions =
         finalPayload.actions || finalPayload.suggestions || [];
       if (finalSuggestedActions.length) {
-        session.lastSuggestedActions = finalSuggestedActions.map(
-          (action) => action.value,
-        );
+        session.lastSuggestedActions = [...finalSuggestedActions];
       }
 
       assistantMeta = {

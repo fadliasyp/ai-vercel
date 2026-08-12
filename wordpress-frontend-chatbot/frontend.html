@@ -364,7 +364,10 @@
             intent: item.intent || null,
           });
         } else if (item.type === "suggestions" && isActiveTail) {
-          renderSuggestions({ suggestions: item.suggestions || [] });
+          renderSuggestions({
+            suggestions: item.suggestions || [],
+            metadata: item.metadata || [],
+          });
         } else if (item.type === "options" && isActiveTail) {
           renderOptions("", item.options || []);
         } else if (item.type === "compare") {
@@ -403,11 +406,21 @@
 
       const wrap = document.createElement("div");
       wrap.className = "chat-suggestions";
+      const metadata = Array.isArray(data.metadata) ? data.metadata : [];
 
       data.suggestions.forEach((suggestion) => {
+        const suggestionValue =
+          suggestion && typeof suggestion === "object"
+            ? String(suggestion.value || suggestion.label || "").trim()
+            : String(suggestion || "").trim();
+        const trustedMetadata = metadata.find(
+          (item) => String(item?.value || "").trim() === suggestionValue,
+        );
         const action =
           suggestion && typeof suggestion === "object"
             ? suggestion
+            : trustedMetadata
+              ? trustedMetadata
             : {
                 label: String(suggestion || ""),
                 value: String(suggestion || ""),
@@ -1252,28 +1265,35 @@
       saveChat();
     }
 
-    function addSuggestions(message, suggestions, intent = null) {
+    function addSuggestions(
+      message,
+      suggestions,
+      intent = null,
+      metadata = [],
+    ) {
       addBotText(message, intent);
-      renderSuggestions({ suggestions });
+      renderSuggestions({ suggestions, metadata });
 
       chatHistory.push({
         type: "suggestions",
         message,
         suggestions,
+        metadata,
         intent,
       });
 
       saveChat();
     }
 
-    function addActionSuggestions(suggestions, intent = null) {
+    function addActionSuggestions(suggestions, intent = null, metadata = []) {
       if (!Array.isArray(suggestions) || !suggestions.length) return;
 
-      renderSuggestions({ suggestions });
+      renderSuggestions({ suggestions, metadata });
       chatHistory.push({
         type: "suggestions",
         message: "",
         suggestions,
+        metadata,
         intent,
       });
       saveChat();
@@ -1494,6 +1514,7 @@
             data.message || "Silakan pilih salah satu pertanyaan berikut 😊",
             data.suggestions || [],
             data.intent || null,
+            data.suggestions_metadata || [],
           );
         } else if (data.type === "products") {
           addProducts(data);
@@ -1525,7 +1546,11 @@
           Array.isArray(data.actions) &&
           data.actions.length
         ) {
-          addActionSuggestions(data.actions, data.intent || null);
+          addActionSuggestions(
+            data.actions,
+            data.intent || null,
+            data.actions_metadata || [],
+          );
         }
 
         if (shouldOfferFeedback(data)) {

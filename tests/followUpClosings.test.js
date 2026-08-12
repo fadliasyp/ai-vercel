@@ -10,6 +10,7 @@ import {
   buildStandaloneAffirmationResponse,
   isOptionalFollowUpType,
   isRequiredClarificationPayload,
+  serializeSuggestedActions,
   suggestedActionIntent,
   validateSuggestedActionSelection,
 } from "../lib/chatbot/followUpClosings.js";
@@ -97,6 +98,25 @@ test("recomputes suggestion metadata and rejects client-side tampering", () => {
   assert.deepEqual(
     validateSuggestedActionSelection(null, "Cek ongkir ke kota tujuan"),
     buildSuggestedActionMetadata("Cek ongkir ke kota tujuan"),
+  );
+});
+
+test("keeps suggestion text backward compatible while attaching metadata", () => {
+  const result = serializeSuggestedActions({
+    type: "text",
+    actions: [
+      "Minta rekomendasi robot sesuai budget",
+      "Cek ongkir ke kota tujuan",
+    ],
+  });
+
+  assert.deepEqual(result.actions, [
+    "Minta rekomendasi robot sesuai budget",
+    "Cek ongkir ke kota tujuan",
+  ]);
+  assert.deepEqual(
+    result.actions_metadata.map((action) => action.required_fields),
+    [["budget"], ["destination"]],
   );
 });
 

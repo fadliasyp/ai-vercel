@@ -23,8 +23,8 @@ import { buildChatMetric } from "../lib/chatbot/observability.js";
 import {
   applyControlledFollowUpPolicy,
   buildControlledActions,
-  buildSuggestedActionMetadataList,
   isRequiredClarificationPayload,
+  serializeSuggestedActions,
 } from "../lib/chatbot/followUpClosings.js";
 
 export const config = {
@@ -1401,14 +1401,9 @@ export default async function handler(req, res) {
           : "Kalau mau, aku bisa bantu jelaskan kenapa produk pertama paling mirip atau carikan alternatif yang ready stock.",
     };
 
-    const finalPayload = await naturalizeImagePayload(responsePayload, question);
-    for (const field of ["actions", "suggestions"]) {
-      if (Array.isArray(finalPayload[field])) {
-        finalPayload[field] = buildSuggestedActionMetadataList(
-          finalPayload[field],
-        );
-      }
-    }
+    const finalPayload = serializeSuggestedActions(
+      await naturalizeImagePayload(responsePayload, question),
+    );
 
     return sendObserved(200, finalPayload);
   } catch (err) {
