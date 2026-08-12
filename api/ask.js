@@ -4470,7 +4470,7 @@ export default async function handler(req, res) {
             {
               type: "text",
               message:
-                "Maaf, layanan pencarian kecamatan sedang tidak dapat diakses. Pastikan RJ_SHIP_TOKEN di Vercel sesuai dengan domain baru, lalu coba lagi.",
+                "Maaf, layanan pencarian kecamatan sedang mengalami gangguan. Coba lagi beberapa saat ya.",
               intent: "shipping_transaction",
             },
             "shipping_transaction",
@@ -4880,7 +4880,7 @@ export default async function handler(req, res) {
             {
               type: "text",
               message: unavailable
-                ? "Maaf, layanan pencarian kota dan kecamatan sedang tidak dapat diakses. Pastikan token ongkir di Vercel sudah sesuai dengan domain baru, lalu coba lagi."
+                ? "Maaf, layanan pencarian kota dan kecamatan sedang mengalami gangguan. Coba lagi beberapa saat ya."
                 : `Aku belum menemukan tujuan **${rawQuestion}**. Coba tulis dengan format **Kabupaten/Kota, Kecamatan**, misalnya **Kabupaten Tangerang, Rajeg**.`,
               intent: "shipping_transaction",
             },
@@ -5155,7 +5155,7 @@ export default async function handler(req, res) {
             {
               type: "text",
               message:
-                "Maaf, layanan pencarian kota dan kecamatan sedang tidak dapat diakses. Pastikan RJ_SHIP_TOKEN di Vercel sesuai dengan domain baru, lalu coba lagi.",
+                "Maaf, layanan pencarian kota dan kecamatan sedang mengalami gangguan. Coba lagi beberapa saat ya.",
               intent: "shipping_transaction",
             },
             "shipping_transaction",

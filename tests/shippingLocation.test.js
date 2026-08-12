@@ -56,6 +56,24 @@ test("returns multiple Tangerang city choices without guessing one", async () =>
   assert.deepEqual(result.cities, cities);
 });
 
+test("recognizes a safely joined Indonesian city name", async () => {
+  const queries = [];
+  const city = { city_id: "252", name: "WATES,KAB.KULON PROGO" };
+  const result = await resolveShippingLocation("Kulonprogo", {
+    searchCities: async (query) => {
+      queries.push(query);
+      return { cities: query === "kulon progo" ? [city] : [] };
+    },
+    searchDistrictsGlobal: async () => {
+      throw new Error("global lookup should not be needed");
+    },
+  });
+
+  assert.deepEqual(queries, ["kulonprogo", "kulon progo"]);
+  assert.equal(result.kind, "single_city");
+  assert.deepEqual(result.city, city);
+});
+
 test("uses Rajeg to select Kabupaten Tangerang from ambiguous cities", async () => {
   const cities = [
     { city_id: "1", name: "Kota Tangerang" },
