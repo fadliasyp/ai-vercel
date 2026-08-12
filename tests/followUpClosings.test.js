@@ -169,6 +169,24 @@ test("adds contextual choices only to explicitly completed information", () => {
   assert.equal("_actionContext" in result, false);
 });
 
+test("shows more global choices for greetings than regular replies", () => {
+  const greeting = applyControlledFollowUpPolicy(
+    { type: "text", message: "Halo! Ada yang bisa aku bantu?" },
+    { intent: "greeting", limit: 6 },
+  );
+  const regular = applyControlledFollowUpPolicy(
+    { type: "text", message: "Ada beberapa produk yang cocok." },
+    { intent: "product_discovery" },
+  );
+
+  assert.equal(greeting.actions.length, 6);
+  assert.equal(regular.actions.length, 3);
+  assert.equal(
+    greeting.actions.every((action) => !/sebelumnya|robot [ab]\b/i.test(action)),
+    true,
+  );
+});
+
 test("offers issue choices before directing a generic return claim", () => {
   assert.deepEqual(
     buildControlledActions("return_product", {

@@ -99,7 +99,6 @@ import {
 import {
   isGreetingOnly,
   buildGreetingMessage,
-  getSmartSuggestions,
 } from "../lib/chatbot/conversationUi.js";
 
 import {
@@ -4058,12 +4057,9 @@ export default async function handler(req, res) {
 
       return await send(
         {
-          type: "suggestions",
+          type: "text",
           intent: "greeting",
-          message:
-            buildGreetingMessage() +
-            "\n\nSilakan pilih contoh pertanyaan di bawah atau ketik pertanyaanmu sendiri.",
-          suggestions: getSmartSuggestions(session),
+          message: buildGreetingMessage(),
         },
         "greeting",
       );
@@ -4194,6 +4190,7 @@ export default async function handler(req, res) {
 
       const finalIntent =
         forceIntent ?? payload.intent ?? session.lastIntent ?? "general";
+      const suggestionLimit = finalIntent === "greeting" ? 6 : 3;
       let finalPayload = humanizeResponse(payload, {
         intent: finalIntent,
         rawQuestion,
@@ -4208,13 +4205,14 @@ export default async function handler(req, res) {
           ? []
           : buildControlledActions(finalIntent, finalPayload, {
               recentActions: session.lastSuggestedActions || [],
-              limit: 8,
+              limit: finalIntent === "greeting" ? 12 : 8,
               userQuestion: suggestionQuestion,
             });
 
       finalPayload = applyControlledFollowUpPolicy(finalPayload, {
         intent: finalIntent,
         recentActions: session.lastSuggestedActions || [],
+        limit: suggestionLimit,
         userQuestion: suggestionQuestion,
       });
 
@@ -4265,6 +4263,26 @@ export default async function handler(req, res) {
           naturalized: null,
           reason: genai ? "groq_disabled" : "no_llm_configured",
         };
+      }
+
+      if (!suppressSuggestedActions && finalIntent === "greeting") {
+        const fallbackActions = buildControlledActions(
+          finalIntent,
+          finalPayload,
+          {
+            recentActions: session.lastSuggestedActions || [],
+            limit: 12,
+            userQuestion: suggestionQuestion,
+          },
+        );
+        finalPayload.actions = [
+          ...new Set([
+            ...(Array.isArray(finalPayload.actions)
+              ? finalPayload.actions
+              : []),
+            ...fallbackActions,
+          ]),
+        ].slice(0, suggestionLimit);
       }
 
       if (suppressSuggestedActions) {
@@ -6515,12 +6533,9 @@ export default async function handler(req, res) {
 
       return await send(
         {
-          type: "suggestions",
+          type: "text",
           intent: "greeting",
-          message:
-            buildGreetingMessage() +
-            "\n\nSilakan pilih contoh pertanyaan di bawah atau ketik pertanyaanmu sendiri.",
-          suggestions: getSmartSuggestions(session),
+          message: buildGreetingMessage(),
         },
         "greeting",
       );
