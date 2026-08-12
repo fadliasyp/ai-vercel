@@ -266,6 +266,12 @@ test("extracts the merchandise object instead of the store context", () => {
     ),
     false,
   );
+  assert.equal(
+    looksLikeSpecificCatalogAvailabilityQuestion(
+      "Ada alternatif yang lebih worth it?",
+    ),
+    false,
+  );
 });
 
 test("recognizes current-page product references and separates detail from retur", () => {

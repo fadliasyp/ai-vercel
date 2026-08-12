@@ -98,6 +98,10 @@ test("distinguishes global recommendations from contextual best-product follow-u
     resolveProductQueryScope("cek stok dari produk-produk sebelumnya"),
     "previous",
   );
+  assert.equal(
+    resolveProductQueryScope("dari 3 itu paling worth it mana?"),
+    "previous",
+  );
   assert.equal(resolveProductQueryScope("mana yang paling murah?"), "unspecified");
 });
 

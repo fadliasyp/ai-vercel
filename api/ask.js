@@ -5246,8 +5246,7 @@ export default async function handler(req, res) {
       universalFollowUp &&
       usesPreviousProductContext &&
       Array.isArray(session.lastProducts) &&
-      session.lastProducts.length > 0 &&
-      PRODUCT_CONTEXT_INTENTS.has(session.lastIntent)
+      session.lastProducts.length > 0
     ) {
       let refined = [...session.lastProducts];
       const PRODUCT_CONTEXT_INTENTS = new Set([
@@ -5258,9 +5257,13 @@ export default async function handler(req, res) {
         "product_detail",
       ]);
 
-      const baseIntent = PRODUCT_CONTEXT_INTENTS.has(session.lastIntent)
-        ? session.lastIntent
-        : "product_discovery";
+      const baseIntent =
+        universalFollowUp.type === "pick_best"
+          ? "recommendation"
+          : PRODUCT_CONTEXT_INTENTS.has(previousCommerceContext.lastIntent)
+            ? previousCommerceContext.lastIntent
+            : "product_discovery";
+      let reasoningText = "";
 
       if (
         universalFollowUp.type === "price_refine" &&
@@ -5298,7 +5301,40 @@ export default async function handler(req, res) {
       }
 
       if (universalFollowUp.type === "pick_best") {
-        refined = refined.slice(0, 1);
+        const comparedProducts = [...refined];
+        const recNeeds = extractRecommendationNeeds(rawQuestion);
+        refined = pickRecommendedProducts(
+          comparedProducts,
+          recNeeds,
+          comparedProducts.length,
+        ).slice(0, 1);
+
+        const best = refined[0];
+        const pricedProducts = comparedProducts.filter(
+          (product) => Number(product.numericPrice || 0) > 0,
+        );
+        const lowestPrice = pricedProducts.length
+          ? Math.min(
+              ...pricedProducts.map((product) =>
+                Number(product.numericPrice || 0),
+              ),
+            )
+          : 0;
+        const reasons = [
+          best?.stock === "instock" ? "ready stock" : "stok terbatas",
+          best && Number(best.numericPrice || 0) === lowestPrice
+            ? `harganya paling hemat, ${formatRupiah(best.numericPrice)}`
+            : best?.numericPrice
+              ? `harganya ${formatRupiah(best.numericPrice)}`
+              : "harga belum tercantum",
+          Number(best?.discountPercent || 0) > 0
+            ? `sedang diskon ${best.discountPercent}%`
+            : "",
+        ].filter(Boolean);
+
+        reasoningText =
+          `Aku membandingkan ${comparedProducts.length} produk yang sebelumnya ditampilkan berdasarkan stok, harga, promo, serta data produk yang tersedia. ` +
+          `**${best?.name || "Pilihan teratas"}** paling worth it karena ${reasons.join(", ")}.`;
       }
 
       if (universalFollowUp.type === "detail_followup") {
@@ -5365,6 +5401,7 @@ export default async function handler(req, res) {
           type: "products",
           intro,
           products: refined,
+          ...(reasoningText ? { reasoning_text: reasoningText } : {}),
           closing:
             "Kalau mau, kamu bisa lanjutkan lagi misalnya: yang paling murah, yang ready stock, yang promo, atau minta detail 😊",
         },

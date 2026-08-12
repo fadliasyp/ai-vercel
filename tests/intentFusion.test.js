@@ -57,6 +57,14 @@ test("high-confidence semantic intent wins over a weak local fallback", () => {
 
 test("explicit rules resolve recommendation, compare, store, and insurance boundaries", () => {
   assert.equal(
+    detectExplicitIntentOverride("Ada alternatif yang lebih worth it?").intent,
+    "recommendation",
+  );
+  assert.equal(
+    detectExplicitIntentOverride("dari 3 itu paling worth it mana?").intent,
+    "recommendation",
+  );
+  assert.equal(
     detectExplicitIntentOverride(
       "mending ambil yang mana kalau budget 1 jutaan",
     ).intent,
