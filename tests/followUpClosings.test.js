@@ -57,6 +57,19 @@ test("adds trusted required-field metadata to every suggestion", () => {
   assert.equal(suggestedActionIntent(actions[1]), "shipping_transaction");
 });
 
+test("distinguishes worth-it recommendations from real comparisons", () => {
+  const recommendation = buildSuggestedActionMetadata(
+    "Ada rekomendasi robot yang worth it?",
+  );
+  const comparison = buildSuggestedActionMetadata(
+    "Dari Robot A dan Robot B, mana yang paling worth it?",
+  );
+
+  assert.equal(suggestedActionIntent(recommendation), "recommendation");
+  assert.deepEqual(recommendation.required_fields, ["budget"]);
+  assert.equal(suggestedActionIntent(comparison), "compare");
+});
+
 test("maps informational suggestion families without requiring extra input", () => {
   const actions = buildSuggestedActionMetadataList([
     "Pengiriman diproses dari mana?",

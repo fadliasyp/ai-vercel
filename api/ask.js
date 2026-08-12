@@ -3616,8 +3616,8 @@ export default async function handler(req, res) {
     : null;
   const explicitCurrentIntent = detectExplicitIntentOverride(rawQuestion);
   const pendingExplicitIntent =
-    selectedSuggestionIntent ||
     explicitCurrentIntent?.intent ||
+    selectedSuggestionIntent ||
     (isReturnProductQuestion ? "return_product" : "") ||
     (looksLikeSpecificCatalogAvailabilityQuestion(rawQuestion)
       ? "product_discovery"
@@ -3653,7 +3653,7 @@ export default async function handler(req, res) {
     session.lastIntentScore = 1;
   }
 
-  if (selectedSuggestionIntent) {
+  if (selectedSuggestionIntent && !explicitCurrentIntent) {
     intentResult = {
       ...intentResult,
       intent: selectedSuggestionIntent,

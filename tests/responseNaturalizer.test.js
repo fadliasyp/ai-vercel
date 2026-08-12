@@ -274,6 +274,30 @@ test("rejects suggestions written as an offer from the assistant", () => {
   ]);
 });
 
+test("keeps recommendation suggestions on the current product context", () => {
+  const context = buildSuggestionGenerationContext({
+    payload: { type: "text", message: "Sebutkan budget yang kamu inginkan." },
+    intent: "recommendation",
+    userQuestion: "Ada rekomendasi robot yang worth it?",
+  });
+
+  assert.deepEqual(context.allowedActions, []);
+  assert.deepEqual(
+    validateGeneratedSuggestions(
+      [
+        {
+          action_key: "shipping_quote",
+          product_indexes: [],
+          question: "Cek ongkir ke kota saya?",
+        },
+      ],
+      context,
+      "Ada rekomendasi robot yang worth it?",
+    ),
+    [],
+  );
+});
+
 test("safe-result validator rejects new URLs and missing product names", () => {
   assert.equal(
     isSafeNaturalizedResponse(payload, {
