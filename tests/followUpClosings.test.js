@@ -94,6 +94,23 @@ test("maps informational suggestion families without requiring extra input", () 
   assert.deepEqual(actions[4].required_fields, ["product_name"]);
 });
 
+test("routes predictive product suggestions to supported handlers", () => {
+  const actions = buildSuggestedActionMetadataList([
+    "Apakah Robot A cocok untuk pajangan?",
+    "Apa kelebihan dan kekurangan Robot A sebelum dibeli?",
+    "Carikan produk serupa yang lebih murah dari Robot A",
+  ]);
+
+  assert.deepEqual(
+    actions.map((action) => action.action_key),
+    ["product_suitability", "product_tradeoffs", "product_alternative"],
+  );
+  assert.deepEqual(
+    actions.map((action) => suggestedActionIntent(action)),
+    ["product_detail", "product_detail", "recommendation"],
+  );
+});
+
 test("recomputes suggestion metadata and rejects client-side tampering", () => {
   const action = buildSuggestedActionMetadata(
     "Minta rekomendasi robot sesuai budget",
@@ -312,7 +329,7 @@ test("does not suggest repeating a completed cheapest-price request", () => {
   );
 
   assert.equal(actions.some((action) => /termurah/i.test(action)), false);
-  assert.match(actions[0], /tampilkan detail/i);
+  assert.match(actions[0], /detail|kondisi|bandingkan/i);
   assert.ok(actions.some((action) => /stok|bandingkan|detail/i.test(action)));
 });
 
@@ -368,6 +385,22 @@ test("keeps rotating across more than one previous suggestion set", () => {
     third.some((action) => [...first, ...second].includes(action)),
     false,
   );
+});
+
+test("keeps a long product suggestion sequence fresh", () => {
+  const payload = { products: [{ name: "Robot A" }] };
+  const history = [];
+
+  for (let round = 0; round < 5; round += 1) {
+    const actions = buildControlledActions("product_detail", payload, {
+      recentActions: history,
+    });
+    assert.equal(actions.length, 3);
+    assert.equal(actions.some((action) => history.includes(action)), false);
+    history.push(...actions);
+  }
+
+  assert.equal(new Set(history).size, 15);
 });
 
 test("compare actions contain both product names and a clear command", () => {

@@ -326,6 +326,18 @@ test("offers Groq fresh action types when recent suggestions have alternatives",
   assert.ok(keys.includes("recommendation"));
 });
 
+test("gives Groq predictive product suggestion families", () => {
+  const context = buildSuggestionGenerationContext({
+    payload,
+    intent: "product_detail",
+  });
+  const keys = context.allowedActions.map(({ key }) => key);
+
+  assert.ok(keys.includes("product_suitability"));
+  assert.ok(keys.includes("product_tradeoffs"));
+  assert.ok(keys.includes("product_alternative"));
+});
+
 test("rejects suggestions written as an offer from the assistant", () => {
   const context = buildSuggestionGenerationContext({
     payload: { type: "text", message: "Saat ini belum ada promo." },

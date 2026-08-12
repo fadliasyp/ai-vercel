@@ -340,6 +340,10 @@ function isOpinionQuestion(q = "") {
     s.includes("rekomen") ||
     s.includes("rekomendasi") ||
     s.includes("menarik") ||
+    s.includes("kelebihan") ||
+    s.includes("kekurangan") ||
+    s.includes("pertimbangan") ||
+    s.includes("perlu diperhatikan") ||
     s.includes("oke gak") ||
     s.includes("oke ga") ||
     s.includes("bagus engga") ||
@@ -2208,6 +2212,13 @@ function buildProductOpinionReasoning(product, rawQuestion = "") {
   const isWorthIt = q.includes("worth it") || q.includes("layak");
   const isCollection =
     q.includes("koleksi") || q.includes("kolektor") || q.includes("collect");
+  const isGift = q.includes("hadiah") || q.includes("kado");
+  const isBeginner = q.includes("pemula") || q.includes("baru mulai");
+  const asksTradeoffs =
+    q.includes("kelebihan") ||
+    q.includes("kekurangan") ||
+    q.includes("pertimbangan") ||
+    q.includes("perlu diperhatikan");
 
   parts.push(
     `Kalau dilihat dari data yang ada, **${product.name}** cukup menarik.`,
@@ -2254,7 +2265,34 @@ function buildProductOpinionReasoning(product, rawQuestion = "") {
     );
   }
 
-  if (!isDisplay && !isCollection && !isWorthIt) {
+  if (isGift) {
+    parts.push(
+      product.stock === "instock" && !/\bjunk\b/i.test(product.condition || "")
+        ? "Untuk **hadiah**, produk ini cukup layak dipertimbangkan karena ready dan tidak tercatat sebagai kondisi JUNK."
+        : "Untuk **hadiah**, perhatikan lagi status stok dan kondisi fisiknya sebelum membeli.",
+    );
+  }
+
+  if (isBeginner) {
+    parts.push(
+      "Untuk **kolektor pemula**, pertimbangkan apakah karakter, kondisi, dan harganya sesuai dengan fokus koleksi yang ingin kamu mulai.",
+    );
+  }
+
+  if (asksTradeoffs) {
+    parts.push(
+      "Kelebihannya dinilai dari fakta katalog seperti stok, kondisi, dan deskripsi yang tersedia. Kekurangannya, data yang tidak tercantum tetap perlu dikonfirmasi ke admin sebelum membeli.",
+    );
+  }
+
+  if (
+    !isDisplay &&
+    !isCollection &&
+    !isWorthIt &&
+    !isGift &&
+    !isBeginner &&
+    !asksTradeoffs
+  ) {
     parts.push(
       `Secara umum, produk ini cukup oke kalau kamu memang suka seri tersebut dan mencari item koleksi yang ready.`,
     );
@@ -4092,7 +4130,7 @@ export default async function handler(req, res) {
           ).trim(),
         )
         .filter(Boolean);
-      session.lastSuggestedActions = values.slice(-18);
+      session.lastSuggestedActions = values.slice(-30);
     }
 
     // ✅ bikin send() dulu supaya bisa dipakai state handler

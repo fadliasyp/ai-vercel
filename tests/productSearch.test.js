@@ -174,6 +174,27 @@ test("matches a product name embedded in a generated detail action", () => {
   assert.equal(result.product?.id, 9);
 });
 
+test("ignores predictive shopping language around an exact product name", () => {
+  const catalog = [
+    {
+      id: 9,
+      name: "Vintage Gashapon Sasuraiger",
+      stock: "instock",
+    },
+  ];
+
+  for (const question of [
+    "Apa kelebihan dan kekurangan Vintage Gashapon Sasuraiger sebelum dibeli?",
+    "Apa yang perlu diperhatikan sebelum membeli Vintage Gashapon Sasuraiger?",
+    "Apakah Vintage Gashapon Sasuraiger cocok dijadikan hadiah?",
+  ]) {
+    assert.equal(
+      assessProductSearchConfidence(question, catalog).product?.id,
+      9,
+    );
+  }
+});
+
 test("ignores transaction clauses while matching a product", () => {
   const result = findBestSingleProductMatch(
     "Mazinger Z yang promo masih ready? Kalau dibayar sekarang bisa langsung dikirim hari ini?",

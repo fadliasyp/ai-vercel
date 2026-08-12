@@ -1071,7 +1071,7 @@ export default async function handler(req, res) {
     const history = Array.isArray(req.body?.history) ? req.body.history : [];
     const safeRecentActions = history
       .filter((item) => item?.type === "suggestions")
-      .slice(-4)
+      .slice(-8)
       .flatMap((item) =>
         Array.isArray(item.suggestions) ? item.suggestions : [],
       )
