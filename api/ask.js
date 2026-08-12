@@ -4075,9 +4075,11 @@ export default async function handler(req, res) {
       });
 
       const suggestionQuestion = privacySafeQuestion();
-      const actionCandidates =
+      const suppressSuggestedActions =
         !finalPayload._actionContext &&
-        isRequiredClarificationPayload(finalPayload)
+        isRequiredClarificationPayload(finalPayload);
+      const actionCandidates =
+        suppressSuggestedActions
           ? []
           : buildControlledActions(finalIntent, finalPayload, {
               recentActions: session.lastSuggestedActions || [],
@@ -4147,6 +4149,11 @@ export default async function handler(req, res) {
           naturalized: null,
           reason: genai ? "groq_disabled" : "no_llm_configured",
         };
+      }
+
+      if (suppressSuggestedActions) {
+        delete finalPayload.actions;
+        delete finalPayload.suggestions;
       }
 
       finalPayload = applyCustomerStateAcknowledgement(finalPayload, {

@@ -1067,7 +1067,7 @@ export default async function handler(req, res) {
     return sendJson(res, statusCode, payload);
   }
 
-  function naturalizeImagePayload(payload, question) {
+  async function naturalizeImagePayload(payload, question) {
     const history = Array.isArray(req.body?.history) ? req.body.history : [];
     const recentActions = [...history]
       .reverse()
@@ -1077,7 +1077,8 @@ export default async function handler(req, res) {
           action && typeof action === "object" ? action.value : action,
         )
       : [];
-    const actionCandidates = isRequiredClarificationPayload(payload)
+    const suppressSuggestedActions = isRequiredClarificationPayload(payload);
+    const actionCandidates = suppressSuggestedActions
       ? []
       : buildControlledActions("image_product_search", payload, {
           recentActions: safeRecentActions,
@@ -1090,7 +1091,7 @@ export default async function handler(req, res) {
       userQuestion: question,
     });
 
-    return naturalizeResponseWithGroq(controlledPayload, {
+    const finalPayload = await naturalizeResponseWithGroq(controlledPayload, {
       userQuestion: question,
       intent: "image_product_search",
       actionCandidates,
@@ -1098,6 +1099,11 @@ export default async function handler(req, res) {
         responseEditorMeta = status;
       },
     });
+    if (suppressSuggestedActions) {
+      delete finalPayload.actions;
+      delete finalPayload.suggestions;
+    }
+    return finalPayload;
   }
 
   res.setHeader("Access-Control-Allow-Origin", "*");

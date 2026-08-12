@@ -185,6 +185,21 @@ test("does not force choices onto a required shipping clarification", () => {
   assert.equal("actions" in result, false);
 });
 
+test("removes pre-existing suggestions while required input is missing", () => {
+  const result = applyControlledFollowUpPolicy(
+    {
+      type: "text",
+      message: "Sebutkan kota atau kabupaten tujuan.",
+      actions: ["Berapa lama estimasi pengiriman?"],
+      suggestions: ["Lihat metode pembayaran"],
+    },
+    { intent: "shipping_transaction" },
+  );
+
+  assert.equal("actions" in result, false);
+  assert.equal("suggestions" in result, false);
+});
+
 test("provides grounded follow-up choices for every completed intent", () => {
   const intents = [
     "greeting",
