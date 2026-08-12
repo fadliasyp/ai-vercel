@@ -1456,6 +1456,7 @@
       const pageContext = getCurrentProductPageContext();
 
       removeSuggestions();
+      removeOptions();
       dismissOpenFeedback();
 
       addUserMessage(question, imageToSend?.dataUrl || "", { isBootstrap });

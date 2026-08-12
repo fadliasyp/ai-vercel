@@ -207,6 +207,7 @@ import {
   searchDistrictsWithTypoFallback,
   splitCityDistrict,
 } from "../lib/chatbot/shippingLocation.js";
+import { shouldInterruptPendingFlow } from "../lib/chatbot/pendingContext.js";
 
 console.log("ASK.JS LOADED");
 
@@ -3610,7 +3611,36 @@ export default async function handler(req, res) {
     };
   }
 
-  const activePendingAfterOverrides = getPending(session);
+  const selectedSuggestionIntent = selectedSuggestion
+    ? suggestedActionIntent(selectedSuggestion)
+    : null;
+  const explicitCurrentIntent = detectExplicitIntentOverride(rawQuestion);
+  const pendingExplicitIntent =
+    selectedSuggestionIntent ||
+    explicitCurrentIntent?.intent ||
+    (isReturnProductQuestion ? "return_product" : "") ||
+    (looksLikeSpecificCatalogAvailabilityQuestion(rawQuestion)
+      ? "product_discovery"
+      : "");
+
+  let activePendingAfterOverrides = getPending(session);
+  if (
+    shouldInterruptPendingFlow({
+      pending: activePendingAfterOverrides,
+      explicitIntent: pendingExplicitIntent,
+      explicitMethod: explicitCurrentIntent?.method || "",
+      detectedIntent: intentResult.intent,
+      detectedScore: intentResult.score,
+      localScope: localScopeDecision,
+      question: rawQuestion,
+    })
+  ) {
+    clearPending(session);
+    session.lastStep = null;
+    pending = null;
+    activePendingAfterOverrides = null;
+  }
+
   if (isShippingQuotePending(activePendingAfterOverrides)) {
     pending = activePendingAfterOverrides;
     intentResult = {
@@ -3623,9 +3653,6 @@ export default async function handler(req, res) {
     session.lastIntentScore = 1;
   }
 
-  const selectedSuggestionIntent = selectedSuggestion
-    ? suggestedActionIntent(selectedSuggestion)
-    : null;
   if (selectedSuggestionIntent) {
     intentResult = {
       ...intentResult,
@@ -3638,7 +3665,6 @@ export default async function handler(req, res) {
     session.lastIntentScore = intentResult.score;
   }
 
-  const explicitCurrentIntent = detectExplicitIntentOverride(rawQuestion);
   const isContextualPriceOrdering = isPriceOrderingFollowUp(rawQuestion);
   if (
     explicitCurrentIntent &&
