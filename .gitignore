@@ -1,5 +1,7 @@
 .vercel
 .agents
 .env*
-node_modules
+node_modules/
 benchmarks/results/observability-latest.md
+
+*.log
