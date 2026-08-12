@@ -269,6 +269,21 @@ test("grounds image-search choices in actual product candidates", () => {
   );
 });
 
+test("does not ask for price or stock already visible on a product card", () => {
+  const actions = buildControlledActions("price_promo", {
+    products: [
+      {
+        name: "Original Soundtrack Combattler V CD",
+        numericPrice: 250000,
+        stock: "instock",
+      },
+    ],
+  });
+
+  assert.equal(actions.some((action) => /cek (?:harga|stok)/i.test(action)), false);
+  assert.ok(actions.some((action) => /kondisi|kelengkapan|detail/i.test(action)));
+});
+
 test("does not suggest repeating a completed cheapest-price request", () => {
   const actions = buildControlledActions(
     "price_promo",
@@ -314,6 +329,25 @@ test("rotates actions away from the suggestions shown previously", () => {
   assert.equal(second.length, 3);
   assert.notDeepEqual(second, first);
   assert.equal(second.some((action) => first.includes(action)), false);
+});
+
+test("keeps rotating across more than one previous suggestion set", () => {
+  const first = buildControlledActions("recommendation", { products });
+  const second = buildControlledActions(
+    "recommendation",
+    { products },
+    { recentActions: first },
+  );
+  const third = buildControlledActions(
+    "recommendation",
+    { products },
+    { recentActions: [...first, ...second] },
+  );
+
+  assert.equal(
+    third.some((action) => [...first, ...second].includes(action)),
+    false,
+  );
 });
 
 test("compare actions contain both product names and a clear command", () => {

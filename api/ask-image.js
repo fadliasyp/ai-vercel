@@ -1069,14 +1069,16 @@ export default async function handler(req, res) {
 
   async function naturalizeImagePayload(payload, question) {
     const history = Array.isArray(req.body?.history) ? req.body.history : [];
-    const recentActions = [...history]
-      .reverse()
-      .find((item) => item?.type === "suggestions")?.suggestions;
-    const safeRecentActions = Array.isArray(recentActions)
-      ? recentActions.map((action) =>
-          action && typeof action === "object" ? action.value : action,
-        )
-      : [];
+    const safeRecentActions = history
+      .filter((item) => item?.type === "suggestions")
+      .slice(-4)
+      .flatMap((item) =>
+        Array.isArray(item.suggestions) ? item.suggestions : [],
+      )
+      .map((action) =>
+        action && typeof action === "object" ? action.value : action,
+      )
+      .filter(Boolean);
     const suppressSuggestedActions = isRequiredClarificationPayload(payload);
     const actionCandidates = suppressSuggestedActions
       ? []
@@ -1094,6 +1096,7 @@ export default async function handler(req, res) {
     const finalPayload = await naturalizeResponseWithGroq(controlledPayload, {
       userQuestion: question,
       intent: "image_product_search",
+      conversationContext: { recentActions: safeRecentActions },
       actionCandidates,
       onStatus(status) {
         responseEditorMeta = status;

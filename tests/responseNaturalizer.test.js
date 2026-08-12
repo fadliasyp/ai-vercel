@@ -246,6 +246,69 @@ test("rejects generated suggestions with unsupported products or unsafe content"
   assert.deepEqual(result, ["Apakah Soul of Chogokin GX-91 masih ready?"]);
 });
 
+test("excludes price and stock questions when both facts are already visible", () => {
+  const visiblePayload = {
+    ...payload,
+    products: [
+      {
+        name: "Soul of Chogokin GX-91",
+        numericPrice: 3500000,
+        stock: "instock",
+      },
+    ],
+  };
+  const context = buildSuggestionGenerationContext({
+    payload: visiblePayload,
+    intent: "price_promo",
+  });
+
+  assert.equal(context.products[0].has_price, true);
+  assert.equal(context.products[0].has_stock, true);
+  assert.equal(
+    context.allowedActions.some(({ key }) =>
+      ["product_price", "product_stock"].includes(key),
+    ),
+    false,
+  );
+  assert.deepEqual(
+    validateGeneratedSuggestions(
+      [
+        {
+          action_key: "product_price",
+          product_indexes: [0],
+          question: "Berapa harga Soul of Chogokin GX-91?",
+        },
+        {
+          action_key: "product_condition",
+          product_indexes: [0],
+          question: "Bagaimana kondisi dan kelengkapan Soul of Chogokin GX-91?",
+        },
+      ],
+      context,
+    ),
+    ["Bagaimana kondisi dan kelengkapan Soul of Chogokin GX-91?"],
+  );
+});
+
+test("offers Groq fresh action types when recent suggestions have alternatives", () => {
+  const context = buildSuggestionGenerationContext({
+    payload,
+    intent: "product_detail",
+    recentActions: [
+      "Tampilkan detail Soul of Chogokin GX-91",
+      "Bagaimana kondisi Soul of Chogokin GX-91?",
+      "Cek stok Soul of Chogokin GX-91",
+    ],
+  });
+  const keys = context.allowedActions.map(({ key }) => key);
+
+  assert.equal(keys.includes("product_detail"), false);
+  assert.equal(keys.includes("product_condition"), false);
+  assert.equal(keys.includes("product_stock"), false);
+  assert.ok(keys.includes("better_value"));
+  assert.ok(keys.includes("recommendation"));
+});
+
 test("rejects suggestions written as an offer from the assistant", () => {
   const context = buildSuggestionGenerationContext({
     payload: { type: "text", message: "Saat ini belum ada promo." },
@@ -360,6 +423,7 @@ test("sends compact conversation context to the Groq editor", async () => {
       hasPending: false,
       customerState: "worried",
       recentProducts: ["Soul of Chogokin GX-91"],
+      recentActions: ["Cek stok Soul of Chogokin GX-91"],
       linguistic: {
         subject: "Robot Jadul",
         predicate: "jual",
@@ -373,7 +437,7 @@ test("sends compact conversation context to the Groq editor", async () => {
   });
 
   const userMessage = JSON.parse(requestBody.messages[1].content);
-  assert.equal(requestBody.temperature, 0);
+  assert.equal(requestBody.temperature, 0.2);
   assert.match(requestBody.messages[0].content, /seluruh poinnya/i);
   assert.match(requestBody.messages[0].content, /customer_state/i);
   assert.deepEqual(userMessage.conversation_context, {
@@ -390,6 +454,9 @@ test("sends compact conversation context to the Groq editor", async () => {
       question_type: "yes_no",
     },
   });
+  assert.deepEqual(userMessage.suggestion_generation.recent_questions, [
+    "Cek stok Soul of Chogokin GX-91",
+  ]);
 });
 
 test("sends only bounded safe action candidates to the same Groq request", async () => {

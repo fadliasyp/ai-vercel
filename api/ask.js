@@ -3345,6 +3345,7 @@ export default async function handler(req, res) {
       : [],
     linguistic: linguisticHint,
     customerState,
+    recentActions: session.lastSuggestedActions || [],
   };
 
   const localIntentTask =
@@ -4081,6 +4082,19 @@ export default async function handler(req, res) {
       }
     }
 
+    function rememberSuggestedActions(actions = []) {
+      const values = [...(session.lastSuggestedActions || []), ...actions]
+        .map((action) =>
+          String(
+            action && typeof action === "object"
+              ? action.value || action.label || ""
+              : action || "",
+          ).trim(),
+        )
+        .filter(Boolean);
+      session.lastSuggestedActions = values.slice(-18);
+    }
+
     // ✅ bikin send() dulu supaya bisa dipakai state handler
     async function send(payload, forceIntent = null) {
       if (
@@ -4166,15 +4180,6 @@ export default async function handler(req, res) {
         userQuestion: suggestionQuestion,
       });
 
-      if (Array.isArray(finalPayload.actions) && finalPayload.actions.length) {
-        session.lastSuggestedActions = [...finalPayload.actions];
-      } else if (
-        Array.isArray(finalPayload.suggestions) &&
-        finalPayload.suggestions.length
-      ) {
-        session.lastSuggestedActions = [...finalPayload.suggestions];
-      }
-
       if (isOptionalFollowUpType(session.lastBotQuestionType)) {
         clearFollowUpOffer(session);
       }
@@ -4238,7 +4243,7 @@ export default async function handler(req, res) {
       const finalSuggestedActions =
         finalPayload.actions || finalPayload.suggestions || [];
       if (finalSuggestedActions.length) {
-        session.lastSuggestedActions = [...finalSuggestedActions];
+        rememberSuggestedActions(finalSuggestedActions);
       }
 
       assistantMeta = {
