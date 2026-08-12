@@ -8321,6 +8321,8 @@ export default async function handler(req, res) {
 
       const recommendationHeading = isPopularityQuery
         ? "Ini produk yang paling menonjol berdasarkan analisis AI dan data toko yang tersedia:"
+        : productQueryScope === "catalog" && recNeeds.wantsCheap
+          ? "Dari seluruh produk ready di katalog, ini pilihan yang paling worth it berdasarkan harga dan data produk yang tersedia:"
         : recNeeds.requestedDecade != null
           ? `Ini rekomendasi ${recNeeds.wantsGift ? "hadiah " : ""}${recNeeds.wantsDisplay ? "untuk pajangan " : ""}dari era franchise ${recNeeds.requestedDecade}-an:`
           : recNeeds.wantsDisplay &&

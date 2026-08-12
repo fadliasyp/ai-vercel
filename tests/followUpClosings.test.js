@@ -66,7 +66,8 @@ test("distinguishes worth-it recommendations from real comparisons", () => {
   );
 
   assert.equal(suggestedActionIntent(recommendation), "recommendation");
-  assert.deepEqual(recommendation.required_fields, ["budget"]);
+  assert.equal(recommendation.action_key, "catalog_recommendation");
+  assert.deepEqual(recommendation.required_fields, []);
   assert.equal(suggestedActionIntent(comparison), "compare");
 });
 

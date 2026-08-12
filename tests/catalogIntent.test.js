@@ -64,6 +64,22 @@ test("distinguishes the whole catalog from previous product results", () => {
   assert.equal(resolveProductQueryScope("yang termurah"), "unspecified");
 });
 
+test("distinguishes global recommendations from contextual best-product follow-ups", () => {
+  assert.equal(
+    resolveProductQueryScope("Ada rekomendasi robot yang worth it?"),
+    "catalog",
+  );
+  assert.equal(
+    resolveProductQueryScope("Carikan produk yang value for money"),
+    "catalog",
+  );
+  assert.equal(resolveProductQueryScope("yang paling worth it?"), "unspecified");
+  assert.equal(
+    resolveProductQueryScope("dari hasil sebelumnya mana yang worth it?"),
+    "previous",
+  );
+});
+
 test("accepts natural affirmative variants", () => {
   assert.equal(isYesAnswer("iyaa boleh"), true);
   assert.equal(isYesAnswer("iya dong"), true);
