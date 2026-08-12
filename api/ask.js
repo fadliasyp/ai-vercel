@@ -1060,6 +1060,45 @@ async function searchDistrictsFromWP(city_id, q) {
   );
 }
 
+async function beginDistrictSelection(session, cityId, cityName) {
+  const data = await searchDistrictsFromWP(cityId, "").catch(() => null);
+  const districts = Array.isArray(data?.districts) ? data.districts : [];
+
+  if (districts.length) {
+    setPending(session, {
+      type: "shipping_quote",
+      stage: "choose_district_in_city",
+      data: {
+        city_id: cityId,
+        city_name: cityName,
+        candidates: districts,
+      },
+    });
+
+    return {
+      type: "options",
+      intro: `Pilih kecamatan tujuan di **${cityName}**:`,
+      options: districts.map((district) => ({
+        label: district.title,
+        value: district.title,
+      })),
+      intent: "shipping_transaction",
+    };
+  }
+
+  setPending(session, {
+    type: "shipping_quote",
+    stage: "need_district",
+    data: { city_id: cityId, city_name: cityName },
+  });
+
+  return {
+    type: "text",
+    message: `Oke, tujuan **${cityName}**. Sekarang kecamatannya apa?`,
+    intent: "shipping_transaction",
+  };
+}
+
 function norm(s = "") {
   return String(s)
     .toLowerCase()
@@ -3652,20 +3691,12 @@ export default async function handler(req, res) {
           if (resolved.kind === "single_city") {
             const city = resolved.city;
 
-            setPending(session, {
-              type: "shipping_quote",
-              stage: "need_district",
-              data: {
-                city_id: city.city_id,
-                city_name: city.name,
-              },
-            });
-
             return send(
-              {
-                type: "text",
-                message: `Oke, tujuan **${city.name}**. Sekarang kecamatannya apa?`,
-              },
+              await beginDistrictSelection(
+                session,
+                city.city_id,
+                city.name,
+              ),
               "shipping_transaction",
             );
           }
@@ -3767,20 +3798,12 @@ export default async function handler(req, res) {
             });
           }
 
-          setPending(session, {
-            type: "shipping_quote",
-            stage: "need_district",
-            data: {
-              city_id: picked.city_id,
-              city_name: picked.name,
-            },
-          });
-
           return send(
-            {
-              type: "text",
-              message: `Oke, kotanya **${picked.name}**. Sekarang kecamatannya apa?`,
-            },
+            await beginDistrictSelection(
+              session,
+              picked.city_id,
+              picked.name,
+            ),
             "shipping_transaction",
           );
         }
@@ -3796,12 +3819,11 @@ export default async function handler(req, res) {
 
           if (!districts.length) {
             return send(
-              {
-                type: "text",
-                message:
-                  `Aku belum menemukan kecamatan itu di **${pending.data.city_name}** 🙏\n` +
-                  `Coba tulis nama kecamatan yang benar ya.`,
-              },
+              await beginDistrictSelection(
+                session,
+                pending.data.city_id,
+                pending.data.city_name,
+              ),
               "shipping_transaction",
             );
           }
@@ -4481,13 +4503,11 @@ export default async function handler(req, res) {
 
         if (!districts.length) {
           return await send(
-            {
-              type: "text",
-              message:
-                `Aku belum menemukan kecamatan **${districtQuery}** di **${pending.data.city_name}** 🙏\n\n` +
-                `Coba tulis nama kecamatan yang lebih lengkap ya.`,
-              intent: "shipping_transaction",
-            },
+            await beginDistrictSelection(
+              session,
+              pending.data.city_id,
+              pending.data.city_name,
+            ),
             "shipping_transaction",
           );
         }
@@ -4624,23 +4644,12 @@ export default async function handler(req, res) {
         const resolved = await resolveShippingLocation(locationText);
 
         if (resolved.kind === "single_city") {
-          setPending(session, {
-            type: "shipping_quote",
-            stage: "need_district",
-            data: {
-              city_id: resolved.city.city_id,
-              city_name: resolved.city.name,
-            },
-          });
-
           return await send(
-            {
-              type: "text",
-              message: withPolicyContext(
-                `Oke, tujuan **${resolved.city.name}**. Sekarang kecamatannya apa?`,
-              ),
-              intent: "shipping_transaction",
-            },
+            await beginDistrictSelection(
+              session,
+              resolved.city.city_id,
+              resolved.city.name,
+            ),
             "shipping_transaction",
           );
         }
@@ -4707,23 +4716,12 @@ export default async function handler(req, res) {
               const districts = data?.districts || [];
 
               if (!districts.length) {
-                setPending(session, {
-                  type: "shipping_quote",
-                  stage: "need_district",
-                  data: {
-                    city_id: city.city_id,
-                    city_name: city.name,
-                  },
-                });
-
                 return send(
-                  {
-                    type: "text",
-                    message:
-                      `Aku sudah dapat kota **${city.name}**, tapi kecamatan **${districtText}** belum ketemu 🙏\n` +
-                      `Coba tulis ulang nama kecamatannya ya.`,
-                    intent: "shipping_transaction",
-                  },
+                  await beginDistrictSelection(
+                    session,
+                    city.city_id,
+                    city.name,
+                  ),
                   "shipping_transaction",
                 );
               }
@@ -4781,21 +4779,12 @@ export default async function handler(req, res) {
               );
             }
 
-            setPending(session, {
-              type: "shipping_quote",
-              stage: "need_district",
-              data: {
-                city_id: city.city_id,
-                city_name: city.name,
-              },
-            });
-
             return send(
-              {
-                type: "text",
-                message: `Oke, tujuan **${city.name}**. Sekarang kecamatannya apa?`,
-                intent: "shipping_transaction",
-              },
+              await beginDistrictSelection(
+                session,
+                city.city_id,
+                city.name,
+              ),
               "shipping_transaction",
             );
           }
@@ -4928,21 +4917,12 @@ export default async function handler(req, res) {
           }
 
           if (!districtText) {
-            setPending(session, {
-              type: "shipping_quote",
-              stage: "need_district",
-              data: {
-                city_id: picked.city_id,
-                city_name: picked.name,
-              },
-            });
-
             return send(
-              {
-                type: "text",
-                message: `Oke, tujuan **${picked.name}**. Sekarang kecamatannya apa?`,
-                intent: "shipping_transaction",
-              },
+              await beginDistrictSelection(
+                session,
+                picked.city_id,
+                picked.name,
+              ),
               "shipping_transaction",
             );
           }
@@ -4954,21 +4934,12 @@ export default async function handler(req, res) {
           const districts = districtData?.districts || [];
 
           if (!districts.length) {
-            setPending(session, {
-              type: "shipping_quote",
-              stage: "need_district",
-              data: {
-                city_id: picked.city_id,
-                city_name: picked.name,
-              },
-            });
-
             return send(
-              {
-                type: "text",
-                message: `Kecamatan **${districtText}** belum ditemukan di **${picked.name}**. Coba tulis ulang nama kecamatannya ya.`,
-                intent: "shipping_transaction",
-              },
+              await beginDistrictSelection(
+                session,
+                picked.city_id,
+                picked.name,
+              ),
               "shipping_transaction",
             );
           }
@@ -6252,16 +6223,12 @@ export default async function handler(req, res) {
           clearLastBotQuestion(session);
           updateSlot(session, "city", top.name);
 
-          setLastBotQuestion(session, "ask_district", {
-            city_id: top.city_id,
-            city_name: top.name,
-          });
-
           return await send(
-            {
-              type: "text",
-              message: `Oke, tujuan **${top.name}**. Sekarang kecamatannya apa?`,
-            },
+            await beginDistrictSelection(
+              session,
+              top.city_id,
+              top.name,
+            ),
             "shipping_transaction",
           );
         }
@@ -6729,23 +6696,12 @@ export default async function handler(req, res) {
           const districts = data?.districts || [];
 
           if (!districts.length) {
-            setPending(session, {
-              type: "shipping_quote",
-              stage: "need_district",
-              data: {
-                city_id: city.city_id,
-                city_name: city.name,
-              },
-            });
-
             return await send(
-              {
-                type: "text",
-                message:
-                  `Aku sudah dapat kota **${city.name}**, tapi kecamatan **${districtText}** belum ketemu 🙏\n` +
-                  `Coba tulis ulang nama kecamatannya ya.`,
-                intent: "shipping_transaction",
-              },
+              await beginDistrictSelection(
+                session,
+                city.city_id,
+                city.name,
+              ),
               "shipping_transaction",
             );
           }
@@ -6833,21 +6789,12 @@ export default async function handler(req, res) {
         const resolved = await resolveShippingLocation(cityText);
 
         if (resolved.kind === "single_city") {
-          setPending(session, {
-            type: "shipping_quote",
-            stage: "need_district",
-            data: {
-              city_id: resolved.city.city_id,
-              city_name: resolved.city.name,
-            },
-          });
-
           return await send(
-            {
-              type: "text",
-              message: `Oke, tujuan **${resolved.city.name}**. Sekarang kecamatannya apa?`,
-              intent: "shipping_transaction",
-            },
+            await beginDistrictSelection(
+              session,
+              resolved.city.city_id,
+              resolved.city.name,
+            ),
             "shipping_transaction",
           );
         }
@@ -8883,20 +8830,12 @@ Kembalikan JSON valid:
         if (resolved.kind === "single_city") {
           const city = resolved.city;
 
-          setPending(session, {
-            type: "shipping_quote",
-            stage: "need_district",
-            data: {
-              city_id: city.city_id,
-              city_name: city.name,
-            },
-          });
-
           return await send(
-            {
-              type: "text",
-              message: `Oke, tujuan **${city.name}**. Sekarang kecamatannya apa?`,
-            },
+            await beginDistrictSelection(
+              session,
+              city.city_id,
+              city.name,
+            ),
             "shipping_transaction",
           );
         }

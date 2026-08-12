@@ -673,7 +673,7 @@
         html += `<div class="bot-text prose-chat">${renderMarkdown(intro)}</div>`;
 
       html += `<div class="rj-options">`;
-      options.slice(0, 8).forEach((opt) => {
+      options.forEach((opt) => {
         const rawLabel = opt.label || opt.text || "-";
         const label = escapeHtml(rawLabel);
         const value = escapeHtml(opt.value || rawLabel);
