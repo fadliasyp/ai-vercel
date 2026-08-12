@@ -157,6 +157,23 @@ test("ignores conversational action words while matching a product", () => {
   assert.equal(result?.id, 2);
 });
 
+test("matches a product name embedded in a generated detail action", () => {
+  const catalog = [
+    {
+      id: 9,
+      name: "Vintage Gashapon Sasuraiger",
+      stock: "instock",
+    },
+  ];
+  const result = assessProductSearchConfidence(
+    "Jelaskan kelengkapan Vintage Gashapon Sasuraiger",
+    catalog,
+  );
+
+  assert.equal(result.status, "matched");
+  assert.equal(result.product?.id, 9);
+});
+
 test("ignores transaction clauses while matching a product", () => {
   const result = findBestSingleProductMatch(
     "Mazinger Z yang promo masih ready? Kalau dibayar sekarang bisa langsung dikirim hari ini?",

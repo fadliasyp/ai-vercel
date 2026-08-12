@@ -290,6 +290,23 @@ test("excludes price and stock questions when both facts are already visible", (
   );
 });
 
+test("excludes detail and condition actions already answered in response text", () => {
+  const context = buildSuggestionGenerationContext({
+    payload: {
+      ...payload,
+      reasoning_text:
+        "Detail Produk. Kondisi vintage. Kelengkapan belum tercantum. Berat, dimensi, kategori, dan deskripsi singkat tersedia.",
+    },
+    intent: "product_detail",
+  });
+  const keys = context.allowedActions.map(({ key }) => key);
+
+  assert.equal(keys.includes("product_detail"), false);
+  assert.equal(keys.includes("product_condition"), false);
+  assert.equal(context.answeredFacts.completeness, true);
+  assert.equal(context.answeredFacts.condition, true);
+});
+
 test("offers Groq fresh action types when recent suggestions have alternatives", () => {
   const context = buildSuggestionGenerationContext({
     payload,

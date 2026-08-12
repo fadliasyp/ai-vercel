@@ -284,6 +284,26 @@ test("does not ask for price or stock already visible on a product card", () => 
   assert.ok(actions.some((action) => /kondisi|kelengkapan|detail/i.test(action)));
 });
 
+test("does not suggest product facts already explained in the response", () => {
+  const actions = buildControlledActions("product_detail", {
+    products: [
+      {
+        name: "Vintage Gashapon Sasuraiger",
+        numericPrice: 250000,
+        stock: "instock",
+      },
+    ],
+    reasoning_text:
+      "Detail Produk. Kondisi: vintage. Kelengkapan belum tercantum secara rinci. Berat, dimensi, kategori, dan deskripsi singkat tersedia.",
+  });
+
+  assert.deepEqual(actions, [
+    "Bandingkan Vintage Gashapon Sasuraiger dengan produk lain",
+    "Apakah Vintage Gashapon Sasuraiger cocok untuk pajangan?",
+    "Carikan alternatif yang lebih worth it dari Vintage Gashapon Sasuraiger",
+  ]);
+});
+
 test("does not suggest repeating a completed cheapest-price request", () => {
   const actions = buildControlledActions(
     "price_promo",
