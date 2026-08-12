@@ -169,6 +169,21 @@ test("lets Groq rank only safe follow-up candidates", async () => {
   );
 });
 
+test("does not rank punctuation-only suggestion duplicates twice", () => {
+  assert.deepEqual(
+    rankSuggestedActions(
+      [
+        "Cek ongkir ke kota tujuan?",
+        "Cek ongkir ke kota tujuan",
+        "Lihat metode pembayaran",
+      ],
+      [],
+      [],
+    ),
+    ["Cek ongkir ke kota tujuan?", "Lihat metode pembayaran"],
+  );
+});
+
 test("accepts constrained Groq-generated questions and fills invalid ones from fallback", async () => {
   const actions = [
     "Tampilkan detail Soul of Chogokin GX-91",

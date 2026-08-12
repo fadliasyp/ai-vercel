@@ -8,6 +8,7 @@ import {
   buildSuggestedActionMetadata,
   buildSuggestedActionMetadataList,
   buildStandaloneAffirmationResponse,
+  dedupeSuggestedActions,
   isOptionalFollowUpType,
   isRequiredClarificationPayload,
   serializeSuggestedActions,
@@ -149,6 +150,23 @@ test("keeps suggestion text backward compatible while attaching metadata", () =>
     result.actions_metadata.map((action) => action.required_fields),
     [["budget"], ["destination"]],
   );
+});
+
+test("deduplicates suggestions that only differ by case or punctuation", () => {
+  assert.deepEqual(
+    dedupeSuggestedActions([
+      "Cek ongkir ke kota tujuan?",
+      "cek ongkir ke kota tujuan",
+      "Lihat metode pembayaran",
+    ]),
+    ["Cek ongkir ke kota tujuan?", "Lihat metode pembayaran"],
+  );
+
+  const serialized = serializeSuggestedActions({
+    type: "text",
+    actions: ["Cari robot yang ready stock", "Cari robot yang ready stock!"],
+  });
+  assert.deepEqual(serialized.actions, ["Cari robot yang ready stock"]);
 });
 
 test("adds contextual choices only to explicitly completed information", () => {

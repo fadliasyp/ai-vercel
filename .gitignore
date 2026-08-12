@@ -3,5 +3,7 @@
 .env*
 node_modules/
 benchmarks/results/observability-latest.md
+obrolan-kita-chatbot-backup.md
 
 *.log
+debug.log

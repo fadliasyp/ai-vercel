@@ -125,6 +125,7 @@ import {
   buildControlledActions,
   buildBudgetOptions,
   buildStandaloneAffirmationResponse,
+  dedupeSuggestedActions,
   isOptionalFollowUpType,
   isRequiredClarificationPayload,
   pickSupportedClosing,
@@ -4275,14 +4276,12 @@ export default async function handler(req, res) {
             userQuestion: suggestionQuestion,
           },
         );
-        finalPayload.actions = [
-          ...new Set([
+        finalPayload.actions = dedupeSuggestedActions([
             ...(Array.isArray(finalPayload.actions)
               ? finalPayload.actions
               : []),
             ...fallbackActions,
-          ]),
-        ].slice(0, suggestionLimit);
+          ]).slice(0, suggestionLimit);
       }
 
       if (suppressSuggestedActions) {
