@@ -114,6 +114,7 @@ import {
   looksLikeShippingOriginQuestion,
   looksLikeShippingCoverageQuestion,
   looksLikeRecommendationRequest,
+  needsRecommendationBudgetClarification,
   buildPaymentMethodsMessage,
   buildInsuranceMessage,
   buildShippingEstimateMessage,
@@ -5423,6 +5424,9 @@ export default async function handler(req, res) {
         followType === "ask_budget_value" &&
         looksLikeBudgetAnswer(rawQuestion)
       ) {
+        const recommendationQuery = String(
+          session.lastBotQuestionMeta?.recommendationQuery || "",
+        ).trim();
         const recTopic =
           session.lastBotQuestionMeta?.recTopic ||
           session.slots?.category ||
@@ -5440,11 +5444,23 @@ export default async function handler(req, res) {
           updateSlot(session, "budgetMax", rawQuestion);
         }
 
-        if (recTopic) {
+        if (recommendationQuery) {
+          rebuildQuestion(`${recommendationQuery} ${rawQuestion}`);
+        } else if (recTopic) {
           rebuildQuestion(`rekomendasi ${recTopic} budget ${rawQuestion}`);
         } else {
           rebuildQuestion(`rekomendasi robot budget ${rawQuestion}`);
         }
+
+        intentResult = {
+          ...intentResult,
+          intent: "recommendation",
+          method: "recommendation_budget_followup_rule",
+          score: 0.99,
+        };
+        session.lastIntent = "recommendation";
+        session.lastIntentMethod = intentResult.method;
+        session.lastIntentScore = intentResult.score;
       }
 
       // 3) refine murah
@@ -6234,6 +6250,33 @@ export default async function handler(req, res) {
           );
         }
       }
+    }
+
+    if (
+      needsRecommendationBudgetClarification(
+        rawQuestion,
+        extractBudgetRange(rawQuestion).detected,
+      )
+    ) {
+      clearLastBotQuestion(session);
+      session.lastIntent = "recommendation";
+      session.lastIntentMethod = "recommendation_budget_clarification_rule";
+      session.lastIntentScore = 0.99;
+      session.lastTopic = "recommendation_budget";
+      setLastBotQuestion(session, "ask_budget_value", {
+        source: "recommendation",
+        recommendationQuery: rawQuestion,
+      });
+
+      return await send(
+        {
+          type: "options",
+          intro:
+            "Boleh. Kamu mau cari robot dengan kisaran budget berapa? Pilih salah satu atau ketik nominalmu sendiri:",
+          options: buildBudgetOptions(),
+        },
+        "recommendation",
+      );
     }
 
     // Universal Follow Up : Recommend

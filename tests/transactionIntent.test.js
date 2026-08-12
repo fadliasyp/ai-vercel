@@ -9,6 +9,7 @@ import {
   looksLikeSameDayDispatchQuestion,
   looksLikeShippingCoverageQuestion,
   looksLikeShippingOriginQuestion,
+  needsRecommendationBudgetClarification,
 } from "../lib/chatbot/transactionIntent.js";
 
 test("recognizes broad shipping destinations as ongkir flow", () => {
@@ -81,6 +82,27 @@ test("detects product facts combined with transaction policy", () => {
   );
   assert.equal(
     looksLikeProductTransactionCompoundQuestion("Mazinger Z masih ready?"),
+    false,
+  );
+});
+
+test("asks for a budget before running a budget-based recommendation", () => {
+  assert.equal(
+    needsRecommendationBudgetClarification(
+      "Minta rekomendasi robot sesuai budget",
+      false,
+    ),
+    true,
+  );
+  assert.equal(
+    needsRecommendationBudgetClarification(
+      "Rekomendasikan robot budget 1 juta",
+      true,
+    ),
+    false,
+  );
+  assert.equal(
+    needsRecommendationBudgetClarification("Rekomendasikan robot pajangan", false),
     false,
   );
 });

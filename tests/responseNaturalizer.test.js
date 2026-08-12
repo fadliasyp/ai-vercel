@@ -246,6 +246,34 @@ test("rejects generated suggestions with unsupported products or unsafe content"
   assert.deepEqual(result, ["Apakah Soul of Chogokin GX-91 masih ready?"]);
 });
 
+test("rejects suggestions written as an offer from the assistant", () => {
+  const context = buildSuggestionGenerationContext({
+    payload: { type: "text", message: "Saat ini belum ada promo." },
+    intent: "price_promo",
+    userQuestion: "kalau promo ada engga sih",
+  });
+  const result = validateGeneratedSuggestions(
+    [
+      {
+        action_key: "recommendation",
+        product_indexes: [],
+        question: "Mau aku bantu cari rekomendasi robot sesuai budget kamu?",
+      },
+      {
+        action_key: "recommendation",
+        product_indexes: [],
+        question: "Rekomendasikan robot yang sesuai dengan budget saya",
+      },
+    ],
+    context,
+    "kalau promo ada engga sih",
+  );
+
+  assert.deepEqual(result, [
+    "Rekomendasikan robot yang sesuai dengan budget saya?",
+  ]);
+});
+
 test("safe-result validator rejects new URLs and missing product names", () => {
   assert.equal(
     isSafeNaturalizedResponse(payload, {
