@@ -204,6 +204,7 @@ import {
   isShippingQuotePending,
   normalizeLocationText,
   resolveShippingLocation as resolveShippingLocationWithLookup,
+  searchDistrictsWithTypoFallback,
   splitCityDistrict,
 } from "../lib/chatbot/shippingLocation.js";
 
@@ -1040,7 +1041,7 @@ async function searchCitiesFromWP(q) {
   return r.json();
 }
 
-async function searchDistrictsFromWP(city_id, q) {
+async function searchDistrictsFromWPExact(city_id, q) {
   const r = await fetch(
     buildWordPressUrl(
       `wp-json/rj/v1/districts?city_id=${city_id}&q=${encodeURIComponent(q)}`,
@@ -1049,6 +1050,14 @@ async function searchDistrictsFromWP(city_id, q) {
   );
   if (!r.ok) throw new Error("DISTRICTS_FAILED:" + r.status);
   return r.json();
+}
+
+async function searchDistrictsFromWP(city_id, q) {
+  return searchDistrictsWithTypoFallback(
+    city_id,
+    q,
+    searchDistrictsFromWPExact,
+  );
 }
 
 function norm(s = "") {
@@ -4647,8 +4656,9 @@ export default async function handler(req, res) {
         {
           type: "text",
           message: withPolicyContext(
-            "Untuk cek ongkir, sebutkan kota/kabupaten dan kecamatan tujuan ya.\n\n" +
-              "Contoh: **Tangerang, Ciledug**",
+            "Untuk cek ongkir, kamu bisa kirim sekaligus **kota/kabupaten, kecamatan**, " +
+              "misalnya **Kabupaten Tangerang, Rajeg**. Kalau baru tahu kota/kabupatennya, " +
+              "kirim itu dulu dan aku bantu lanjutkan.",
           ),
           intent: "shipping_transaction",
         },
@@ -6877,8 +6887,9 @@ export default async function handler(req, res) {
         {
           type: "text",
           message:
-            "Boleh 😊 Untuk cek ongkir, sebutkan kota/kabupaten dan kecamatan tujuan ya.\n\n" +
-            "Contoh: **Kabupaten Tangerang, Pasar Kemis**",
+            "Untuk cek ongkir, kamu bisa kirim sekaligus **kota/kabupaten, kecamatan**, " +
+            "misalnya **Kabupaten Tangerang, Rajeg**. Kalau baru tahu kota/kabupatennya, " +
+            "kirim itu dulu dan aku bantu lanjutkan.",
           intent: "shipping_transaction",
         },
         "shipping_transaction",

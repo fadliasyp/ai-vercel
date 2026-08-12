@@ -2,12 +2,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  buildLocationTypoFallback,
   extractDistrictFollowUp,
   extractShippingDestination,
   findCityWithDistrict,
   isShippingQuotePending,
   normalizeLocationText,
   resolveShippingLocation,
+  searchDistrictsWithTypoFallback,
   splitCityDistrict,
 } from "../lib/chatbot/shippingLocation.js";
 
@@ -72,6 +74,42 @@ test("uses Rajeg to select Kabupaten Tangerang from ambiguous cities", async () 
 
   assert.equal(match?.city?.name, "Kabupaten Tangerang");
   assert.equal(match?.districts?.[0]?.title, "Rajeg");
+});
+
+test("retries a district with a conservative repeated-letter typo fallback", async () => {
+  const queries = [];
+  const result = await searchDistrictsWithTypoFallback(
+    "2",
+    "raajeg",
+    async (_cityId, query) => {
+      queries.push(query);
+      return {
+        districts:
+          query === "rajeg"
+            ? [{ district_id: "10", title: "Rajeg" }]
+            : [],
+      };
+    },
+  );
+
+  assert.equal(buildLocationTypoFallback("raajeg"), "rajeg");
+  assert.deepEqual(queries, ["raajeg", "rajeg"]);
+  assert.equal(result.districts[0].title, "Rajeg");
+});
+
+test("keeps a valid repeated-letter district when the exact lookup succeeds", async () => {
+  const queries = [];
+  const result = await searchDistrictsWithTypoFallback(
+    "3",
+    "Sooko",
+    async (_cityId, query) => {
+      queries.push(query);
+      return { districts: [{ district_id: "20", title: "Sooko" }] };
+    },
+  );
+
+  assert.deepEqual(queries, ["Sooko"]);
+  assert.equal(result.districts[0].title, "Sooko");
 });
 
 test("distinguishes an unavailable shipping API from an unknown place", async () => {
