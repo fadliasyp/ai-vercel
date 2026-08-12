@@ -73,11 +73,32 @@ test("distinguishes global recommendations from contextual best-product follow-u
     resolveProductQueryScope("Carikan produk yang value for money"),
     "catalog",
   );
+  assert.equal(
+    resolveProductQueryScope("Ada alternatif yang lebih worth it?"),
+    "catalog",
+  );
+  assert.equal(
+    resolveProductQueryScope("Cari robot yang lebih worth it"),
+    "catalog",
+  );
   assert.equal(resolveProductQueryScope("yang paling worth it?"), "unspecified");
   assert.equal(
     resolveProductQueryScope("dari hasil sebelumnya mana yang worth it?"),
     "previous",
   );
+  assert.equal(
+    resolveProductQueryScope("pilihkan dari robot sebelumnya"),
+    "previous",
+  );
+  assert.equal(
+    resolveProductQueryScope("mana yang terbaik dari produk2 sebelumnya?"),
+    "previous",
+  );
+  assert.equal(
+    resolveProductQueryScope("cek stok dari produk-produk sebelumnya"),
+    "previous",
+  );
+  assert.equal(resolveProductQueryScope("mana yang paling murah?"), "unspecified");
 });
 
 test("accepts natural affirmative variants", () => {

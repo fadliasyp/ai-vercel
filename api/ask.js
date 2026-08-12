@@ -3274,6 +3274,8 @@ export default async function handler(req, res) {
 
   let effectiveQuestion = normalizeQuestion(privacySafeQuestion());
   let q = effectiveQuestion.toLowerCase();
+  const productQueryScope = resolveProductQueryScope(rawQuestion);
+  const usesPreviousProductContext = productQueryScope === "previous";
   let linguisticAnalysis = analyzeIndonesianQuestion(privacySafeQuestion());
   let linguisticHint = compactLinguisticAnalysis(linguisticAnalysis);
 
@@ -3319,10 +3321,12 @@ export default async function handler(req, res) {
 
   const previousCommerceContext = {
     lastIntent: session.lastIntent || "",
-    lastTopic: session.lastTopic || "",
+    lastTopic: usesPreviousProductContext ? session.lastTopic || "" : "",
     hasPending: Boolean(getPending(session)),
     hasRecentProducts:
-      Array.isArray(session.lastProducts) && session.lastProducts.length > 0,
+      usesPreviousProductContext &&
+      Array.isArray(session.lastProducts) &&
+      session.lastProducts.length > 0,
   };
 
   const localScopeDecision = assessLocalCommerceScope(effectiveQuestion, {
@@ -3334,7 +3338,8 @@ export default async function handler(req, res) {
     lastIntent: previousCommerceContext.lastIntent,
     lastTopic: previousCommerceContext.lastTopic,
     hasPending: previousCommerceContext.hasPending,
-    recentProducts: Array.isArray(session.lastProducts)
+    recentProducts:
+      usesPreviousProductContext && Array.isArray(session.lastProducts)
       ? session.lastProducts.map((product) => product?.name).filter(Boolean)
       : [],
     linguistic: linguisticHint,
@@ -3702,7 +3707,17 @@ export default async function handler(req, res) {
       GEMINI_MODE.enableSemanticParse &&
       localScopeDecision !== "out_of_scope"
     ) {
-      semantic = await parseUserIntentWithGemini(rawQuestion, session);
+      semantic = await parseUserIntentWithGemini(
+        rawQuestion,
+        usesPreviousProductContext
+          ? session
+          : {
+              ...session,
+              lastTopic: null,
+              lastProducts: [],
+              slots: { ...session.slots, productName: null },
+            },
+      );
     }
 
     console.log("SEMANTIC RESULT:", semantic);
@@ -5198,12 +5213,25 @@ export default async function handler(req, res) {
     // UNIVERSAL CONVERSATION FOLLOW-UP
     // ===============================
     const universalFollowUp = detectUniversalFollowUp(rawQuestion);
-    const productQueryScope = resolveProductQueryScope(rawQuestion);
+    const contextFollowUp = detectContextFollowUp(rawQuestion);
+    const excludedAlternativeProductIds = new Set(
+      productQueryScope === "catalog" &&
+      /\b(?:alternatif|opsi|pilihan)\s+(?:lain\s+)?(?:yang\s+)?(?:lebih\s+)?(?:worth\s+it|value\s+for\s+money|bagus|baik|murah|hemat)\b/i.test(
+        rawQuestion,
+      ) &&
+      Array.isArray(session.lastProducts)
+        ? session.lastProducts.map((product) => String(product?.id || ""))
+        : [],
+    );
 
-    if (universalFollowUp && productQueryScope === "catalog") {
+    if (
+      (universalFollowUp || contextFollowUp) &&
+      !usesPreviousProductContext
+    ) {
       clearFollowUpOffer(session);
       session.lastProducts = null;
       session.lastTopic = null;
+      updateSlot(session, "productName", null);
     }
 
     const PRODUCT_CONTEXT_INTENTS = new Set([
@@ -5216,7 +5244,7 @@ export default async function handler(req, res) {
 
     if (
       universalFollowUp &&
-      productQueryScope !== "catalog" &&
+      usesPreviousProductContext &&
       Array.isArray(session.lastProducts) &&
       session.lastProducts.length > 0 &&
       PRODUCT_CONTEXT_INTENTS.has(session.lastIntent)
@@ -5347,11 +5375,9 @@ export default async function handler(req, res) {
     // ===============================
     // CONTEXT FOLLOW-UP FROM LAST PRODUCTS
     // ===============================
-    const contextFollowUp = detectContextFollowUp(rawQuestion);
-
     if (
       contextFollowUp &&
-      productQueryScope !== "catalog" &&
+      usesPreviousProductContext &&
       Array.isArray(session.lastProducts) &&
       session.lastProducts.length > 0
     ) {
@@ -6347,6 +6373,7 @@ export default async function handler(req, res) {
 
     if (
       isSpecFollowUpQuestion(q) &&
+      usesPreviousProductContext &&
       Array.isArray(session.lastProducts) &&
       session.lastProducts.length > 0
     ) {
@@ -8076,7 +8103,11 @@ export default async function handler(req, res) {
     if (intentResult.intent === "recommendation") {
       const list = await getCleanProducts();
 
-      let candidates = [...list].filter((p) => p.stock === "instock");
+      let candidates = [...list].filter(
+        (p) =>
+          p.stock === "instock" &&
+          !excludedAlternativeProductIds.has(String(p.id || "")),
+      );
       const isPopularityQuery = isPopularityStyleQuestion(rawQuestion);
       const recNeeds = extractRecommendationNeeds(rawQuestion, semantic);
       const hasStructuredCatalogPreference =
@@ -8912,9 +8943,10 @@ Kembalikan JSON valid:
     // Detail intent: cenderung jawab 1 produk teratas + spesifikasinya
     if (intentResult.intent === "product_detail") {
       const hasContextProduct =
-        !!session.slots?.productName ||
-        (Array.isArray(session.lastProducts) &&
-          session.lastProducts.length > 0);
+        usesPreviousProductContext &&
+        (!!session.slots?.productName ||
+          (Array.isArray(session.lastProducts) &&
+            session.lastProducts.length > 0));
 
       if (isSpecQuestion(q) && !hasContextProduct) {
         setLastBotQuestion(session, "ask_product_name", {
