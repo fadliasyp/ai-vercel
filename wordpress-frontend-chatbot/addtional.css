@@ -555,20 +555,55 @@
    RESPONSIVE CHAT BOX
    ========================================================= */
 @media (max-width: 900px) {
+  html.ai-chat-open,
+  body.ai-chat-open {
+    overflow: hidden !important;
+    overscroll-behavior: none;
+  }
+
+  body.ai-chat-open #ai-chat-bubble {
+    display: none !important;
+  }
+
   #ai-chat-box {
-    width: calc(100% - 20px);
-    right: 10px;
-    left: 10px;
-    height: 70vh;
-    max-height: 720px;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    box-sizing: border-box;
+    border: 0;
+    border-radius: 0;
+    animation: none;
+    overscroll-behavior: none;
+  }
+
+  #ai-chat-header {
+    flex: 0 0 auto;
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+
+  #ai-chat-messages {
+    min-height: 0;
+    padding: 10px;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #ai-chat-box #ai-chat-input {
+    flex: 0 0 auto;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.08);
   }
 }
 @media (max-width: 480px) {
-  #ai-chat-box {
-    height: 72vh;
-  }
   #ai-chat-input button {
     padding: 0 14px;
+  }
+
+  #ai-chat-box #ai-chat-input .ai-input {
+    max-height: 112px;
   }
 }
 

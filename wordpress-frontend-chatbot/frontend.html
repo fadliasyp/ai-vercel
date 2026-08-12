@@ -12,95 +12,67 @@
     const imagePreview = document.getElementById("ai-image-preview");
     let selectedImage = null;
 
-    //   =============================================
-    // inputan pertanyaan saat keayboard dipakai maka ketutup inputannya,
-    // saat pakai google lens
-
     function isMobileMode() {
       return window.innerWidth <= 900;
     }
 
-    function setMobileViewportVars() {
+    let viewportFrame = null;
+
+    function syncMobileChatViewport() {
+      if (!box) return;
+
       if (!isMobileMode()) {
-        document.documentElement.style.setProperty("--keyboard-offset", "0px");
-        document.documentElement.style.setProperty(
-          "--app-vh",
-          `${window.innerHeight * 0.01}px`,
+        ["top", "left", "right", "bottom", "width", "height"].forEach(
+          (property) => box.style.removeProperty(property),
         );
         return;
       }
 
       const vv = window.visualViewport;
-      const visibleHeight = vv ? vv.height : window.innerHeight;
-      const offsetTop = vv ? vv.offsetTop : 0;
+      box.style.top = `${vv?.offsetTop || 0}px`;
+      box.style.left = `${vv?.offsetLeft || 0}px`;
+      box.style.right = "auto";
+      box.style.bottom = "auto";
+      box.style.width = `${vv?.width || window.innerWidth}px`;
+      box.style.height = `${vv?.height || window.innerHeight}px`;
+    }
 
-      document.documentElement.style.setProperty(
-        "--app-vh",
-        `${visibleHeight * 0.01}px`,
-      );
-
-      // hitung tinggi keyboard
-      const keyboardOffset = Math.max(
-        0,
-        window.innerHeight - visibleHeight - offsetTop,
-      );
-
-      document.documentElement.style.setProperty(
-        "--keyboard-offset",
-        `${keyboardOffset}px`,
-      );
+    function scheduleMobileViewportSync() {
+      if (viewportFrame) cancelAnimationFrame(viewportFrame);
+      viewportFrame = requestAnimationFrame(() => {
+        viewportFrame = null;
+        syncMobileChatViewport();
+      });
     }
 
     function keepChatInputVisible() {
       if (!isMobileMode()) return;
-      setMobileViewportVars();
-
+      scheduleMobileViewportSync();
       setTimeout(() => {
-        const chatInputWrap = document.getElementById("ai-chat-input");
-        if (chatInputWrap) {
-          chatInputWrap.scrollIntoView({
-            behavior: "smooth",
-            block: "nearest",
-          });
-        }
+        syncMobileChatViewport();
         scrollBottom();
-      }, 250);
+      }, 80);
     }
 
-    window.addEventListener("resize", setMobileViewportVars);
+    window.addEventListener("resize", scheduleMobileViewportSync);
     window.addEventListener("orientationchange", () => {
-      setTimeout(setMobileViewportVars, 250);
+      setTimeout(scheduleMobileViewportSync, 250);
     });
 
     if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", setMobileViewportVars);
-      window.visualViewport.addEventListener("scroll", setMobileViewportVars);
+      window.visualViewport.addEventListener(
+        "resize",
+        scheduleMobileViewportSync,
+      );
+      window.visualViewport.addEventListener(
+        "scroll",
+        scheduleMobileViewportSync,
+      );
     }
 
     if (input) {
       input.addEventListener("focus", keepChatInputVisible);
-      input.addEventListener("click", keepChatInputVisible);
-      input.addEventListener("input", keepChatInputVisible);
     }
-
-    function mobileKeyboardFix() {
-      const box = document.getElementById("ai-chat-box");
-      if (!box) return;
-      if (window.innerWidth > 900) return;
-
-      const vv = window.visualViewport;
-      if (!vv) return;
-
-      box.style.height = vv.height + "px";
-    }
-
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", mobileKeyboardFix);
-      window.visualViewport.addEventListener("scroll", mobileKeyboardFix);
-    }
-    window.addEventListener("resize", mobileKeyboardFix);
-
-    //   ===========================
 
     function autoResize(el) {
       el.style.height = "auto";
@@ -111,7 +83,7 @@
       if (!input) return;
 
       setTimeout(() => {
-        input.focus();
+        input.focus({ preventScroll: true });
 
         // taruh cursor di paling akhir
         const val = input.value;
@@ -177,16 +149,20 @@
         const isOpen = box.style.display === "flex";
 
         if (isOpen) {
+          input?.blur();
           box.style.display = "none";
+          document.documentElement.classList.remove("ai-chat-open");
+          document.body.classList.remove("ai-chat-open");
           return;
         }
 
         box.style.display = "flex";
-        setMobileViewportVars();
-        mobileKeyboardFix();
+        document.documentElement.classList.add("ai-chat-open");
+        document.body.classList.add("ai-chat-open");
+        syncMobileChatViewport();
 
         scrollBottom(); // langsung scroll ke pesan terakhir
-        focusInput(); // langsung fokus ke textarea
+        if (!isMobileMode()) focusInput();
       };
     }
 
@@ -196,13 +172,19 @@
       closeBtn.onclick = (e) => {
         e.preventDefault();
         e.stopPropagation(); // biar gak “nembus” ke event lain
+        input?.blur();
         box.style.display = "none";
+        document.documentElement.classList.remove("ai-chat-open");
+        document.body.classList.remove("ai-chat-open");
       };
     }
 
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && box?.style.display === "flex") {
+        input?.blur();
         box.style.display = "none";
+        document.documentElement.classList.remove("ai-chat-open");
+        document.body.classList.remove("ai-chat-open");
       }
     });
 
@@ -1600,7 +1582,7 @@
     loadChat();
     scrollBottom();
     // focusInput();
-    setMobileViewportVars();
+    syncMobileChatViewport();
 
     if (isFreshSession()) {
       window.sendQuestion("halo", {
