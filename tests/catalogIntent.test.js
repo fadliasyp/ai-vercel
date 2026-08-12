@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   buildCatalogOverview,
+  extractPromoSubjectKeywords,
   isCatalogOverviewQuestion,
   isPriceOrderingFollowUp,
   resolveProductQueryScope,
@@ -46,6 +47,21 @@ test("recognizes conversational price ordering follow-up", () => {
   assert.equal(isPriceOrderingFollowUp("Iyaa boleh menurut harga"), true);
   assert.equal(isPriceOrderingFollowUp("urutkan berdasarkan harga"), true);
   assert.equal(isPriceOrderingFollowUp("harga GX-91 berapa"), false);
+});
+
+test("separates generic promo questions from product-specific promo searches", () => {
+  assert.deepEqual(
+    extractPromoSubjectKeywords("kalau promo ada engga sih"),
+    [],
+  );
+  assert.deepEqual(
+    extractPromoSubjectKeywords("promo apa saja yang ada hari ini?"),
+    [],
+  );
+  assert.deepEqual(
+    extractPromoSubjectKeywords("ada promo Voltes V engga?"),
+    ["voltes"],
+  );
 });
 
 test("distinguishes the whole catalog from previous product results", () => {

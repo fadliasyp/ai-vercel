@@ -145,6 +145,7 @@ import {
 } from "../lib/chatbot/recommendationMetadata.js";
 import {
   buildCatalogOverview,
+  extractPromoSubjectKeywords,
   isCatalogOverviewQuestion,
   isPriceOrderingFollowUp,
   resolveProductQueryScope,
@@ -6144,86 +6145,6 @@ export default async function handler(req, res) {
       });
     }
 
-    function mapWooProductToClean(p) {
-      const condition = stripHtml(
-        p.condition || getMetaValue(p.meta_data, "condition") || "",
-      );
-
-      const price = toNum(p.price);
-      const regular = toNum(p.regular_price);
-      const sale = toNum(p.sale_price);
-      const effectivePrice = sale ?? price ?? regular ?? null;
-
-      const discountPercent = calcDiscountPercent(regular, sale);
-      const discountAmount =
-        regular && sale && sale < regular ? regular - sale : 0;
-
-      return {
-        id: p.id,
-        name: p.name,
-        price: p.price,
-        regular_price: p.regular_price,
-        sale_price: p.sale_price,
-        numericPrice: effectivePrice ?? 0,
-        effectivePrice,
-        stock: p.stock_status,
-        stockQuantity:
-          typeof p.stock_quantity === "number" ? p.stock_quantity : null,
-        totalSales: Number(p.total_sales || 0),
-        averageRating: Number(p.average_rating || 0),
-        ratingCount: Number(p.rating_count || 0),
-        description: p.description || "",
-        link: p.permalink,
-        image: getProductImageUrl(p),
-        category: p.categories?.map((c) => c.name.toLowerCase()).join(" "),
-        categoryNames: p.categories?.map((c) => c.name).filter(Boolean) || [],
-        condition,
-        weight: cleanNumberString(p.weight),
-        dimensions: {
-          length: cleanNumberString(p.dimensions?.length),
-          width: cleanNumberString(p.dimensions?.width),
-          height: cleanNumberString(p.dimensions?.height),
-        },
-        type: p.type,
-        discountPercent,
-        discountAmount,
-        isPromo: discountPercent > 0,
-      };
-    }
-
-    let promoCache = { at: 0, data: null };
-
-    async function fetchPromoProducts(limit = 10) {
-      const now = Date.now();
-
-      if (promoCache.data && now - promoCache.at < 1000 * 60 * 5) {
-        return promoCache.data.slice(0, limit);
-      }
-
-      const params = new URLSearchParams({
-        per_page: String(Math.min(Math.max(limit, 1), 20)),
-        status: "publish",
-        on_sale: "true",
-      });
-
-      const url = buildWooProductsUrl(Object.fromEntries(params));
-
-      const raw = await fetchWithTimeoutJson(
-        url,
-        {
-          headers: buildWooAuthHeaders(),
-        },
-        15000,
-      );
-
-      const mapped = Array.isArray(raw)
-        ? raw.map(mapWooProductToClean).filter((p) => p.isPromo)
-        : [];
-
-      promoCache = { at: now, data: mapped };
-      return mapped.slice(0, limit);
-    }
-
     // ==============================
     // ALAMAT TOKO (SHIPPING ORIGIN) HANDLER
     // ==============================
@@ -8600,18 +8521,9 @@ Kembalikan JSON valid:
         q.includes("sale") ||
         q.includes("cashback"))
     ) {
-      const promoKeywords = extractMeaningfulKeywords(q);
+      const promoKeywords = extractPromoSubjectKeywords(q);
       const hasSpecificPromoKeyword = promoKeywords.length > 0;
-
-      let promoProducts = [];
-
-      try {
-        // query umum promo -> langsung ambil produk on sale dari Woo
-        promoProducts = await fetchPromoProducts(12);
-      } catch (e) {
-        console.error("PROMO FETCH ERROR:", e?.message || e);
-        promoProducts = [];
-      }
+      let promoProducts = cleanProducts.filter((product) => product.isPromo);
 
       // kalau query spesifik, baru filter hasil promo ringan tadi
       if (hasSpecificPromoKeyword && promoProducts.length) {
