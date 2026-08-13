@@ -106,6 +106,12 @@ test("explicit rules resolve recommendation, compare, store, and insurance bound
     "product_detail",
   );
   assert.equal(
+    detectExplicitIntentOverride(
+      "Tampilkan detail Soul of Chogogokin GX-31 Voltes V Bandai 2006",
+    ).intent,
+    "product_detail",
+  );
+  assert.equal(
     detectExplicitIntentOverride("Bro apa aja stok yg ada").intent,
     "stock_availability",
   );
