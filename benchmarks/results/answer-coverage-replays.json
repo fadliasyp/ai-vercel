@@ -1,11 +1,11 @@
 {
   "summary": {
-    "conversations": 5,
-    "turns": 6,
-    "passed": 6,
+    "conversations": 7,
+    "turns": 8,
+    "passed": 8,
     "failed": 0,
-    "averageCoverageBefore": 0.39166666666666666,
-    "averageCoverageAfter": 0.8333333333333334,
+    "averageCoverageBefore": 0.54375,
+    "averageCoverageAfter": 0.875,
     "repairedFacets": 6,
     "clarifiedFacets": 1,
     "unresolvedFacets": 1
@@ -95,6 +95,45 @@
           "promo"
         ],
         "passed": false
+      }
+    },
+    {
+      "id": "compound-recommendation-shipping-payment:1",
+      "scenario": "Semua kebutuhan majemuk tetap terjawab",
+      "passed": true,
+      "failures": [],
+      "observation": {
+        "requested": [
+          "shipping_quote",
+          "payment_methods",
+          "recommendation",
+          "budget"
+        ],
+        "before_coverage": 1,
+        "after_coverage": 1,
+        "repaired": [],
+        "clarified": [],
+        "unresolved": [],
+        "passed": true
+      }
+    },
+    {
+      "id": "compound-product-condition-return:1",
+      "scenario": "Fakta produk dan kebijakan retur sama-sama terjawab",
+      "passed": true,
+      "failures": [],
+      "observation": {
+        "requested": [
+          "product_condition",
+          "completeness",
+          "return_policy"
+        ],
+        "before_coverage": 1,
+        "after_coverage": 1,
+        "repaired": [],
+        "clarified": [],
+        "unresolved": [],
+        "passed": true
       }
     },
     {

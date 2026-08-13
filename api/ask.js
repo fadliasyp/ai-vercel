@@ -3489,6 +3489,8 @@ export default async function handler(req, res) {
   let answerPlan = buildAnswerPlan(compoundAnalysis);
   let queuedAnswerSections = [];
   let answerPlanProduct = null;
+  let plannedProductFactsPrepared = false;
+  let cleanProducts = null;
 
   const keepsRecommendationAsPrimary = () =>
     answerPlan.isMultiSection &&
@@ -4377,7 +4379,62 @@ export default async function handler(req, res) {
     }
 
     // ✅ bikin send() dulu supaya bisa dipakai state handler
+    async function preparePlannedProductFacts(payload = {}) {
+      if (
+        plannedProductFactsPrepared ||
+        !answerPlan.isMultiSection ||
+        !answerPlanIncludes(answerPlan, "product_facts")
+      ) {
+        return;
+      }
+
+      plannedProductFactsPrepared = true;
+      if (answerPlanProduct) return;
+
+      const payloadProduct = Array.isArray(payload.products)
+        ? payload.products[0]
+        : null;
+      if (payloadProduct) {
+        answerPlanProduct = payloadProduct;
+        return;
+      }
+
+      let catalog = [];
+      try {
+        catalog = await getCleanProducts();
+      } catch (error) {
+        console.error(
+          "ANSWER PLAN PRODUCT FETCH ERROR:",
+          error?.message || error,
+        );
+      }
+
+      const productMatch = catalog.length
+        ? resolveRequestedProduct(rawQuestion, catalog, { compound: true })
+        : { product: null, status: "unavailable" };
+      const product = productMatch.product;
+
+      if (product) {
+        answerPlanProduct = product;
+        session.lastProducts = [product];
+        queuedAnswerSections.push(
+          `**Informasi produk**\n${buildProductTransactionSummary(product, rawQuestion)}`,
+        );
+        return;
+      }
+
+      queuedAnswerSections.push(
+        productMatch.status === "ambiguous"
+          ? buildProductSearchClarification(productMatch)
+          : productMatch.status === "unavailable"
+            ? "**Informasi produk**\nMaaf, data katalog sedang sulit diakses sehingga kondisi atau kelengkapan produk belum bisa dipastikan sekarang."
+            : "**Informasi produk**\nMaaf, produk yang dimaksud belum bisa dipastikan dari katalog, jadi kondisi atau kelengkapannya belum dapat dikonfirmasi.",
+      );
+    }
+
     async function send(payload, forceIntent = null) {
+      await preparePlannedProductFacts(payload);
+
       if (queuedAnswerSections.length) {
         payload =
           forceIntent === "recommendation" &&
@@ -6492,8 +6549,6 @@ export default async function handler(req, res) {
         "general",
       );
     }
-
-    let cleanProducts = null;
 
     async function getCleanProducts() {
       if (cleanProducts) return cleanProducts;

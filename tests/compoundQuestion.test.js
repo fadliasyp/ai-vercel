@@ -188,6 +188,24 @@ test("keeps recommendation primary across payment and shipping clauses", () => {
   );
 });
 
+test("plans product facts before return policy in a compound concern", () => {
+  const analysis = analyzeCompoundQuestion(
+    "Ini DX Chogokin Getter Robo part-nya lengkap kan ya, bukan barang JUNK yang kondisinya rusak parah? Kalau pas sampai ternyata part ada yang hilang, syarat retur-nya gimana?",
+  );
+  const plan = buildAnswerPlan(analysis);
+
+  assert.equal(analysis.primaryIntent, "return_product");
+  assert.deepEqual(analysis.facets, [
+    "product_condition",
+    "completeness",
+    "return_policy",
+  ]);
+  assert.deepEqual(
+    plan.sections.map((section) => section.key),
+    ["product_facts", "return_policy"],
+  );
+});
+
 test("prepends completed answer sections without changing response controls", () => {
   const payload = prependAnswerSections(
     {

@@ -266,6 +266,28 @@
       ]
     },
     {
+      "id": "compound-product-condition-return",
+      "scenario": "Kondisi dan kelengkapan produk disertai pertanyaan retur",
+      "turns": [
+        {
+          "question": "Ini DX Chogokin Getter Robo part-nya lengkap kan ya, bukan barang JUNK yang kondisinya rusak parah? Kalau pas sampai ternyata part ada yang hilang, syarat retur-nya gimana?",
+          "expect": {
+            "scope": "in_scope",
+            "compound": {
+              "compound": true,
+              "primary_intent": "return_product",
+              "facets": ["product_condition", "completeness", "return_policy"]
+            },
+            "answer_plan": {
+              "multi_section": true,
+              "section_keys": ["product_facts", "return_policy"]
+            },
+            "signals": { "return_policy": true }
+          }
+        }
+      ]
+    },
+    {
       "id": "out-of-domain",
       "scenario": "Pengguna iseng atau keluar topik",
       "turns": [

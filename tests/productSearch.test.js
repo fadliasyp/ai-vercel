@@ -305,6 +305,23 @@ test("ignores product-fact clauses in compound catalog questions", () => {
   assert.equal(junkDetail.product?.id, 4);
 });
 
+test("matches an exact catalog name before long return-policy clauses", () => {
+  const product = {
+    id: 10,
+    name: "DX Chogokin Getter Robo",
+    category: "Chogokin",
+    stock: "instock",
+  };
+  const result = assessProductSearchConfidence(
+    "Ini DX Chogokin Getter Robo part-nya lengkap kan ya, bukan barang JUNK yang kondisinya rusak parah? Kalau pas sampai ternyata part ada yang hilang, syarat retur-nya gimana?",
+    [product],
+  );
+
+  assert.equal(result.status, "matched");
+  assert.equal(result.reason, "exact_catalog_name_mention");
+  assert.equal(result.product?.id, 10);
+});
+
 test("prefers the matching promo product for a compound request", () => {
   const result = findBestProductForCompoundRequest(
     "Mazinger Z yang promonya masih ready dan bisa dikirim hari ini?",

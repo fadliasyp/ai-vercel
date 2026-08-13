@@ -52,6 +52,22 @@ test("keeps an undocumented completeness facet explicit", () => {
   assert.match(summary, /Kelengkapan:.*belum tercantum secara rinci/i);
 });
 
+test("answers condition and completeness before a return-policy follow-up", () => {
+  const summary = buildProductTransactionSummary(
+    {
+      name: "DX Chogokin Getter Robo",
+      condition: "BIB, bukan JUNK",
+      description:
+        "Kondisi baik dan fungsi normal. Kelengkapan part sesuai foto dan tidak ada part yang hilang.",
+    },
+    "Part-nya lengkap dan bukan barang JUNK? Kalau ada part hilang, syarat retur bagaimana?",
+  );
+
+  assert.match(summary, /Kondisi: \*\*BIB, bukan JUNK\*\*/);
+  assert.match(summary, /Kelengkapan dari deskripsi/);
+  assert.match(summary, /tidak ada part yang hilang/i);
+});
+
 test("keeps documented JUNK defects in the product detail response", () => {
   const message = buildProductDetailMessage({
     name: "Robot Test JUNK",

@@ -1,9 +1,9 @@
 {
   "summary": {
-    "conversations": 10,
-    "turns": 20,
-    "assertions": 84,
-    "passed": 20,
+    "conversations": 12,
+    "turns": 22,
+    "assertions": 111,
+    "passed": 22,
     "failed": 0,
     "accuracy": 1
   },
@@ -17,12 +17,46 @@
       "failures": [],
       "observation": {
         "scope": "in_scope",
-        "explicit_intent": "",
+        "explicit_intent": "greeting",
         "customer_state": "distressed",
+        "compound": {
+          "compound": true,
+          "facets": [
+            "product_condition",
+            "completeness"
+          ],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": null,
+            "stock": null,
+            "condition": "damaged",
+            "purposes": [],
+            "promo_only": false
+          },
+          "primary_intent": "product_detail",
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": "product_detail",
+          "multi_section": false,
+          "sections": [
+            {
+              "key": "product_facts",
+              "facets": [
+                "product_condition",
+                "completeness"
+              ]
+            }
+          ],
+          "section_keys": [
+            "product_facts"
+          ]
+        },
         "entities": {
           "store_name": "",
           "product_terms": [
-            "patah engsel cuma lecet cat"
+            "cuma cat"
           ],
           "categories": [],
           "brands": [],
@@ -70,10 +104,42 @@
         "scope": "in_scope",
         "explicit_intent": "",
         "customer_state": "distressed",
+        "compound": {
+          "compound": false,
+          "facets": [
+            "product_condition"
+          ],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": null,
+            "stock": null,
+            "condition": "damaged",
+            "purposes": [],
+            "promo_only": false
+          },
+          "primary_intent": "product_detail",
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": "product_detail",
+          "multi_section": false,
+          "sections": [
+            {
+              "key": "product_facts",
+              "facets": [
+                "product_condition"
+              ]
+            }
+          ],
+          "section_keys": [
+            "product_facts"
+          ]
+        },
         "entities": {
           "store_name": "",
           "product_terms": [
-            "junk engselnya patah hanya lecet"
+            "junk engselnya hanya"
           ],
           "categories": [],
           "brands": [],
@@ -121,6 +187,38 @@
         "scope": "in_scope",
         "explicit_intent": "price_promo",
         "customer_state": "confused",
+        "compound": {
+          "compound": true,
+          "facets": [
+            "budget"
+          ],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": 2000000,
+            "stock": null,
+            "condition": null,
+            "purposes": [],
+            "promo_only": false
+          },
+          "primary_intent": "price_promo",
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": "price_promo",
+          "multi_section": false,
+          "sections": [
+            {
+              "key": "product_facts",
+              "facets": [
+                "budget"
+              ]
+            }
+          ],
+          "section_keys": [
+            "product_facts"
+          ]
+        },
         "entities": {
           "store_name": "",
           "product_terms": [
@@ -170,10 +268,42 @@
         "scope": "in_scope",
         "explicit_intent": "",
         "customer_state": "confused",
+        "compound": {
+          "compound": true,
+          "facets": [
+            "budget"
+          ],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": 2000000,
+            "stock": null,
+            "condition": null,
+            "purposes": [],
+            "promo_only": false
+          },
+          "primary_intent": "price_promo",
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": "price_promo",
+          "multi_section": false,
+          "sections": [
+            {
+              "key": "product_facts",
+              "facets": [
+                "budget"
+              ]
+            }
+          ],
+          "section_keys": [
+            "product_facts"
+          ]
+        },
         "entities": {
           "store_name": "",
           "product_terms": [
-            "dari foto max 2jt"
+            "foto max 2jt"
           ],
           "categories": [],
           "brands": [],
@@ -219,6 +349,48 @@
         "scope": "in_scope",
         "explicit_intent": "shipping_transaction",
         "customer_state": "worried",
+        "compound": {
+          "compound": true,
+          "facets": [
+            "shipping_quote",
+            "insurance",
+            "packing"
+          ],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": null,
+            "stock": null,
+            "condition": null,
+            "purposes": [],
+            "promo_only": false
+          },
+          "primary_intent": "shipping_transaction",
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": "shipping_transaction",
+          "multi_section": true,
+          "sections": [
+            {
+              "key": "transaction_policy",
+              "facets": [
+                "insurance",
+                "packing"
+              ]
+            },
+            {
+              "key": "shipping_quote",
+              "facets": [
+                "shipping_quote"
+              ]
+            }
+          ],
+          "section_keys": [
+            "transaction_policy",
+            "shipping_quote"
+          ]
+        },
         "entities": {
           "store_name": "",
           "product_terms": [
@@ -268,6 +440,27 @@
         "scope": "ambiguous",
         "explicit_intent": "",
         "customer_state": "neutral",
+        "compound": {
+          "compound": true,
+          "facets": [],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": null,
+            "stock": null,
+            "condition": null,
+            "purposes": [],
+            "promo_only": false
+          },
+          "primary_intent": null,
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": null,
+          "multi_section": false,
+          "sections": [],
+          "section_keys": []
+        },
         "entities": {
           "store_name": "",
           "product_terms": [],
@@ -315,6 +508,29 @@
         "scope": "in_scope",
         "explicit_intent": "transaction_status",
         "customer_state": "worried",
+        "compound": {
+          "compound": true,
+          "facets": [
+            "transaction_status"
+          ],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": null,
+            "stock": null,
+            "condition": null,
+            "purposes": [],
+            "promo_only": false
+          },
+          "primary_intent": null,
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": null,
+          "multi_section": false,
+          "sections": [],
+          "section_keys": []
+        },
         "entities": {
           "store_name": "",
           "product_terms": [],
@@ -362,6 +578,27 @@
         "scope": "ambiguous",
         "explicit_intent": "",
         "customer_state": "neutral",
+        "compound": {
+          "compound": false,
+          "facets": [],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": null,
+            "stock": null,
+            "condition": null,
+            "purposes": [],
+            "promo_only": false
+          },
+          "primary_intent": null,
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": null,
+          "multi_section": false,
+          "sections": [],
+          "section_keys": []
+        },
         "entities": {
           "store_name": "",
           "product_terms": [],
@@ -409,6 +646,30 @@
         "scope": "in_scope",
         "explicit_intent": "general",
         "customer_state": "neutral",
+        "compound": {
+          "compound": true,
+          "facets": [
+            "store_location",
+            "store_hours"
+          ],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": null,
+            "stock": null,
+            "condition": null,
+            "purposes": [],
+            "promo_only": false
+          },
+          "primary_intent": null,
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": null,
+          "multi_section": false,
+          "sections": [],
+          "section_keys": []
+        },
         "entities": {
           "store_name": "Robot Jadul",
           "product_terms": [],
@@ -456,6 +717,30 @@
         "scope": "in_scope",
         "explicit_intent": "general",
         "customer_state": "neutral",
+        "compound": {
+          "compound": true,
+          "facets": [
+            "store_location",
+            "store_hours"
+          ],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": null,
+            "stock": null,
+            "condition": null,
+            "purposes": [],
+            "promo_only": false
+          },
+          "primary_intent": null,
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": null,
+          "multi_section": false,
+          "sections": [],
+          "section_keys": []
+        },
         "entities": {
           "store_name": "Robot Jadul",
           "product_terms": [],
@@ -501,8 +786,48 @@
       "failures": [],
       "observation": {
         "scope": "in_scope",
-        "explicit_intent": "",
+        "explicit_intent": "return_product",
         "customer_state": "distressed",
+        "compound": {
+          "compound": true,
+          "facets": [
+            "product_condition",
+            "return_policy"
+          ],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": null,
+            "stock": null,
+            "condition": "good",
+            "purposes": [],
+            "promo_only": false
+          },
+          "primary_intent": "return_product",
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": "return_product",
+          "multi_section": true,
+          "sections": [
+            {
+              "key": "product_facts",
+              "facets": [
+                "product_condition"
+              ]
+            },
+            {
+              "key": "return_policy",
+              "facets": [
+                "return_policy"
+              ]
+            }
+          ],
+          "section_keys": [
+            "product_facts",
+            "return_policy"
+          ]
+        },
         "entities": {
           "store_name": "",
           "product_terms": [
@@ -538,7 +863,7 @@
           "shipping_quote_followup": false,
           "transaction_policy": false
         },
-        "policy_text": "Maaf atas kendalanya. Untuk **barang rusak atau cacat**, retur atau refund **bisa diajukan**, tetapi tidak otomatis disetujui.\n\n**Batas pengajuan:** maksimal **2 x 24 jam** sejak paket diterima. Kirim ke WhatsApp Admin https://wa.me/6285975313930: nomor pesanan, foto barang/cacat/kemasan/label kirim, video unboxing jika ada, dan kronologi. Simpan kemasan/kelengkapannya; jangan gunakan, bongkar, perbaiki, atau kirim balik sebelum arahan admin.\n\nBukti ditinjau dalam **1-3 hari kerja** setelah lengkap. Jika disetujui, solusinya penggantian jika stok ada, refund sebagian, atau penuh. Refund diproses dalam **3-7 hari kerja** setelah retur diterima dan diverifikasi.\n\nProduk JUNK/second: cacat yang sudah tertulis bukan dasar klaim; kerusakan tambahan yang tidak tercantum tetap bisa diajukan."
+        "policy_text": "Maaf atas kendalanya. Untuk **barang rusak atau cacat**, hentikan pemakaian dan jangan mencoba memperbaikinya. Foto bagian rusak dari dekat, kondisi barang secara utuh, kemasan, dan label kirim; sertakan video unboxing jika ada. Jika klaim disetujui, solusi dapat berupa penggantian part/barang bila stok tersedia, refund sebagian, atau refund penuh. Pengajuan harus dibuat maksimal **2 x 24 jam** sejak paket diterima dan tidak otomatis disetujui.\n\nBukti lengkap ditinjau dalam **1-3 hari kerja**. Jika hasil akhirnya refund, dana diproses dalam **3-7 hari kerja** setelah retur diterima dan diverifikasi.\n\n**Laporkan ke Admin Robot Jadul:** https://wa.me/6285975313930\nSertakan nomor pesanan dan ringkasan kendalanya agar laporan mudah ditelusuri."
       }
     },
     {
@@ -550,8 +875,48 @@
       "failures": [],
       "observation": {
         "scope": "in_scope",
-        "explicit_intent": "",
+        "explicit_intent": "return_product",
         "customer_state": "distressed",
+        "compound": {
+          "compound": true,
+          "facets": [
+            "product_condition",
+            "refund"
+          ],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": null,
+            "stock": null,
+            "condition": "damaged",
+            "purposes": [],
+            "promo_only": false
+          },
+          "primary_intent": "return_product",
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": "return_product",
+          "multi_section": true,
+          "sections": [
+            {
+              "key": "product_facts",
+              "facets": [
+                "product_condition"
+              ]
+            },
+            {
+              "key": "return_policy",
+              "facets": [
+                "refund"
+              ]
+            }
+          ],
+          "section_keys": [
+            "product_facts",
+            "return_policy"
+          ]
+        },
         "entities": {
           "store_name": "",
           "product_terms": [],
@@ -585,7 +950,7 @@
           "shipping_quote_followup": false,
           "transaction_policy": false
         },
-        "policy_text": "Maaf atas kendalanya. Untuk **barang rusak atau cacat**, retur atau refund **bisa diajukan**, tetapi tidak otomatis disetujui.\n\n**Batas pengajuan:** maksimal **2 x 24 jam** sejak paket diterima. Kirim ke WhatsApp Admin https://wa.me/6285975313930: nomor pesanan, foto barang/cacat/kemasan/label kirim, video unboxing jika ada, dan kronologi. Simpan kemasan/kelengkapannya; jangan gunakan, bongkar, perbaiki, atau kirim balik sebelum arahan admin.\n\nBukti ditinjau dalam **1-3 hari kerja** setelah lengkap. Jika disetujui, solusinya penggantian jika stok ada, refund sebagian, atau penuh. Refund diproses dalam **3-7 hari kerja** setelah retur diterima dan diverifikasi.\n\nProduk JUNK/second: cacat yang sudah tertulis bukan dasar klaim; kerusakan tambahan yang tidak tercantum tetap bisa diajukan."
+        "policy_text": "Maaf atas kendalanya. Untuk **barang rusak atau cacat**, hentikan pemakaian dan jangan mencoba memperbaikinya. Foto bagian rusak dari dekat, kondisi barang secara utuh, kemasan, dan label kirim; sertakan video unboxing jika ada. Jika klaim disetujui, solusi dapat berupa penggantian part/barang bila stok tersedia, refund sebagian, atau refund penuh. Pengajuan harus dibuat maksimal **2 x 24 jam** sejak paket diterima dan tidak otomatis disetujui.\n\nBukti lengkap ditinjau dalam **1-3 hari kerja**. Jika hasil akhirnya refund, dana diproses dalam **3-7 hari kerja** setelah retur diterima dan diverifikasi.\n\n**Laporkan ke Admin Robot Jadul:** https://wa.me/6285975313930\nSertakan nomor pesanan dan ringkasan kendalanya agar laporan mudah ditelusuri."
       }
     },
     {
@@ -599,6 +964,42 @@
         "scope": "in_scope",
         "explicit_intent": "recommendation",
         "customer_state": "confused",
+        "compound": {
+          "compound": true,
+          "facets": [
+            "recommendation",
+            "budget"
+          ],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": 3000000,
+            "stock": null,
+            "condition": null,
+            "purposes": [
+              "gift",
+              "display"
+            ],
+            "promo_only": false
+          },
+          "primary_intent": "recommendation",
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": "recommendation",
+          "multi_section": false,
+          "sections": [
+            {
+              "key": "recommendation",
+              "facets": [
+                "budget"
+              ]
+            }
+          ],
+          "section_keys": [
+            "recommendation"
+          ]
+        },
         "entities": {
           "store_name": "",
           "product_terms": [
@@ -648,6 +1049,41 @@
         "scope": "in_scope",
         "explicit_intent": "stock_availability",
         "customer_state": "neutral",
+        "compound": {
+          "compound": true,
+          "facets": [
+            "stock",
+            "recommendation"
+          ],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": null,
+            "stock": "ready",
+            "condition": null,
+            "purposes": [
+              "display"
+            ],
+            "promo_only": false
+          },
+          "primary_intent": "recommendation",
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": "recommendation",
+          "multi_section": false,
+          "sections": [
+            {
+              "key": "recommendation",
+              "facets": [
+                "stock"
+              ]
+            }
+          ],
+          "section_keys": [
+            "recommendation"
+          ]
+        },
         "entities": {
           "store_name": "",
           "product_terms": [],
@@ -693,8 +1129,42 @@
       "failures": [],
       "observation": {
         "scope": "in_scope",
-        "explicit_intent": "",
+        "explicit_intent": "shipping_transaction",
         "customer_state": "neutral",
+        "compound": {
+          "compound": true,
+          "facets": [
+            "cod",
+            "payment_methods"
+          ],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": null,
+            "stock": null,
+            "condition": null,
+            "purposes": [],
+            "promo_only": false
+          },
+          "primary_intent": "shipping_transaction",
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": "shipping_transaction",
+          "multi_section": false,
+          "sections": [
+            {
+              "key": "transaction_policy",
+              "facets": [
+                "cod",
+                "payment_methods"
+              ]
+            }
+          ],
+          "section_keys": [
+            "transaction_policy"
+          ]
+        },
         "entities": {
           "store_name": "",
           "product_terms": [],
@@ -740,8 +1210,40 @@
       "failures": [],
       "observation": {
         "scope": "in_scope",
-        "explicit_intent": "",
+        "explicit_intent": "shipping_transaction",
         "customer_state": "worried",
+        "compound": {
+          "compound": false,
+          "facets": [
+            "payment_methods"
+          ],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": null,
+            "stock": null,
+            "condition": null,
+            "purposes": [],
+            "promo_only": false
+          },
+          "primary_intent": "shipping_transaction",
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": "shipping_transaction",
+          "multi_section": false,
+          "sections": [
+            {
+              "key": "transaction_policy",
+              "facets": [
+                "payment_methods"
+              ]
+            }
+          ],
+          "section_keys": [
+            "transaction_policy"
+          ]
+        },
         "entities": {
           "store_name": "",
           "product_terms": [],
@@ -789,6 +1291,48 @@
         "scope": "in_scope",
         "explicit_intent": "stock_availability",
         "customer_state": "urgent",
+        "compound": {
+          "compound": true,
+          "facets": [
+            "stock",
+            "promo",
+            "same_day"
+          ],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": null,
+            "stock": "ready",
+            "condition": null,
+            "purposes": [],
+            "promo_only": true
+          },
+          "primary_intent": "shipping_transaction",
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": "shipping_transaction",
+          "multi_section": true,
+          "sections": [
+            {
+              "key": "product_facts",
+              "facets": [
+                "stock",
+                "promo"
+              ]
+            },
+            {
+              "key": "transaction_policy",
+              "facets": [
+                "same_day"
+              ]
+            }
+          ],
+          "section_keys": [
+            "product_facts",
+            "transaction_policy"
+          ]
+        },
         "entities": {
           "store_name": "",
           "product_terms": [
@@ -836,8 +1380,40 @@
       "failures": [],
       "observation": {
         "scope": "in_scope",
-        "explicit_intent": "",
+        "explicit_intent": "shipping_transaction",
         "customer_state": "urgent",
+        "compound": {
+          "compound": false,
+          "facets": [
+            "same_day"
+          ],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": null,
+            "stock": null,
+            "condition": null,
+            "purposes": [],
+            "promo_only": false
+          },
+          "primary_intent": "shipping_transaction",
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": "shipping_transaction",
+          "multi_section": false,
+          "sections": [
+            {
+              "key": "transaction_policy",
+              "facets": [
+                "same_day"
+              ]
+            }
+          ],
+          "section_keys": [
+            "transaction_policy"
+          ]
+        },
         "entities": {
           "store_name": "",
           "product_terms": [],
@@ -875,6 +1451,199 @@
       }
     },
     {
+      "id": "compound-recommendation-shipping-payment:1",
+      "scenario": "Rekomendasi, ongkir, dan pembayaran dalam satu pertanyaan",
+      "question": "Ada rekomendasi robot jadul budget di bawah 2 juta? Sama ongkir ke Bandung kena berapa dan bisa bayar pakai apa aja",
+      "passed": true,
+      "assertions": 17,
+      "failures": [],
+      "observation": {
+        "scope": "in_scope",
+        "explicit_intent": "shipping_transaction",
+        "customer_state": "neutral",
+        "compound": {
+          "compound": true,
+          "facets": [
+            "shipping_quote",
+            "payment_methods",
+            "recommendation",
+            "budget"
+          ],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": 2000000,
+            "stock": null,
+            "condition": null,
+            "purposes": [],
+            "promo_only": false
+          },
+          "primary_intent": "recommendation",
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": "recommendation",
+          "multi_section": true,
+          "sections": [
+            {
+              "key": "recommendation",
+              "facets": [
+                "budget"
+              ]
+            },
+            {
+              "key": "transaction_policy",
+              "facets": [
+                "payment_methods"
+              ]
+            },
+            {
+              "key": "shipping_quote",
+              "facets": [
+                "shipping_quote"
+              ]
+            }
+          ],
+          "section_keys": [
+            "recommendation",
+            "transaction_policy",
+            "shipping_quote"
+          ]
+        },
+        "entities": {
+          "store_name": "Robot Jadul",
+          "product_terms": [
+            "sama ke bandung kena pakai"
+          ],
+          "categories": [],
+          "brands": [],
+          "conditions": [],
+          "stock_state": "",
+          "budget_min": null,
+          "budget_max": 2000000,
+          "location": "Bandung kena berapa dan bisa bayar pakai apa aja",
+          "order_id": "",
+          "tracking_number": "",
+          "shipping_destination": "Bandung",
+          "followup_city": "",
+          "followup_district": ""
+        },
+        "signals": {
+          "return_policy": false,
+          "transaction_status": false,
+          "order_verification": false,
+          "store_hours": false,
+          "store_location": false,
+          "recommendation": true,
+          "cod": false,
+          "payment_methods": true,
+          "insurance": false,
+          "packing_protection": false,
+          "same_day_dispatch": false,
+          "shipping_coverage": false,
+          "shipping_quote": true,
+          "shipping_quote_followup": false,
+          "transaction_policy": true
+        },
+        "policy_text": "Tentu, kami menyediakan beberapa metode pembayaran yang praktis.\n\n**Pilihan Pembayaran Tersedia:**\n\n- GoPay\n- CIMB Niaga\n- BNI\n- QRIS\n- Mandiri\n- BRI\n- Kartu Kredit\n- Visa\n- PermataBank"
+      }
+    },
+    {
+      "id": "compound-product-condition-return:1",
+      "scenario": "Kondisi dan kelengkapan produk disertai pertanyaan retur",
+      "question": "Ini DX Chogokin Getter Robo part-nya lengkap kan ya, bukan barang JUNK yang kondisinya rusak parah? Kalau pas sampai ternyata part ada yang hilang, syarat retur-nya gimana?",
+      "passed": true,
+      "assertions": 10,
+      "failures": [],
+      "observation": {
+        "scope": "in_scope",
+        "explicit_intent": "return_product",
+        "customer_state": "distressed",
+        "compound": {
+          "compound": true,
+          "facets": [
+            "product_condition",
+            "completeness",
+            "return_policy"
+          ],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": null,
+            "stock": null,
+            "condition": "damaged",
+            "purposes": [],
+            "promo_only": false
+          },
+          "primary_intent": "return_product",
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": "return_product",
+          "multi_section": true,
+          "sections": [
+            {
+              "key": "product_facts",
+              "facets": [
+                "product_condition",
+                "completeness"
+              ]
+            },
+            {
+              "key": "return_policy",
+              "facets": [
+                "return_policy"
+              ]
+            }
+          ],
+          "section_keys": [
+            "product_facts",
+            "return_policy"
+          ]
+        },
+        "entities": {
+          "store_name": "",
+          "product_terms": [
+            "syarat retur nya"
+          ],
+          "categories": [
+            "chogokin"
+          ],
+          "brands": [],
+          "conditions": [
+            "JUNK"
+          ],
+          "stock_state": "",
+          "budget_min": null,
+          "budget_max": null,
+          "location": "",
+          "order_id": "",
+          "tracking_number": "",
+          "shipping_destination": "",
+          "followup_city": "",
+          "followup_district": ""
+        },
+        "signals": {
+          "return_policy": true,
+          "transaction_status": false,
+          "order_verification": false,
+          "store_hours": false,
+          "store_location": false,
+          "recommendation": false,
+          "cod": false,
+          "payment_methods": false,
+          "insurance": false,
+          "packing_protection": true,
+          "same_day_dispatch": false,
+          "shipping_coverage": false,
+          "shipping_quote": false,
+          "shipping_quote_followup": false,
+          "transaction_policy": true
+        },
+        "policy_text": "Maaf atas kendalanya. Untuk **barang rusak atau cacat**, hentikan pemakaian dan jangan mencoba memperbaikinya. Foto bagian rusak dari dekat, kondisi barang secara utuh, kemasan, dan label kirim; sertakan video unboxing jika ada. Jika klaim disetujui, solusi dapat berupa penggantian part/barang bila stok tersedia, refund sebagian, atau refund penuh. Pengajuan harus dibuat maksimal **2 x 24 jam** sejak paket diterima dan tidak otomatis disetujui.\n\nBukti lengkap ditinjau dalam **1-3 hari kerja**. Jika hasil akhirnya refund, dana diproses dalam **3-7 hari kerja** setelah retur diterima dan diverifikasi.\n\nKhusus produk JUNK/second, cacat yang sudah tertulis di deskripsi bukan dasar klaim; kerusakan tambahan yang tidak tercantum tetap bisa diajukan.\n\n**Laporkan ke Admin Robot Jadul:** https://wa.me/6285975313930\nSertakan nomor pesanan dan ringkasan kendalanya agar laporan mudah ditelusuri."
+      }
+    },
+    {
       "id": "out-of-domain:1",
       "scenario": "Pengguna iseng atau keluar topik",
       "question": "Robot yang paling kuat menang lawan Godzilla yang mana?",
@@ -885,6 +1654,27 @@
         "scope": "out_of_scope",
         "explicit_intent": "",
         "customer_state": "neutral",
+        "compound": {
+          "compound": false,
+          "facets": [],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": null,
+            "stock": null,
+            "condition": null,
+            "purposes": [],
+            "promo_only": false
+          },
+          "primary_intent": null,
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": null,
+          "multi_section": false,
+          "sections": [],
+          "section_keys": []
+        },
         "entities": {
           "store_name": "",
           "product_terms": [
@@ -934,6 +1724,27 @@
         "scope": "out_of_scope",
         "explicit_intent": "",
         "customer_state": "neutral",
+        "compound": {
+          "compound": false,
+          "facets": [],
+          "constraints": {
+            "budget_min": null,
+            "budget_max": null,
+            "stock": null,
+            "condition": null,
+            "purposes": [],
+            "promo_only": false
+          },
+          "primary_intent": null,
+          "confidence": 0.96,
+          "needs_clarification": false
+        },
+        "answer_plan": {
+          "primary_intent": null,
+          "multi_section": false,
+          "sections": [],
+          "section_keys": []
+        },
         "entities": {
           "store_name": "",
           "product_terms": [],
