@@ -17,6 +17,7 @@
     }
 
     let viewportFrame = null;
+    let mobileViewportBaseline = 0;
 
     function syncMobileChatViewport() {
       if (!box) return;
@@ -29,12 +30,36 @@
       }
 
       const vv = window.visualViewport;
-      box.style.top = `${vv?.offsetTop || 0}px`;
-      box.style.left = `${vv?.offsetLeft || 0}px`;
+      const viewportWidth = vv?.width || window.innerWidth;
+      const viewportHeight = vv?.height || window.innerHeight;
+      const viewportTop = vv?.offsetTop || 0;
+      const viewportLeft = vv?.offsetLeft || 0;
+      const inputFocused = document.activeElement === input;
+      if (!inputFocused || !mobileViewportBaseline) {
+        mobileViewportBaseline = viewportHeight;
+      } else {
+        mobileViewportBaseline = Math.max(
+          mobileViewportBaseline,
+          viewportHeight,
+        );
+      }
+      const keyboardOpen =
+        inputFocused && viewportHeight < mobileViewportBaseline * 0.82;
+      const sideGap = Math.max(10, (viewportWidth - 720) / 2);
+      const topGap = keyboardOpen
+        ? 6
+        : Math.max(48, Math.min(72, viewportHeight * 0.08));
+      const bottomGap = keyboardOpen ? 4 : 10;
+
+      box.style.top = `${viewportTop + topGap}px`;
+      box.style.left = `${viewportLeft + sideGap}px`;
       box.style.right = "auto";
       box.style.bottom = "auto";
-      box.style.width = `${vv?.width || window.innerWidth}px`;
-      box.style.height = `${vv?.height || window.innerHeight}px`;
+      box.style.width = `${Math.max(280, viewportWidth - sideGap * 2)}px`;
+      box.style.height = `${Math.max(
+        180,
+        viewportHeight - topGap - bottomGap,
+      )}px`;
     }
 
     function scheduleMobileViewportSync() {
@@ -56,6 +81,7 @@
 
     window.addEventListener("resize", scheduleMobileViewportSync);
     window.addEventListener("orientationchange", () => {
+      mobileViewportBaseline = 0;
       setTimeout(scheduleMobileViewportSync, 250);
     });
 
@@ -151,12 +177,14 @@
         if (isOpen) {
           input?.blur();
           box.style.display = "none";
+          bubble.setAttribute("aria-expanded", "false");
           document.documentElement.classList.remove("ai-chat-open");
           document.body.classList.remove("ai-chat-open");
           return;
         }
 
         box.style.display = "flex";
+        bubble.setAttribute("aria-expanded", "true");
         document.documentElement.classList.add("ai-chat-open");
         document.body.classList.add("ai-chat-open");
         syncMobileChatViewport();
@@ -174,6 +202,7 @@
         e.stopPropagation(); // biar gak “nembus” ke event lain
         input?.blur();
         box.style.display = "none";
+        bubble?.setAttribute("aria-expanded", "false");
         document.documentElement.classList.remove("ai-chat-open");
         document.body.classList.remove("ai-chat-open");
       };
@@ -183,6 +212,7 @@
       if (e.key === "Escape" && box?.style.display === "flex") {
         input?.blur();
         box.style.display = "none";
+        bubble?.setAttribute("aria-expanded", "false");
         document.documentElement.classList.remove("ai-chat-open");
         document.body.classList.remove("ai-chat-open");
       }
