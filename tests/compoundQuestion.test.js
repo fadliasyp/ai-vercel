@@ -174,6 +174,19 @@ test("plans product facts and shipping quote as ordered answer sections", () => 
   );
 });
 
+test("keeps price and stock together in one product-facts plan", () => {
+  const analysis = analyzeCompoundQuestion(
+    "Hrg Getter Robo brp, masih redy?",
+  );
+  const plan = buildAnswerPlan(analysis);
+
+  assert.equal(analysis.primaryIntent, "price_promo");
+  assert.deepEqual(analysis.facets, ["price", "stock"]);
+  assert.deepEqual(plan.sections, [
+    { key: "product_facts", facets: ["price", "stock"] },
+  ]);
+});
+
 test("keeps recommendation primary across payment and shipping clauses", () => {
   const analysis = analyzeCompoundQuestion(
     "Ada rekomendasi robot jadul budget di bawah 2 juta? Sama ongkir ke Bandung kena berapa dan bisa bayar pakai apa aja",
@@ -203,6 +216,20 @@ test("plans product facts before return policy in a compound concern", () => {
   assert.deepEqual(
     plan.sections.map((section) => section.key),
     ["product_facts", "return_policy"],
+  );
+});
+
+test("does not invent a catalog lookup for an implicit post-purchase issue", () => {
+  const analysis = analyzeCompoundQuestion(
+    "Pas dibuka ternyata ada part yang hilang, ngurusnya gimana?",
+  );
+  const plan = buildAnswerPlan(analysis);
+
+  assert.equal(analysis.primaryIntent, "return_product");
+  assert.deepEqual(analysis.facets, ["return_policy"]);
+  assert.deepEqual(
+    plan.sections.map((section) => section.key),
+    ["return_policy"],
   );
 });
 

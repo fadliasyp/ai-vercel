@@ -10,7 +10,7 @@
           "question": "Halo, part tangan kanan Mazinger Z ini masuk JUNK ya? Ada patah di engsel atau cuma lecet cat?",
           "expect": {
             "scope": "in_scope",
-            "customer_state": "distressed",
+            "customer_state": "neutral",
             "entities": { "conditions": ["JUNK"] }
           }
         },
@@ -18,7 +18,7 @@
           "question": "barang junk ini engselnya pataah atau hanya lecet?",
           "expect": {
             "scope": "in_scope",
-            "customer_state": "distressed",
+            "customer_state": "neutral",
             "entities": { "conditions": ["JUNK"] }
           }
         }
@@ -283,6 +283,60 @@
               "section_keys": ["product_facts", "return_policy"]
             },
             "signals": { "return_policy": true }
+          }
+        }
+      ]
+    },
+    {
+      "id": "human-language-boundaries",
+      "scenario": "Batas pra-beli, pasca-beli, typo, dan urutan majemuk",
+      "turns": [
+        {
+          "question": "Produk Getter Robo ini ada cacat atau rusak parah engga?",
+          "expect": {
+            "scope": "in_scope",
+            "explicit_intent": "product_detail",
+            "customer_state": "neutral",
+            "signals": { "return_policy": false }
+          }
+        },
+        {
+          "question": "Pas dibuka ternyata ada part yang hilang, ngurusnya gimana?",
+          "expect": {
+            "scope": "in_scope",
+            "explicit_intent": "return_product",
+            "customer_state": "distressed",
+            "compound": {
+              "primary_intent": "return_product",
+              "facets": ["return_policy"]
+            },
+            "signals": { "return_policy": true }
+          }
+        },
+        {
+          "question": "Hrg Getter Robo brp, msh redy?",
+          "expect": {
+            "scope": "in_scope",
+            "compound": {
+              "primary_intent": "price_promo",
+              "facets": ["price", "stock"]
+            },
+            "answer_plan": {
+              "section_keys": ["product_facts"]
+            }
+          }
+        },
+        {
+          "question": "Bisa QRIS dan ongkir Bandung berapa, sekalian rekomendasi robot di bawah 2 juta",
+          "expect": {
+            "scope": "in_scope",
+            "compound": {
+              "primary_intent": "recommendation",
+              "facets": ["shipping_quote", "payment_methods", "recommendation", "budget"]
+            },
+            "answer_plan": {
+              "section_keys": ["recommendation", "transaction_policy", "shipping_quote"]
+            }
           }
         }
       ]

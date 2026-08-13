@@ -17,16 +17,16 @@ const dataset = JSON.parse(
 
 test("validates all customer simulation conversations", () => {
   assert.deepEqual(validateCustomerConversationDataset(dataset), {
-    conversations: 12,
-    turns: 22,
+    conversations: 13,
+    turns: 26,
   });
 });
 
 test("passes deterministic customer conversation benchmark", () => {
   const report = evaluateCustomerConversationDataset(dataset);
 
-  assert.equal(report.summary.conversations, 12);
-  assert.equal(report.summary.turns, 22);
+  assert.equal(report.summary.conversations, 13);
+  assert.equal(report.summary.turns, 26);
   assert.equal(report.summary.failed, 0, JSON.stringify(report.results.filter((item) => !item.passed), null, 2));
   assert.equal(report.summary.accuracy, 1);
 });

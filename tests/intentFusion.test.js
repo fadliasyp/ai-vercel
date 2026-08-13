@@ -121,6 +121,27 @@ test("explicit rules resolve recommendation, compare, store, and insurance bound
   );
 });
 
+test("separates catalog condition questions from implicit return problems", () => {
+  assert.equal(
+    detectExplicitIntentOverride(
+      "Produk Getter Robo ini ada cacat atau rusak parah engga?",
+    )?.intent,
+    "product_detail",
+  );
+  assert.equal(
+    detectExplicitIntentOverride(
+      "Kalau sampai barangnya beda dari foto harus gimana?",
+    )?.intent,
+    "return_product",
+  );
+  assert.equal(
+    detectExplicitIntentOverride(
+      "Pas dibuka ternyata ada part yang hilang, ngurusnya gimana?",
+    )?.intent,
+    "return_product",
+  );
+});
+
 test("separates payment, coverage, and quote subtopics inside shipping", () => {
   assert.equal(
     detectExplicitIntentOverride("Woi jut bayarnya bisa make paylater ga?")

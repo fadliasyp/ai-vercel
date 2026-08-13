@@ -16,13 +16,13 @@ const dataset = JSON.parse(
 
 test("passes deterministic answer coverage conversation replays", () => {
   assert.deepEqual(validateCoverageReplayDataset(dataset), {
-    conversations: 7,
-    turns: 8,
+    conversations: 8,
+    turns: 9,
   });
 
   const report = evaluateCoverageReplayDataset(dataset);
   assert.equal(report.summary.failed, 0, JSON.stringify(report.results, null, 2));
-  assert.equal(report.summary.passed, 8);
+  assert.equal(report.summary.passed, 9);
   assert.equal(report.summary.repairedFacets, 6);
   assert.equal(report.summary.clarifiedFacets, 1);
   assert.equal(report.summary.unresolvedFacets, 1);

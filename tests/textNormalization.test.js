@@ -21,6 +21,12 @@ test("normalizes chat abbreviations, repeated letters, and light typos", () => {
     normalizeIndonesianCommerceText("brp ongkiir dgn JNE skrg?"),
     "berapa ongkir dengan jne sekarang?",
   );
+  assert.equal(
+    normalizeIndonesianCommerceText(
+      "rekomenndasi dibwah 2jt yg redy, part ilang bsa komplen?",
+    ),
+    "rekomendasi dibawah 2jt yang ready, part hilang bisa komplain?",
+  );
 });
 
 test("normalizes safe numeric reduplication without touching identifiers", () => {

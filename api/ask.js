@@ -4650,6 +4650,7 @@ export default async function handler(req, res) {
           answerSections: {
             product_condition: productCoverageSection,
             completeness: productCoverageSection,
+            price: productCoverageSection,
             stock: productCoverageSection,
             promo: productCoverageSection,
             insurance: transactionCoverageSection,
@@ -4666,6 +4667,7 @@ export default async function handler(req, res) {
           clarificationSections: {
             product_condition: productClarification,
             completeness: productClarification,
+            price: productClarification,
             stock: productClarification,
             promo: productClarification,
             shipping_quote: shippingDestination

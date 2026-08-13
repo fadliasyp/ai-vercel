@@ -44,6 +44,27 @@ test("tracks operational and return follow-up facets separately", () => {
   );
 });
 
+test("separates requested catalog facts from post-purchase return symptoms", () => {
+  assert.deepEqual(
+    detectRequestedAnswerFacets(
+      "Pas dibuka ternyata ada part yang hilang, ngurusnya gimana?",
+    ),
+    ["return_policy"],
+  );
+  assert.deepEqual(
+    detectRequestedAnswerFacets(
+      "Getter Robo ini lengkap dan bukan JUNK kan? Kalau tidak sesuai bisa retur?",
+    ),
+    ["product_condition", "completeness", "return_policy"],
+  );
+  assert.deepEqual(
+    detectRequestedAnswerFacets(
+      "Butuh yang mulus buat kado maksimal 3 juta dan ready",
+    ),
+    ["product_condition", "stock", "recommendation", "budget"],
+  );
+});
+
 test("marks composed transaction policy sections as answered", () => {
   const question =
     "Bisa COD, metode pembayarannya apa, pakai asuransi dan packing kayu?";
@@ -67,6 +88,25 @@ test("reports unanswered parts instead of accepting a partial response", () => {
   assert.deepEqual(coverage.answered, ["stock"]);
   assert.deepEqual(coverage.missing, ["promo", "same_day"]);
   assert.equal(coverage.passed, false);
+});
+
+test("tracks price and stock as separate requested product facts", () => {
+  const question = "Harga Getter Robo berapa dan masih ready?";
+  const partial = evaluateAnswerCoverage(question, {
+    type: "text",
+    message: "Getter Robo masih ready.",
+  });
+
+  assert.deepEqual(partial.requested, ["price", "stock"]);
+  assert.deepEqual(partial.missing, ["price"]);
+
+  const complete = evaluateAnswerCoverage(question, {
+    type: "products",
+    products: [
+      { name: "Getter Robo", numericPrice: 2500000, stock: "instock" },
+    ],
+  });
+  assert.equal(complete.passed, true);
 });
 
 test("accepts a precise shipping clarification as satisfied", () => {

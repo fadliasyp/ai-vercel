@@ -10,6 +10,8 @@ import {
   getReturnActionContext,
   looksLikeGeneralStockPolicyQuestion,
   looksLikeNegotiationPolicyQuestion,
+  looksLikePostPurchaseReturnIssue,
+  looksLikeReturnPolicyQuestion,
   RETURN_POLICY,
   summarizeCatalogStockModes,
 } from "../lib/chatbot/storePolicy.js";
@@ -75,6 +77,27 @@ test("keeps return and refund policy deterministic and non-committal", () => {
   assert.match(first, new RegExp(RETURN_POLICY.reviewTime));
   assert.match(first, new RegExp(RETURN_POLICY.refundTime));
   assert.match(first, /refund sebagian.*refund penuh/i);
+});
+
+test("separates pre-purchase condition checks from implicit return incidents", () => {
+  assert.equal(
+    looksLikeReturnPolicyQuestion(
+      "Produk Getter Robo ini ada cacat atau rusak parah engga?",
+    ),
+    false,
+  );
+  assert.equal(
+    looksLikePostPurchaseReturnIssue(
+      "Pas dibuka ternyata ada part yang hilang, ngurusnya gimana?",
+    ),
+    true,
+  );
+  assert.equal(
+    looksLikeReturnPolicyQuestion(
+      "Kalau sampai barangnya beda dari foto harus gimana?",
+    ),
+    true,
+  );
 });
 
 test("explains wrong-item and JUNK claims without promising an automatic refund", () => {

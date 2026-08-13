@@ -36,6 +36,14 @@ test("detects distressed, urgent, worried, confused, and neutral customers", () 
     detectCustomerState("Kalau bayar sekarang bisa dikirim hari ini?"),
     CUSTOMER_STATES.URGENT,
   );
+  assert.equal(
+    detectCustomerState("Produk ini ada cacat atau rusak engga?"),
+    CUSTOMER_STATES.NEUTRAL,
+  );
+  assert.equal(
+    detectCustomerState("Kalau sampai barangnya rusak saya harus gimana?"),
+    CUSTOMER_STATES.WORRIED,
+  );
 });
 
 test("adds deterministic empathy without changing response facts", () => {

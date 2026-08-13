@@ -68,6 +68,21 @@ test("keeps supported ecommerce questions in scope", () => {
   );
 });
 
+test("keeps implicit post-purchase return incidents in scope", () => {
+  assert.equal(
+    assessLocalCommerceScope(
+      "Pas dibuka ternyata ada part yang hilang, ngurusnya gimana?",
+    ),
+    "in_scope",
+  );
+  assert.equal(
+    assessLocalCommerceScope(
+      "Kalau sampai barangnya beda dari foto harus gimana?",
+    ),
+    "in_scope",
+  );
+});
+
 test("allows short product follow-ups when conversation context exists", () => {
   assert.equal(
     assessLocalCommerceScope("yang kedua ready?", {
