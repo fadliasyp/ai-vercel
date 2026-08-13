@@ -533,9 +533,13 @@
       return topics[intent] || "pertanyaan di chatbot";
     }
 
-    function buildAdminHandoffUrl(intent = "") {
+    function buildAdminHandoffUrl(intent = "", topic = "") {
+      const safeTopic = String(topic || feedbackTopic(intent))
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 240);
       const message =
-        `Halo Admin Robot Jadul, saya perlu bantuan terkait ${feedbackTopic(intent)}. ` +
+        `Halo Admin Robot Jadul, saya perlu bantuan terkait ${safeTopic}. ` +
         "Jawaban chatbot belum menyelesaikan kebutuhan saya.";
       return `https://wa.me/6285975313930?text=${encodeURIComponent(message)}`;
     }
@@ -548,7 +552,10 @@
 
       const link = document.createElement("a");
       link.className = "chat-admin-handoff__button";
-      link.href = buildAdminHandoffUrl(item.intent || "general");
+      link.href = buildAdminHandoffUrl(
+        item.intent || "general",
+        item.topic || "",
+      );
       link.target = "_blank";
       link.rel = "noopener";
       link.textContent = item.label || "Tanya Admin di WhatsApp";
@@ -1304,6 +1311,7 @@
         type: "admin_handoff",
         label: item.label || "Tanya Admin di WhatsApp",
         intent,
+        topic: String(item.topic || "").slice(0, 240),
       };
       renderAdminHandoff(handoff);
       chatHistory.push(handoff);

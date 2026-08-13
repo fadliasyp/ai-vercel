@@ -91,6 +91,11 @@ test("explicit rules resolve recommendation, compare, store, and insurance bound
     "general",
   );
   assert.equal(
+    detectExplicitIntentOverride("Kamu tau asal usul Robot Jadul engga?")
+      .intent,
+    "general",
+  );
+  assert.equal(
     detectExplicitIntentOverride("barang ini bisa diasuransikan?").intent,
     "shipping_transaction",
   );

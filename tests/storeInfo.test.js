@@ -4,9 +4,25 @@ import assert from "node:assert/strict";
 import {
   buildStoreHoursMessage,
   buildStoreVisitMessage,
+  looksLikeStoreBackgroundQuestion,
   looksLikeStoreHoursQuestion,
   looksLikeStoreLocationQuestion,
 } from "../lib/chatbot/storeInfo.js";
+
+test("recognizes questions about the Robot Jadul store background", () => {
+  assert.equal(
+    looksLikeStoreBackgroundQuestion("Kamu tau asal usul Robot Jadul engga?"),
+    true,
+  );
+  assert.equal(
+    looksLikeStoreBackgroundQuestion("Siapa pendiri toko Robot Jadul?"),
+    true,
+  );
+  assert.equal(
+    looksLikeStoreBackgroundQuestion("Robot ini buatan negara mana?"),
+    false,
+  );
+});
 
 test("recognizes natural store-hours word orders", () => {
   const questions = [

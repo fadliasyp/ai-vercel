@@ -51,6 +51,10 @@ test("keeps supported ecommerce questions in scope", () => {
     "in_scope",
   );
   assert.equal(
+    assessLocalCommerceScope("Kamu tahu sejarah Robot Jadul enggak?"),
+    "in_scope",
+  );
+  assert.equal(
     assessLocalCommerceScope("robot jadul buka jam berapa sih?"),
     "in_scope",
   );

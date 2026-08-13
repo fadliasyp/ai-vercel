@@ -44,6 +44,12 @@ test("keeps explicit shipping origin questions separate", () => {
     ),
     true,
   );
+  assert.equal(
+    looksLikeProductManufacturingOriginQuestion(
+      "Kamu tau asal usul Robot Jadul engga?",
+    ),
+    false,
+  );
 });
 
 test("builds one consistent COD policy from the configured state", () => {
