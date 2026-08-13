@@ -87,6 +87,12 @@ test("separates generic promo questions from product-specific promo searches", (
     extractPromoSubjectKeywords("ada promo Gundam di sini?"),
     ["gundam"],
   );
+  assert.deepEqual(
+    extractPromoSubjectKeywords(
+      "Halo, ada Getter Robo yang lagi diskon ngga? Kalo ada, ready stock sisa berapa pcs?",
+    ),
+    ["getter", "robo"],
+  );
 });
 
 test("distinguishes the whole catalog from previous product results", () => {

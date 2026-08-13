@@ -99,3 +99,14 @@ test("adds compact morphology hints for implied ecommerce meaning", () => {
   assert.deepEqual(result.morphology.stems, ["bayar", "kirim"]);
   assert.deepEqual(compact.morphology_stems, ["bayar", "kirim"]);
 });
+
+test("keeps greetings out of the subject while extracting product predicates", () => {
+  const analysis = analyzeIndonesianQuestion(
+    "Halo, ada Getter Robo yang lagi diskon ngga? Kalo ada, ready stock sisa berapa pcs?",
+  );
+
+  assert.equal(analysis.syntax.subject, "");
+  assert.equal(analysis.syntax.predicate, "ada");
+  assert.equal(analysis.syntax.object, "getter robo");
+  assert.deepEqual(analysis.entities.product_terms, ["getter robo"]);
+});

@@ -8,6 +8,7 @@ import {
   findBestSingleProductMatch,
   findBestProductForCompoundRequest,
   findVerifiedPageProduct,
+  extractProductSearchTokens,
   extractRequestedCatalogTerm,
   hasSpecificProductSearchTerms,
   looksLikeCurrentProductDetailQuestion,
@@ -320,6 +321,51 @@ test("matches an exact catalog name before long return-policy clauses", () => {
   assert.equal(result.status, "matched");
   assert.equal(result.reason, "exact_catalog_name_mention");
   assert.equal(result.product?.id, 10);
+});
+
+test("matches a product family mentioned in the middle of catalog names", () => {
+  const question =
+    "Halo, ada Getter Robo yang lagi diskon ngga? Kalo ada, ready stock sisa berapa pcs?";
+  const catalog = [
+    {
+      id: 11,
+      name: "Fewture Models EX Gokin Getter Robo Black Version",
+      stock: "instock",
+      isPromo: true,
+    },
+    {
+      id: 12,
+      name: "Sky x Studio Getter Robo G Getter Dragon",
+      stock: "instock",
+      isPromo: false,
+    },
+  ];
+
+  assert.deepEqual(extractProductSearchTokens(question), ["getter", "robo"]);
+
+  const result = assessProductSearchConfidence(question, catalog, {
+    preferPromo: true,
+  });
+  assert.equal(result.status, "matched");
+  assert.equal(result.product?.id, 11);
+});
+
+test("uses catalog name phrases without treating unknown detail words as the product", () => {
+  const catalog = [
+    {
+      id: 13,
+      name: "Fewture Models EX Gokin Getter Robo Black Version",
+      stock: "instock",
+    },
+  ];
+  const result = assessProductSearchConfidence(
+    "Min, Getter Robo ini bonus stand bawaannya ada dan kondisinya mulus?",
+    catalog,
+  );
+
+  assert.equal(result.status, "matched");
+  assert.equal(result.reason, "catalog_name_phrase_match");
+  assert.equal(result.product?.id, 13);
 });
 
 test("prefers the matching promo product for a compound request", () => {

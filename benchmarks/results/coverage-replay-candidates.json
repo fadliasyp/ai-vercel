@@ -1,5 +1,23 @@
 {
-  "generated_at": "2026-08-13T12:15:55.380Z",
+  "generated_at": "2026-08-13T19:02:44.417Z",
   "privacy": "synthetic questions from fixed coverage facets; no customer text",
-  "candidates": []
+  "candidates": [
+    {
+      "id": "coverage-candidate-1",
+      "scenario": "Pola unresolved produksi (1x)",
+      "synthetic_question": "Produk mana yang sesuai dengan budget saya?",
+      "intent": "shipping_transaction",
+      "response_type": "text",
+      "requested": [
+        "budget",
+        "payment_methods",
+        "recommendation",
+        "shipping_quote"
+      ],
+      "unresolved": [
+        "budget"
+      ],
+      "occurrences": 1
+    }
+  ]
 }
