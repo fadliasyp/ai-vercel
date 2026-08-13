@@ -24,5 +24,5 @@ test("builds a compact WooCommerce product request", () => {
   assert.match(WOO_PRODUCT_FIELDS, /\bname\b/);
   assert.match(WOO_PRODUCT_FIELDS, /\bstock_status\b/);
   assert.match(WOO_PRODUCT_FIELDS, /\bprice\b/);
-  assert.doesNotMatch(WOO_PRODUCT_FIELDS, /\bshort_description\b/);
+  assert.match(WOO_PRODUCT_FIELDS, /\bshort_description\b/);
 });

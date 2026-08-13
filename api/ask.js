@@ -78,6 +78,7 @@ import {
 import {
   formatDimensions,
   extractSpecsFromDescription,
+  buildProductConsiderationsMessage,
   buildProductDetailMessage,
   buildProductTransactionSummary,
 } from "../lib/chatbot/productFormatter.js";
@@ -4156,6 +4157,10 @@ export default async function handler(req, res) {
           discountAmount: p.discountAmount || 0,
           isPromo: !!p.isPromo,
           condition: p.condition,
+          description: p.description || "",
+          shortDescription:
+            p.shortDescription || p.short_description || "",
+          category: p.category || "",
           weight: p.weight,
           dimensions: p.dimensions,
           link: p.link,
@@ -6164,6 +6169,7 @@ export default async function handler(req, res) {
           averageRating: Number(p.average_rating || 0),
           ratingCount: Number(p.rating_count || 0),
           description: p.description || "",
+          shortDescription: p.short_description || "",
           link: p.permalink,
           image: getProductImageUrl(p),
           category: p.categories?.map((c) => c.name.toLowerCase()).join(" "),
@@ -6186,8 +6192,31 @@ export default async function handler(req, res) {
       products,
       { compound = false } = {},
     ) {
+      const catalog = Array.isArray(products) ? products : [];
+      const recentProducts = Array.isArray(session.lastProducts)
+        ? session.lastProducts
+        : [];
+      const recentKeys = new Set();
+      const lookupProducts = recentProducts.map((recent) => {
+        const catalogMatch = catalog.find(
+          (product) =>
+            (recent?.id && product?.id === recent.id) ||
+            String(product?.name || "").toLowerCase() ===
+              String(recent?.name || "").toLowerCase(),
+        );
+        const key = catalogMatch?.id || recent?.id || recent?.name;
+        if (key) recentKeys.add(String(key).toLowerCase());
+        return { ...recent, ...(catalogMatch || {}) };
+      });
+      lookupProducts.push(
+        ...catalog.filter((product) => {
+          const key = product?.id || product?.name;
+          return key && !recentKeys.has(String(key).toLowerCase());
+        }),
+      );
+
       const pageProduct = looksLikeCurrentProductReference(question)
-        ? findVerifiedPageProduct(pageContext, products)
+        ? findVerifiedPageProduct(pageContext, lookupProducts)
         : null;
 
       if (pageProduct) {
@@ -6200,7 +6229,7 @@ export default async function handler(req, res) {
         };
       }
 
-      return assessProductSearchConfidence(question, products, {
+      return assessProductSearchConfidence(question, lookupProducts, {
         preferPromo: compound && /\b(?:promo|diskon)\b/i.test(question),
       });
     }
@@ -7528,6 +7557,7 @@ export default async function handler(req, res) {
         averageRating: Number(p.average_rating || 0),
         ratingCount: Number(p.rating_count || 0),
         description: p.description || "",
+        shortDescription: p.short_description || "",
         link: p.permalink,
         image: getProductImageUrl(p),
         category: p.categories?.map((c) => c.name.toLowerCase()).join(" "),
@@ -8758,9 +8788,15 @@ Kembalikan JSON valid:
         session.lastTopic = "product_detail";
         session.lastIntent = "product_detail";
 
-        let reasoning_text = buildProductDetailMessage(bestProduct);
+        const asksTradeoffs =
+          /\b(?:kekurangan|kelebihan|pertimbangan|perlu\s+diperhatikan)\b/i.test(
+            rawQuestion,
+          );
+        let reasoning_text = asksTradeoffs
+          ? buildProductConsiderationsMessage(bestProduct)
+          : buildProductDetailMessage(bestProduct);
 
-        if (isOpinionQuestion(rawQuestion)) {
+        if (!asksTradeoffs && isOpinionQuestion(rawQuestion)) {
           const opinionText = buildProductOpinionReasoning(
             bestProduct,
             rawQuestion,

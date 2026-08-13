@@ -2,8 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  buildProductConsiderationsMessage,
   buildProductDetailMessage,
   buildProductTransactionSummary,
+  extractProductConsiderations,
 } from "../lib/chatbot/productFormatter.js";
 
 test("summarizes requested live product facts without inventing promises", () => {
@@ -71,4 +73,45 @@ test("cleans WooCommerce HTML and explains an unspecified incomplete JUNK item",
   assert.match(message, /produk tidak lengkap/i);
   assert.match(message, /bagian yang hilang belum dirinci/i);
   assert.doesNotMatch(message, /<\/?(?:p|b)>/i);
+});
+
+test("grounds purchase considerations in WooCommerce descriptions", () => {
+  const product = {
+    name: "Vintage Gashapon Sasuraiger",
+    condition: "Vintage",
+    stock: "instock",
+    shortDescription: "Kondisi display.",
+    description:
+      "Minus: box penyok. Tangan kanan hilang. Kelengkapan sesuai foto.",
+  };
+  const considerations = extractProductConsiderations(product);
+  const message = buildProductConsiderationsMessage(product);
+
+  assert.equal(
+    considerations.caveats.some((line) => /box penyok/i.test(line)),
+    true,
+  );
+  assert.equal(
+    considerations.caveats.some((line) => /tangan kanan hilang/i.test(line)),
+    true,
+  );
+  assert.match(message, /box penyok/i);
+  assert.match(message, /tangan kanan hilang/i);
+  assert.match(message, /Kondisinya tercatat \*\*Vintage\*\*/i);
+});
+
+test("does not invent flaws when the catalog explicitly negates them", () => {
+  const product = {
+    name: "Robot Test Mulus",
+    condition: "BIB",
+    stock: "instock",
+    description:
+      "Tidak ada cacat. Tidak ada part hilang. Fungsi normal. Kelengkapan lengkap.",
+  };
+  const considerations = extractProductConsiderations(product);
+  const message = buildProductConsiderationsMessage(product);
+
+  assert.deepEqual(considerations.caveats, []);
+  assert.match(message, /tidak mencantumkan kekurangan/i);
+  assert.match(message, /tidak akan mengarang/i);
 });
