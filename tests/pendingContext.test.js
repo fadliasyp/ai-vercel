@@ -47,6 +47,41 @@ test("allows a shipping customer to switch from ongkir to insurance", () => {
   );
 });
 
+test("allows every transaction subtopic to leave a pending ongkir flow", () => {
+  const methods = [
+    "explicit_cod_rule",
+    "explicit_payment_methods_rule",
+    "explicit_shipping_insurance_rule",
+    "explicit_shipping_packing_rule",
+    "explicit_shipping_estimate_rule",
+    "explicit_shipping_coverage_rule",
+    "explicit_how_to_buy_rule",
+  ];
+
+  for (const explicitMethod of methods) {
+    assert.equal(
+      shouldInterruptPendingFlow({
+        pending: shippingPending,
+        explicitIntent: "shipping_transaction",
+        explicitMethod,
+        question: "Saya mau bahas hal lain",
+      }),
+      true,
+      explicitMethod,
+    );
+  }
+
+  assert.equal(
+    shouldInterruptPendingFlow({
+      pending: shippingPending,
+      explicitIntent: "shipping_transaction",
+      explicitMethod: "explicit_shipping_quote_rule",
+      question: "Ongkir ke Surabaya berapa?",
+    }),
+    false,
+  );
+});
+
 test("interrupts other protected flows only for a clear different intent", () => {
   assert.equal(
     shouldInterruptPendingFlow({

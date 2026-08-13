@@ -3,9 +3,12 @@ import assert from "node:assert/strict";
 
 import {
   buildCODPolicyMessage,
+  buildTransactionTopicClarification,
   buildTransactionPolicyMessage,
   looksLikeProductTransactionCompoundQuestion,
   looksLikePackingProtectionQuestion,
+  looksLikePaymentMethodQuestion,
+  looksLikePayLaterQuestion,
   looksLikeSameDayDispatchQuestion,
   looksLikeShippingCoverageQuestion,
   looksLikeShippingOriginQuestion,
@@ -13,7 +16,7 @@ import {
   needsRecommendationBudgetClarification,
 } from "../lib/chatbot/transactionIntent.js";
 
-test("recognizes broad shipping destinations as ongkir flow", () => {
+test("recognizes shipping coverage without forcing an ongkir flow", () => {
   const questions = [
     "Kalau ke luar pulau bisa kirim?",
     "Bisa kirim ke luar Jawa?",
@@ -21,12 +24,34 @@ test("recognizes broad shipping destinations as ongkir flow", () => {
     "Bisa antar pulau?",
     "Pengiriman seluruh Indonesia bisa?",
     "Jangkauan pengiriman sampai mana?",
+    "Bisa kirim ke Surabaya?",
   ];
 
   for (const question of questions) {
     assert.equal(looksLikeShippingCoverageQuestion(question), true, question);
     assert.equal(looksLikeShippingOriginQuestion(question), false, question);
   }
+});
+
+test("understands informal payment and PayLater questions", () => {
+  const payLaterQuestion = "Woi jut bayarnya bisa make paylater ga?";
+  assert.equal(looksLikePaymentMethodQuestion(payLaterQuestion), true);
+  assert.equal(looksLikePayLaterQuestion(payLaterQuestion), true);
+  assert.match(
+    buildTransactionPolicyMessage(payLaterQuestion),
+    /PayLater belum tercantum/i,
+  );
+
+  const methodsQuestion = "Pembayaran bisa apa aja emang?";
+  assert.equal(looksLikePaymentMethodQuestion(methodsQuestion), true);
+  assert.match(
+    buildTransactionPolicyMessage(methodsQuestion),
+    /Pilihan Pembayaran Tersedia/i,
+  );
+});
+
+test("keeps an ambiguous transaction prompt optional", () => {
+  assert.match(buildTransactionTopicClarification(), /tidak perlu menjawab/i);
 });
 
 test("keeps explicit shipping origin questions separate", () => {

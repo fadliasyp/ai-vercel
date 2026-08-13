@@ -262,6 +262,19 @@ test("offers issue choices before directing a generic return claim", () => {
   );
 });
 
+test("offers optional transaction topics without locking the conversation", () => {
+  assert.deepEqual(
+    buildControlledActions("shipping_transaction", {
+      _actionContext: "transaction_topic_selection",
+    }),
+    [
+      "Lihat metode pembayaran",
+      "Apakah bisa bayar COD?",
+      "Cek ongkir ke kota tujuan",
+    ],
+  );
+});
+
 test("does not force choices onto a required shipping clarification", () => {
   const result = applyControlledFollowUpPolicy(
     {

@@ -121,6 +121,26 @@ test("explicit rules resolve recommendation, compare, store, and insurance bound
   );
 });
 
+test("separates payment, coverage, and quote subtopics inside shipping", () => {
+  assert.equal(
+    detectExplicitIntentOverride("Woi jut bayarnya bisa make paylater ga?")
+      ?.method,
+    "explicit_payment_methods_rule",
+  );
+  assert.equal(
+    detectExplicitIntentOverride("Pembayaran bisa apa aja emang?")?.method,
+    "explicit_payment_methods_rule",
+  );
+  assert.equal(
+    detectExplicitIntentOverride("Bisa kirim ke Surabaya?")?.method,
+    "explicit_shipping_coverage_rule",
+  );
+  assert.equal(
+    detectExplicitIntentOverride("Cek ongkir ke Surabaya")?.method,
+    "explicit_shipping_quote_rule",
+  );
+});
+
 test("local commerce scope protects valid store questions from false rejection", () => {
   const result = chooseSemanticIntent({
     question: "barang ini bisa diasuransikan?",

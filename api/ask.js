@@ -119,6 +119,7 @@ import {
   buildPaymentMethodsMessage,
   buildInsuranceMessage,
   buildShippingEstimateMessage,
+  buildTransactionTopicClarification,
   buildTransactionPolicyMessage,
 } from "../lib/chatbot/transactionIntent.js";
 
@@ -983,14 +984,12 @@ function looksLikeShippingQuoteQuestion(q = "") {
   const s = String(q || "").toLowerCase();
 
   return (
-    looksLikeShippingCoverageQuestion(s) ||
     s.includes("ongkir") ||
     s.includes("ongkos kirim") ||
     s.includes("biaya kirim") ||
     s.includes("cek ongkir") ||
     s.includes("berapa ongkir") ||
-    s.includes("kirim ke") ||
-    s.includes("pengiriman ke")
+    s.includes("tarif pengiriman")
   );
 }
 
@@ -3712,16 +3711,7 @@ export default async function handler(req, res) {
   console.log("SESSION PENDING AFTER LOAD:", session.pending);
   console.log("INTENT BEFORE ROUTING:", intentResult);
 
-  const isShippingQuoteQuestion =
-    q.includes("ongkir") ||
-    q.includes("cek ongkir") ||
-    q.includes("berapa ongkir") ||
-    q.includes("ongkos kirim") ||
-    q.includes("biaya kirim") ||
-    q.includes("kirim ke") ||
-    q.includes("pengiriman ke") ||
-    q.includes("estimasi pengiriman") ||
-    q.includes("estimasi sampai");
+  const isShippingQuoteQuestion = looksLikeShippingQuoteQuestion(rawQuestion);
 
   if (isShippingQuoteQuestion) {
     clearPending(session); // keluar dari pending status transaksi
@@ -7194,6 +7184,22 @@ export default async function handler(req, res) {
           _noTruncateReasoning: true,
           _actionContext: "how_to_buy",
         });
+      }
+
+      const shippingQuoteRequested =
+        looksLikeShippingQuoteQuestion(rawQuestion) ||
+        answerPlanIncludes(answerPlan, "shipping_quote");
+
+      if (!shippingQuoteRequested) {
+        return await send(
+          {
+            type: "text",
+            intent: "shipping_transaction",
+            message: buildTransactionTopicClarification(),
+            _actionContext: "transaction_topic_selection",
+          },
+          "shipping_transaction",
+        );
       }
 
       // kalau user langsung menulis "Tangerang, Pasar Kemis"
