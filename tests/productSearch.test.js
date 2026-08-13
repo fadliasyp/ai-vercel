@@ -148,12 +148,39 @@ test("separates confident, ambiguous, and partial product matches", () => {
     {
       label: "Super Robot Chogokin Mazinger Z",
       value: "Cek stok Super Robot Chogokin Mazinger Z",
+      action_key: "stock_availability",
+      required_fields: [],
+      product_id: 2,
+      product_name: "Super Robot Chogokin Mazinger Z",
     },
     {
       label: "Mazinger Z Infinity",
       value: "Cek stok Mazinger Z Infinity",
+      action_key: "stock_availability",
+      required_fields: [],
+      product_id: 3,
+      product_name: "Mazinger Z Infinity",
     },
   ]);
+  assert.deepEqual(
+    buildProductSearchOptions(ambiguous, "product_detail").map((option) => ({
+      action_key: option.action_key,
+      product_id: option.product_id,
+      product_name: option.product_name,
+    })),
+    [
+      {
+        action_key: "product_detail",
+        product_id: 2,
+        product_name: "Super Robot Chogokin Mazinger Z",
+      },
+      {
+        action_key: "product_detail",
+        product_id: 3,
+        product_name: "Mazinger Z Infinity",
+      },
+    ],
+  );
   assert.equal(partial.status, "not_found");
   assert.equal(partial.reason, "partial_query_match");
   assert.equal(partial.product, null);

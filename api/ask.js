@@ -3904,8 +3904,8 @@ export default async function handler(req, res) {
     : null;
   const explicitCurrentIntent = initialExplicitIntent;
   const pendingExplicitIntent =
-    explicitCurrentIntent?.intent ||
     selectedSuggestionIntent ||
+    explicitCurrentIntent?.intent ||
     (isReturnProductQuestion ? "return_product" : "") ||
     (looksLikeSpecificCatalogAvailabilityQuestion(rawQuestion)
       ? "product_discovery"
@@ -3941,7 +3941,7 @@ export default async function handler(req, res) {
     session.lastIntentScore = 1;
   }
 
-  if (selectedSuggestionIntent && !explicitCurrentIntent) {
+  if (selectedSuggestionIntent) {
     intentResult = {
       ...intentResult,
       intent: selectedSuggestionIntent,
@@ -6596,6 +6596,30 @@ export default async function handler(req, res) {
           reason: "verified_page_context",
           product: pageProduct,
           candidates: [pageProduct],
+        };
+      }
+
+      const selectedProductId = Number(selectedSuggestion?.product_id);
+      const selectedProductName = String(
+        selectedSuggestion?.product_name || "",
+      ).trim();
+      const selectedProduct =
+        Number.isInteger(selectedProductId) && selectedProductId > 0
+          ? lookupProducts.find(
+              (product) =>
+                Number(product?.id) === selectedProductId &&
+                normalize(product?.name || "") ===
+                  normalize(selectedProductName),
+            )
+          : null;
+
+      if (selectedProduct) {
+        return {
+          status: "matched",
+          confidence: 1,
+          reason: "validated_product_option",
+          product: selectedProduct,
+          candidates: [selectedProduct],
         };
       }
 

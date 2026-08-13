@@ -713,21 +713,29 @@
         html += `<div class="bot-text prose-chat">${renderMarkdown(intro)}</div>`;
 
       html += `<div class="rj-options">`;
-      options.forEach((opt) => {
+      options.forEach((opt, index) => {
         const rawLabel = opt.label || opt.text || "-";
         const label = escapeHtml(rawLabel);
         const value = escapeHtml(opt.value || rawLabel);
-        html += `<button type="button" class="rj-opt-btn" data-value="${value}">${label}</button>`;
+        html += `<button type="button" class="rj-opt-btn" data-value="${value}" data-option-index="${index}">${label}</button>`;
       });
       html += `</div></div>`;
 
       messages.innerHTML += html;
 
       // event delegation khusus tombol yg baru dirender
-      messages.querySelectorAll(".rj-opt-btn").forEach((btn) => {
+      const optionWrap =
+        messages.lastElementChild?.querySelector(".rj-options");
+      optionWrap?.querySelectorAll(".rj-opt-btn").forEach((btn) => {
         btn.onclick = () => {
           const v = btn.getAttribute("data-value") || "";
           if (!v) return;
+          const optionIndex = Number(btn.dataset.optionIndex);
+          const selectedAction = options[optionIndex];
+          const hasStructuredAction =
+            selectedAction &&
+            typeof selectedAction === "object" &&
+            Boolean(selectedAction.action_key);
 
           removeOptions();
           // opsional: nonaktifkan tombol biar tidak dobel klik
@@ -735,7 +743,10 @@
             .querySelectorAll(".rj-opt-btn")
             .forEach((b) => (b.disabled = true));
 
-          window.sendQuestion(v, { isSuggestionClick: false });
+          window.sendQuestion(v, {
+            isSuggestionClick: hasStructuredAction,
+            suggestedAction: hasStructuredAction ? selectedAction : null,
+          });
         };
       });
     }

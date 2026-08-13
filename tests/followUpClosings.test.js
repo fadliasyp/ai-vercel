@@ -131,6 +131,27 @@ test("recomputes suggestion metadata and rejects client-side tampering", () => {
     validateSuggestedActionSelection(null, "Cek ongkir ke kota tujuan"),
     buildSuggestedActionMetadata("Cek ongkir ke kota tujuan"),
   );
+
+  const productOption = {
+    ...buildSuggestedActionMetadata(
+      "Tampilkan detail Soul of Chogogokin GX-31 Voltes V Bandai 2006",
+    ),
+    product_id: 5264,
+    product_name: "Soul of Chogogokin GX-31 Voltes V Bandai 2006",
+  };
+  const validatedProductOption = validateSuggestedActionSelection(
+    productOption,
+    productOption.value,
+  );
+  assert.deepEqual(validatedProductOption, productOption);
+  assert.equal(suggestedActionIntent(validatedProductOption), "product_detail");
+  assert.equal(
+    validateSuggestedActionSelection(
+      { ...productOption, product_name: "Produk Lain" },
+      productOption.value,
+    ),
+    null,
+  );
 });
 
 test("keeps suggestion text backward compatible while attaching metadata", () => {
