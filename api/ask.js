@@ -128,6 +128,7 @@ import {
   buildBudgetOptions,
   buildStandaloneAffirmationResponse,
   dedupeSuggestedActions,
+  filterAnsweredSuggestedActions,
   isOptionalFollowUpType,
   isRequiredClarificationPayload,
   pickSupportedClosing,
@@ -4612,6 +4613,16 @@ export default async function handler(req, res) {
         },
       );
       finalPayload = coverageRepair.payload;
+
+      for (const field of ["actions", "suggestions"]) {
+        if (Array.isArray(finalPayload[field])) {
+          finalPayload[field] = filterAnsweredSuggestedActions(
+            finalPayload[field],
+            finalPayload,
+          );
+          if (!finalPayload[field].length) delete finalPayload[field];
+        }
+      }
 
       if (isRequiredClarificationPayload(finalPayload)) {
         delete finalPayload.actions;

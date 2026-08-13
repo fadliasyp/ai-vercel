@@ -9,6 +9,7 @@ import {
   buildSuggestedActionMetadataList,
   buildStandaloneAffirmationResponse,
   dedupeSuggestedActions,
+  filterAnsweredSuggestedActions,
   isOptionalFollowUpType,
   isRequiredClarificationPayload,
   serializeSuggestedActions,
@@ -392,6 +393,96 @@ test("does not suggest product facts already explained in the response", () => {
     "Bandingkan Vintage Gashapon Sasuraiger dengan produk lain",
     "Apakah Vintage Gashapon Sasuraiger cocok untuk pajangan?",
     "Carikan alternatif yang lebih worth it dari Vintage Gashapon Sasuraiger",
+  ]);
+});
+
+test("does not ask store hours after the response already states them", () => {
+  const result = applyControlledFollowUpPolicy(
+    {
+      type: "text",
+      message:
+        "Untuk stok Mazinger Z hari ini, kamu bisa langsung cek ke toko fisik kami di Blok M Square. Toko buka setiap hari pukul 11.00-20.00 WIB.",
+      _actionContext: "store_location",
+    },
+    {
+      intent: "general",
+      userQuestion:
+        "Lagi cari Mazinger Z, bisa langsung ambil ke toko fisik hari ini?",
+    },
+  );
+
+  assert.equal(
+    result.actions.some((action) => /buka\s+jam|jam\s+berapa/i.test(action)),
+    false,
+  );
+  assert.equal(result.actions.length, 3);
+});
+
+test("removes every global fact already covered by one store response", () => {
+  const actions = buildControlledActions("general", {
+    message:
+      "Lokasi toko fisik Robot Jadul di Blok M Square lantai 3A, Jakarta Selatan. Toko buka setiap hari pukul 11.00-20.00 WIB.",
+  }, { limit: 13 });
+
+  assert.equal(actions.some((action) => /alamat|lokasi|di mana/i.test(action)), false);
+  assert.equal(actions.some((action) => /buka\s+jam|jam\s+berapa/i.test(action)), false);
+  assert.ok(actions.some((action) => /ready stock/i.test(action)));
+});
+
+test("removes answered transaction facets but keeps unanswered next steps", () => {
+  const actions = buildControlledActions("shipping_transaction", {
+    message:
+      "Pengiriman diproses dari toko Jakarta dan bisa dikirim ke seluruh Indonesia. Estimasi 2-4 hari. Asuransi tersedia, sedangkan packing kayu perlu dikonfirmasi ke admin.",
+  }, { limit: 11 });
+
+  assert.equal(actions.some((action) => /diproses dari mana|luar pulau/i.test(action)), false);
+  assert.equal(actions.some((action) => /estimasi|asuransi|packing kayu/i.test(action)), false);
+  assert.ok(actions.some((action) => /ongkir/i.test(action)));
+  assert.ok(actions.some((action) => /metode pembayaran/i.test(action)));
+});
+
+test("removes payment topics only when each one was actually answered", () => {
+  const methodsOnly = buildControlledActions("shipping_transaction", {
+    message: "Pembayaran tersedia melalui transfer bank, QRIS, GoPay, dan kartu kredit.",
+  }, { limit: 11 });
+  const methodsAndCod = buildControlledActions("shipping_transaction", {
+    message:
+      "Pembayaran tersedia melalui transfer bank, QRIS, dan GoPay. COD atau bayar di tempat belum tersedia.",
+  }, { limit: 11 });
+
+  assert.equal(methodsOnly.some((action) => /metode pembayaran/i.test(action)), false);
+  assert.ok(methodsOnly.some((action) => /COD/i.test(action)));
+  assert.equal(methodsAndCod.some((action) => /metode pembayaran|COD/i.test(action)), false);
+});
+
+test("does not repeat answered return evidence or status topics", () => {
+  const actions = buildControlledActions("return_product", {
+    message:
+      "Untuk klaim retur, siapkan bukti foto dan video unboxing. Status pengajuan retur akan diperbarui setelah diperiksa admin.",
+  }, { limit: 8 });
+
+  assert.equal(actions.some((action) => /bukti/i.test(action)), false);
+  assert.equal(actions.some((action) => /status pengajuan/i.test(action)), false);
+  assert.ok(actions.some((action) => /refund|barang salah|part/i.test(action)));
+});
+
+test("filters final LLM suggestions after answer coverage repair", () => {
+  const payload = {
+    type: "text",
+    message:
+      "Lokasi toko di Blok M Square lantai 3A dan buka setiap hari pukul 11.00-20.00 WIB.",
+  };
+  const suggestions = [
+    {
+      label: "Toko buka jam berapa?",
+      value: "Toko Robot Jadul buka jam berapa?",
+    },
+    "Di mana alamat toko Robot Jadul?",
+    "Cari robot yang ready stock",
+  ];
+
+  assert.deepEqual(filterAnsweredSuggestedActions(suggestions, payload), [
+    "Cari robot yang ready stock",
   ]);
 });
 

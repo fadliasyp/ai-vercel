@@ -21,6 +21,27 @@ test("detects every requested facet in compound customer questions", () => {
     ),
     ["product_condition", "completeness", "stock"],
   );
+  assert.deepEqual(
+    detectRequestedAnswerFacets(
+      "Pengiriman diproses dari mana, bisa ke luar pulau, dan bagaimana cara belinya?",
+    ),
+    ["shipping_origin", "shipping_coverage", "how_to_buy"],
+  );
+});
+
+test("tracks operational and return follow-up facets separately", () => {
+  assert.deepEqual(
+    detectRequestedAnswerFacets(
+      "Apa bukti untuk retur dan bagaimana status pengajuannya?",
+    ),
+    ["return_policy", "return_evidence", "return_status"],
+  );
+  assert.deepEqual(
+    detectRequestedAnswerFacets(
+      "Chatbot bisa membantu apa saja dan apa saja yang dijual Robot Jadul?",
+    ),
+    ["catalog_overview", "assistant_capabilities"],
+  );
 });
 
 test("marks composed transaction policy sections as answered", () => {
