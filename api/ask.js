@@ -236,6 +236,7 @@ import {
 } from "../lib/chatbot/conversationGoal.js";
 import {
   analyzeCompoundQuestion,
+  appendAnswerSections,
   answerPlanIncludes,
   buildAnswerPlan,
   compactAnswerPlan,
@@ -3489,6 +3490,11 @@ export default async function handler(req, res) {
   let queuedAnswerSections = [];
   let answerPlanProduct = null;
 
+  const keepsRecommendationAsPrimary = () =>
+    answerPlan.isMultiSection &&
+    compoundAnalysis.primaryIntent === "recommendation" &&
+    answerPlanIncludes(answerPlan, "recommendation");
+
   const directBudgetInfo = extractBudgetRange(rawQuestion);
   const recommendationBudgetFollowUp = isRecommendationBudgetFollowUp(
     session.lastBotQuestionType,
@@ -3713,7 +3719,7 @@ export default async function handler(req, res) {
 
   const isShippingQuoteQuestion = looksLikeShippingQuoteQuestion(rawQuestion);
 
-  if (isShippingQuoteQuestion) {
+  if (isShippingQuoteQuestion && !keepsRecommendationAsPrimary()) {
     clearPending(session); // keluar dari pending status transaksi
     intentResult = {
       intent: "shipping_transaction",
@@ -3722,7 +3728,10 @@ export default async function handler(req, res) {
     };
   }
 
-  if (looksLikePaymentMethodQuestion(rawQuestion)) {
+  if (
+    looksLikePaymentMethodQuestion(rawQuestion) &&
+    !keepsRecommendationAsPrimary()
+  ) {
     clearPending(session);
     intentResult = {
       intent: "shipping_transaction",
@@ -3732,8 +3741,9 @@ export default async function handler(req, res) {
   }
 
   if (
-    looksLikeTransactionPolicyQuestion(rawQuestion) ||
-    looksLikeHowToBuyQuestion(rawQuestion)
+    (looksLikeTransactionPolicyQuestion(rawQuestion) ||
+      looksLikeHowToBuyQuestion(rawQuestion)) &&
+    !keepsRecommendationAsPrimary()
   ) {
     clearPending(session);
     intentResult = {
@@ -3860,11 +3870,12 @@ export default async function handler(req, res) {
   // ======= Asuransi ===========
   // paksa intent asuransi ke shipping_transaction
   if (
-    q.includes("asuransi") ||
-    q.includes("proteksi pengiriman") ||
-    q.includes("barang diasuransikan") ||
-    q.includes("bisa diasuransikan") ||
-    q.includes("pakai asuransi")
+    (q.includes("asuransi") ||
+      q.includes("proteksi pengiriman") ||
+      q.includes("barang diasuransikan") ||
+      q.includes("bisa diasuransikan") ||
+      q.includes("pakai asuransi")) &&
+    !keepsRecommendationAsPrimary()
   ) {
     intentResult = {
       intent: "shipping_transaction",
@@ -4368,7 +4379,11 @@ export default async function handler(req, res) {
     // ✅ bikin send() dulu supaya bisa dipakai state handler
     async function send(payload, forceIntent = null) {
       if (queuedAnswerSections.length) {
-        payload = prependAnswerSections(payload, queuedAnswerSections);
+        payload =
+          forceIntent === "recommendation" &&
+          answerPlanIncludes(answerPlan, "recommendation")
+            ? appendAnswerSections(payload, queuedAnswerSections)
+            : prependAnswerSections(payload, queuedAnswerSections);
         queuedAnswerSections = [];
       }
 
@@ -7010,6 +7025,34 @@ export default async function handler(req, res) {
         buildUnknownResponseForQuestion(rawQuestion),
         "general",
       );
+    }
+
+    // ===============================
+    // Recommendation + transaction/shipping sections
+    // ===============================
+    if (keepsRecommendationAsPrimary()) {
+      if (answerPlanIncludes(answerPlan, "transaction_policy")) {
+        const policyMessage = buildTransactionPolicyMessage(rawQuestion, {
+          codEnabled:
+            String(process.env.COD_ENABLED || "false").toLowerCase() ===
+            "true",
+        });
+        if (policyMessage) queuedAnswerSections.push(policyMessage);
+      }
+
+      if (answerPlanIncludes(answerPlan, "shipping_quote")) {
+        const destination = extractShippingDestination(rawQuestion);
+        queuedAnswerSections.push(
+          destination
+            ? `**Ongkir ke ${destination}**\nAku sudah menangkap kota tujuannya. Agar tarifnya tepat, sebutkan **kota/kabupaten dan kecamatan** secara lengkap, misalnya **Kota Bandung, Coblong**.`
+            : "**Cek ongkir**\nSebutkan **kota/kabupaten dan kecamatan** tujuan agar tarifnya bisa dihitung dengan tepat.",
+        );
+        setPending(session, {
+          type: "shipping_quote",
+          stage: "need_city",
+          data: { destination: destination || "" },
+        });
+      }
     }
 
     // ===============================

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   analyzeCompoundQuestion,
+  appendAnswerSections,
   answerPlanIncludes,
   buildAnswerPlan,
   compactAnswerPlan,
@@ -173,6 +174,20 @@ test("plans product facts and shipping quote as ordered answer sections", () => 
   );
 });
 
+test("keeps recommendation primary across payment and shipping clauses", () => {
+  const analysis = analyzeCompoundQuestion(
+    "Ada rekomendasi robot jadul budget di bawah 2 juta? Sama ongkir ke Bandung kena berapa dan bisa bayar pakai apa aja",
+  );
+  const plan = buildAnswerPlan(analysis);
+
+  assert.equal(analysis.primaryIntent, "recommendation");
+  assert.equal(analysis.constraints.budgetMax, 2000000);
+  assert.deepEqual(
+    plan.sections.map((section) => section.key),
+    ["recommendation", "transaction_policy", "shipping_quote"],
+  );
+});
+
 test("prepends completed answer sections without changing response controls", () => {
   const payload = prependAnswerSections(
     {
@@ -186,4 +201,19 @@ test("prepends completed answer sections without changing response controls", ()
   assert.match(payload.intro, /Informasi produk/);
   assert.match(payload.intro, /Pilih kecamatan tujuan/);
   assert.equal(payload.options.length, 1);
+});
+
+test("appends supporting sections after the primary recommendation", () => {
+  const payload = appendAnswerSections(
+    {
+      type: "products",
+      intro: "Ini rekomendasi di bawah 2 juta:",
+      products: [{ name: "Robot Alpha" }],
+    },
+    ["Metode pembayaran: QRIS.", "Sebutkan kecamatan tujuan."],
+  );
+
+  assert.ok(payload.intro.indexOf("rekomendasi") < payload.intro.indexOf("QRIS"));
+  assert.ok(payload.intro.indexOf("QRIS") < payload.intro.indexOf("kecamatan"));
+  assert.equal(payload.products.length, 1);
 });

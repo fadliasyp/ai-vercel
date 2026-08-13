@@ -105,6 +105,34 @@
       ]
     },
     {
+      "id": "compound-recommendation-shipping-payment",
+      "scenario": "Semua kebutuhan majemuk tetap terjawab",
+      "turns": [
+        {
+          "question": "Ada rekomendasi robot jadul budget di bawah 2 juta? Sama ongkir ke Bandung kena berapa dan bisa bayar pakai apa aja",
+          "response": {
+            "type": "products",
+            "intro": "Ini rekomendasi robot jadul di bawah 2 juta. Pembayaran tersedia melalui QRIS, GoPay, transfer bank, dan kartu kredit. Untuk mengecek ongkir ke Bandung, sebutkan kota/kabupaten dan kecamatan tujuan.",
+            "products": [
+              {
+                "name": "Robot Alpha",
+                "numericPrice": 1500000,
+                "stock": "instock"
+              }
+            ]
+          },
+          "expect": {
+            "before_coverage": 1,
+            "after_coverage": 1,
+            "repaired": [],
+            "clarified": [],
+            "unresolved": [],
+            "passed": true
+          }
+        }
+      ]
+    },
+    {
       "id": "previous-products-followup",
       "scenario": "Follow-up terhadap produk sebelumnya",
       "turns": [

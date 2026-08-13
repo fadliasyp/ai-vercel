@@ -96,6 +96,22 @@ test("checks budget against returned product prices", () => {
   assert.equal(coverage.status.budget, "missing");
 });
 
+test("covers recommendation, budget, payment, and an ongkir clarification together", () => {
+  const question =
+    "Ada rekomendasi robot jadul budget di bawah 2 juta? Sama ongkir ke Bandung kena berapa dan bisa bayar pakai apa aja";
+  const coverage = evaluateAnswerCoverage(question, {
+    type: "products",
+    intro:
+      "Ini rekomendasi di bawah 2 juta. Pembayaran tersedia melalui QRIS, GoPay, transfer bank, dan kartu kredit. Untuk mengecek ongkir, sebutkan kota/kabupaten dan kecamatan tujuan.",
+    products: [
+      { name: "Robot Alpha", numericPrice: 1500000, stock: "instock" },
+    ],
+  });
+
+  assert.equal(coverage.passed, true);
+  assert.deepEqual(coverage.missing, []);
+});
+
 test("repairs missing factual sections and records the repaired facets", () => {
   const result = repairAnswerCoverage(
     "Bagaimana kondisi dan kelengkapannya?",

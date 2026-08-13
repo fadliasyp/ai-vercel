@@ -237,6 +237,35 @@
       ]
     },
     {
+      "id": "compound-recommendation-shipping-payment",
+      "scenario": "Rekomendasi, ongkir, dan pembayaran dalam satu pertanyaan",
+      "turns": [
+        {
+          "question": "Ada rekomendasi robot jadul budget di bawah 2 juta? Sama ongkir ke Bandung kena berapa dan bisa bayar pakai apa aja",
+          "expect": {
+            "scope": "in_scope",
+            "compound": {
+              "compound": true,
+              "primary_intent": "recommendation",
+              "facets": ["recommendation", "budget", "shipping_quote", "payment_methods"]
+            },
+            "answer_plan": {
+              "multi_section": true,
+              "section_keys": ["recommendation", "transaction_policy", "shipping_quote"]
+            },
+            "entities": { "shipping_destination": "Bandung" },
+            "signals": {
+              "recommendation": true,
+              "payment_methods": true,
+              "shipping_quote": true,
+              "transaction_policy": true
+            },
+            "policy_includes": ["QRIS"]
+          }
+        }
+      ]
+    },
+    {
       "id": "out-of-domain",
       "scenario": "Pengguna iseng atau keluar topik",
       "turns": [
