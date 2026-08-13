@@ -173,6 +173,7 @@ import {
   analyzeIndonesianQuestion,
   compactLinguisticAnalysis,
 } from "../lib/chatbot/linguisticAnalysis.js";
+import { buildIndonesianIntentText } from "../lib/chatbot/indonesianMorphology.js";
 import {
   buildGeneralStockPolicyMessage,
   buildNegotiationPolicyMessage,
@@ -378,7 +379,9 @@ function levenshtein(a, b) {
 }
 
 function classifyIntentFromDataset(rawQuestion = "") {
-  const intentQuestion = expandCommerceProductNouns(rawQuestion);
+  const intentQuestion = expandCommerceProductNouns(
+    buildIndonesianIntentText(rawQuestion),
+  );
   const qTokens = tokenize(intentQuestion);
 
   // 1) keyword boost

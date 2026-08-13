@@ -44,7 +44,7 @@ test("clear local out-of-scope rejection wins over an LLM commerce guess", () =>
 
 test("high-confidence semantic intent wins over a weak local fallback", () => {
   const result = chooseSemanticIntent({
-    question: "tolong pilihkan satu robot untuk saya",
+    question: "tolong bantu satu robot untuk saya",
     localScope: "ambiguous",
     local,
     semantic: semantic("recommendation"),

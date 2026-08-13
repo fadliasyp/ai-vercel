@@ -36,10 +36,18 @@ test("normalizes safe numeric reduplication without touching identifiers", () =>
   );
 });
 
+test("normalizes abbreviations across every commerce flow", () => {
+  assert.equal(
+    normalizeIndonesianCommerceText(
+      "rek brg, cek stk, hrg, ong, almt, byr, rtr, stat ordr, trck",
+    ),
+    "rekomendasi barang, cek stok, harga, ongkir, alamat, bayar, retur, status order, tracking",
+  );
+});
+
 test("keeps catalog typo matching conservative", () => {
   assert.equal(isLikelyTypoMatch("ultramann", "ultraman"), true);
   assert.equal(isLikelyTypoMatch("ultramann", "voltron"), false);
   assert.equal(isLikelyTypoMatch("gx", "dx"), false);
   assert.equal(isLikelyTypoMatch("500rb", "50000"), false);
 });
-
