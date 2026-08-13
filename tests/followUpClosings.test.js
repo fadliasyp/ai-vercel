@@ -252,6 +252,23 @@ test("does not force choices onto a required shipping clarification", () => {
   assert.equal("actions" in result, false);
 });
 
+test("shows only the admin handoff for an unknown answer", () => {
+  const result = applyControlledFollowUpPolicy(
+    {
+      type: "text",
+      message: "Maaf, informasi itu belum tersedia.",
+      admin_handoff: { label: "Tanya Admin di WhatsApp" },
+      actions: ["Cari robot yang ready stock"],
+    },
+    { intent: "general" },
+  );
+
+  assert.deepEqual(result.admin_handoff, {
+    label: "Tanya Admin di WhatsApp",
+  });
+  assert.equal("actions" in result, false);
+});
+
 test("removes pre-existing suggestions while required input is missing", () => {
   const result = applyControlledFollowUpPolicy(
     {

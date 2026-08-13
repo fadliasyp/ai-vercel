@@ -112,6 +112,7 @@ import {
   looksLikeHowToBuyQuestion,
   looksLikeCompareQuestion,
   looksLikeShippingOriginQuestion,
+  looksLikeProductManufacturingOriginQuestion,
   looksLikeShippingCoverageQuestion,
   looksLikeRecommendationRequest,
   needsRecommendationBudgetClarification,
@@ -3198,11 +3199,23 @@ function isGenericProductWord(s = "") {
 
 function buildContactAdminMessage() {
   return (
-    "🙏 Maaf ya, aku belum yakin dengan pertanyaan ini.\n\n" +
-    "Biar tidak salah info, kamu bisa langsung hubungi admin kami:\n\n" +
-    "📲 👉 https://wa.me/6285975313930\n\n" +
-    "Atau coba tanya ulang dengan lebih spesifik ya 😊"
+    "Maaf, aku belum punya informasi yang cukup untuk menjawab pertanyaan itu dengan tepat. " +
+    "Supaya tidak memberi informasi yang keliru, silakan tanyakan langsung ke Admin Robot Jadul."
   );
+}
+
+function buildAdminHandoffResponse({
+  message = buildContactAdminMessage(),
+  intent = "general",
+} = {}) {
+  return {
+    type: "text",
+    message,
+    intent,
+    admin_handoff: {
+      label: "Tanya Admin di WhatsApp",
+    },
+  };
 }
 
 // GENERAL FALLBACK MESSAGE
@@ -3225,10 +3238,22 @@ function looksLikeAdminContactQuestion(q = "") {
 }
 
 function buildGeneralFallbackMessage() {
-  return (
-    "Boleh 😊 Untuk informasi lebih lanjut, kamu bisa langsung menghubungi admin Robot Jadul:\n\n" +
-    "📲 WhatsApp Admin: https://wa.me/6285975313930\n\n" +
-    "Admin bisa bantu konfirmasi detail produk, stok, pembayaran, dan pengiriman sebelum kamu order ya."
+  return buildContactAdminMessage();
+}
+
+function hasProductManufacturingOriginInfo(product = {}) {
+  const sourceText = [
+    product.description,
+    product.shortDescription,
+    product.short_description,
+    product.condition,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .replace(/<[^>]*>/g, " ");
+
+  return /\b(?:made\s+in|diproduksi|produksi\s+di|produsen|manufacturer|manufactured|buatan|negara\s+asal|asal\s+produksi|diimpor|impor|import|imported|produk\s+impor|barang\s+impor)\b/i.test(
+    sourceText,
   );
 }
 
@@ -4207,8 +4232,9 @@ export default async function handler(req, res) {
 
       const suggestionQuestion = privacySafeQuestion();
       const suppressSuggestedActions =
-        !finalPayload._actionContext &&
-        isRequiredClarificationPayload(finalPayload);
+        Boolean(finalPayload.admin_handoff) ||
+        (!finalPayload._actionContext &&
+          isRequiredClarificationPayload(finalPayload));
       const actionCandidates =
         suppressSuggestedActions
           ? []
@@ -6006,41 +6032,23 @@ export default async function handler(req, res) {
           (s.includes("jakarta") || s.includes("luar kota")))
       );
     }
-    function isOriginQuestion(q = "") {
-      const s = q.toLowerCase();
-      return (
-        s.includes("pengiriman dari mana") ||
-        s.includes("dikirim dari mana") ||
-        s.includes("asal pengiriman") ||
-        s.includes("barang dikirim dari mana") ||
-        s.includes("kirim dari mana") ||
-        s.includes("kirim dari") ||
-        s.includes("gudang") ||
-        s.includes("warehouse") ||
-        s.includes("asal") ||
-        s.trim() === "dari mana"
-      );
-    }
-
     if (isStoreBranchQuestion(rawQuestion)) {
       const storeText =
         process.env.STORE_ADDRESS_TEXT ||
         "Robot Jadul, Blok M Square lt 3A blok A no 36-37, Jl. Melawai 5, Jakarta Selatan 12160. Buka setiap hari pukul 11.00-20.00.";
       return await send(
-        {
-          type: "text",
+        buildAdminHandoffResponse({
           message:
             `Informasi toko fisik yang tercatat saat ini:\n\n${storeText}\n\n` +
-            "Untuk memastikan apakah ada cabang lain di luar lokasi tersebut, kamu bisa konfirmasi ke WhatsApp Admin: https://wa.me/6285975313930.",
-          intent: "general",
-        },
+            "Untuk memastikan apakah ada cabang lain di luar lokasi tersebut, silakan konfirmasi ke Admin Robot Jadul.",
+        }),
         "general",
       );
     }
 
     // 1) lokasi toko offline
     // 2) asal pengiriman
-    if (isOriginQuestion(rawQuestion)) {
+    if (looksLikeShippingOriginQuestion(rawQuestion)) {
       const originText =
         process.env.SHIP_ORIGIN_TEXT ||
         "Pengiriman diproses dari TOKO ROBOT JADUL di **JAKARTA SELATAN**.";
@@ -6101,11 +6109,9 @@ export default async function handler(req, res) {
 
       console.log("GENERAL FALLBACK HIT #2");
       return await send(
-        {
-          type: "text",
+        buildAdminHandoffResponse({
           message: buildGeneralFallbackMessage(),
-          intent: "general",
-        },
+        }),
         "general",
       );
     }
@@ -6240,22 +6246,8 @@ export default async function handler(req, res) {
     // ==============================
     // ALAMAT TOKO (SHIPPING ORIGIN) HANDLER
     // ==============================
-    function isShippingOriginQuestion(q = "") {
-      const s = q.toLowerCase();
-      return (
-        s.includes("pengiriman dari mana") ||
-        s.includes("dikirim dari mana") ||
-        s.includes("dikirim dari") ||
-        s.includes("asal pengiriman") ||
-        s.includes("lokasi pengiriman") ||
-        s.includes("kirim dari mana") ||
-        s.includes("gudang") ||
-        s.trim() === "dari mana"
-      );
-    }
-
     // ---- ROUTE ORIGIN (GLOBAL) ----
-    if (isShippingOriginQuestion(rawQuestion)) {
+    if (looksLikeShippingOriginQuestion(rawQuestion)) {
       const originText =
         process.env.SHIP_ORIGIN_TEXT ||
         "Pengiriman kami diproses dari TOKO Robot Jadul di **JAKARTA SELATAN**.";
@@ -6583,10 +6575,9 @@ export default async function handler(req, res) {
       console.log("NONSENSE QUESTION -> GENERAL");
 
       return await send(
-        {
-          type: "text",
+        buildAdminHandoffResponse({
           message: buildGeneralFallbackMessage(),
-        },
+        }),
         "general",
       );
     }
@@ -6601,11 +6592,9 @@ export default async function handler(req, res) {
     ) {
       console.log("GENERAL FALLBACK HIT #3");
       return await send(
-        {
-          type: "text",
+        buildAdminHandoffResponse({
           message: buildGeneralFallbackMessage(),
-          intent: "general",
-        },
+        }),
         "general",
       );
     }
@@ -6636,11 +6625,9 @@ export default async function handler(req, res) {
       };
       console.log("GENERAL FALLBACK HIT #1");
       return await send(
-        {
-          type: "text",
+        buildAdminHandoffResponse({
           message: buildGeneralFallbackMessage(),
-          intent: "general",
-        },
+        }),
         "general",
       );
     }
@@ -8780,6 +8767,8 @@ Kembalikan JSON valid:
     }
 
     if (intentResult.intent === "product_detail") {
+      const asksManufacturingOrigin =
+        looksLikeProductManufacturingOriginQuestion(rawQuestion);
       const productMatch = resolveRequestedProduct(
         effectiveQuestion,
         cleanProducts,
@@ -8787,6 +8776,19 @@ Kembalikan JSON valid:
       const bestProduct = productMatch.product;
 
       if (bestProduct) {
+        if (
+          asksManufacturingOrigin &&
+          !hasProductManufacturingOriginInfo(bestProduct)
+        ) {
+          return await send(
+            buildAdminHandoffResponse({
+              intent: "product_detail",
+              message: `Maaf, informasi asal produksi atau status impor **${bestProduct.name}** belum tercantum di katalog. Supaya tidak memberi informasi yang keliru, silakan konfirmasi langsung ke Admin Robot Jadul.`,
+            }),
+            "product_detail",
+          );
+        }
+
         session.lastProducts = [bestProduct];
         session.lastTopic = "product_detail";
         session.lastIntent = "product_detail";
@@ -8833,6 +8835,17 @@ Kembalikan JSON valid:
             intro: buildProductSearchClarification(productMatch),
             options: buildProductSearchOptions(productMatch, "product_detail"),
           },
+          "product_detail",
+        );
+      }
+
+      if (asksManufacturingOrigin) {
+        return await send(
+          buildAdminHandoffResponse({
+            intent: "product_detail",
+            message:
+              "Maaf, aku belum punya informasi yang cukup untuk memastikan apakah produk Robot Jadul diproduksi sendiri atau diimpor. Supaya tidak memberi informasi yang keliru, silakan konfirmasi langsung ke Admin Robot Jadul.",
+          }),
           "product_detail",
         );
       }
@@ -9632,10 +9645,7 @@ ${JSON.stringify(facts, null, 2)}
       console.log("ADMIN FALLBACK HIT #1");
 
       return await send(
-        {
-          type: "text",
-          message: buildContactAdminMessage(),
-        },
+        buildAdminHandoffResponse(),
         "general",
       );
     }
@@ -9657,10 +9667,7 @@ ${JSON.stringify(facts, null, 2)}
     console.log("ADMIN FALLBACK HIT #2");
 
     return await send(
-      {
-        type: "text",
-        message: buildContactAdminMessage(),
-      },
+      buildAdminHandoffResponse(),
       "general",
     );
   } catch (err) {

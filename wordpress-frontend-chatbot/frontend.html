@@ -386,6 +386,8 @@
           renderCompare(item.payload);
         } else if (item.type === "how_to_buy") {
           renderHowToBuy(item.steps || []);
+        } else if (item.type === "admin_handoff") {
+          renderAdminHandoff(item);
         } else if (
           item.type === "feedback" &&
           !item.submitted &&
@@ -538,6 +540,24 @@
       return `https://wa.me/6285975313930?text=${encodeURIComponent(message)}`;
     }
 
+    function renderAdminHandoff(item = {}) {
+      if (!messages) return;
+
+      const wrap = document.createElement("div");
+      wrap.className = "chat-admin-handoff";
+
+      const link = document.createElement("a");
+      link.className = "chat-admin-handoff__button";
+      link.href = buildAdminHandoffUrl(item.intent || "general");
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.textContent = item.label || "Tanya Admin di WhatsApp";
+
+      wrap.appendChild(link);
+      messages.appendChild(wrap);
+      scrollBottom();
+    }
+
     function renderFeedbackPrompt(item = {}) {
       if (!messages || !item.id) return;
 
@@ -633,6 +653,7 @@
 
     function shouldOfferFeedback(data = {}) {
       if (!data || data.intent === "greeting") return false;
+      if (data.admin_handoff) return false;
       if (["suggestions", "options"].includes(data.type)) return false;
       if (hasSessionFeedback() || customerQuestionCount() < 2) return false;
 
@@ -1278,6 +1299,17 @@
       saveChat();
     }
 
+    function addAdminHandoff(item = {}, intent = "general") {
+      const handoff = {
+        type: "admin_handoff",
+        label: item.label || "Tanya Admin di WhatsApp",
+        intent,
+      };
+      renderAdminHandoff(handoff);
+      chatHistory.push(handoff);
+      saveChat();
+    }
+
     function addSuggestions(
       message,
       suggestions,
@@ -1553,6 +1585,10 @@
             data.message || data.intro || "Tidak ada jawaban",
             data.intent || null,
           );
+        }
+
+        if (data.admin_handoff) {
+          addAdminHandoff(data.admin_handoff, data.intent || "general");
         }
 
         if (

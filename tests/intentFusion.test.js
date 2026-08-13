@@ -95,6 +95,12 @@ test("explicit rules resolve recommendation, compare, store, and insurance bound
     "shipping_transaction",
   );
   assert.equal(
+    detectExplicitIntentOverride(
+      "robotnya diproduksi sendiri atau import dari luar?",
+    ).intent,
+    "product_detail",
+  );
+  assert.equal(
     detectExplicitIntentOverride("Bro apa aja stok yg ada").intent,
     "stock_availability",
   );

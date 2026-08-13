@@ -9,6 +9,7 @@ import {
   looksLikeSameDayDispatchQuestion,
   looksLikeShippingCoverageQuestion,
   looksLikeShippingOriginQuestion,
+  looksLikeProductManufacturingOriginQuestion,
   needsRecommendationBudgetClarification,
 } from "../lib/chatbot/transactionIntent.js";
 
@@ -31,6 +32,18 @@ test("recognizes broad shipping destinations as ongkir flow", () => {
 test("keeps explicit shipping origin questions separate", () => {
   assert.equal(looksLikeShippingOriginQuestion("Barang dikirim dari mana?"), true);
   assert.equal(looksLikeShippingCoverageQuestion("Barang dikirim dari mana?"), false);
+  assert.equal(
+    looksLikeShippingOriginQuestion(
+      "Robotnya diproduksi sendiri atau import dari luar?",
+    ),
+    false,
+  );
+  assert.equal(
+    looksLikeProductManufacturingOriginQuestion(
+      "Robotnya diproduksi sendiri atau import dari luar?",
+    ),
+    true,
+  );
 });
 
 test("builds one consistent COD policy from the configured state", () => {
