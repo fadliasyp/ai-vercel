@@ -111,6 +111,13 @@ test("builds compact messages with ecommerce context", () => {
         expected_answer_type: "previous_products",
         confidence: 0.95,
       },
+      activeGoal: {
+        intent: "recommendation",
+        category: "chogokin",
+        focusedProductName: "Produk B",
+        productNames: ["Produk A", "Produk B"],
+        constraints: { budgetMin: 7000000, budgetMax: 9500000 },
+      },
     },
   });
 
@@ -143,6 +150,14 @@ test("builds compact messages with ecommerce context", () => {
     is_follow_up: true,
     expected_answer_type: "previous_products",
     confidence: 0.95,
+  });
+  assert.deepEqual(userPayload.context.active_goal, {
+    intent: "recommendation",
+    category: "chogokin",
+    focused_product: "Produk B",
+    products: ["Produk A", "Produk B"],
+    budget_min: 7000000,
+    budget_max: 9500000,
   });
 });
 
@@ -184,5 +199,6 @@ test("semantic prompt defines the risky intent boundaries", () => {
   assert.match(prompt, /context\.language_analysis/);
   assert.match(prompt, /context\.question_understanding/);
   assert.match(prompt, /context\.conversation_turn/);
+  assert.match(prompt, /context\.active_goal/);
   assert.match(prompt, /jangan menebak salah satu makna/);
 });

@@ -227,6 +227,11 @@ import {
   splitCityDistrict,
 } from "../lib/chatbot/shippingLocation.js";
 import { shouldInterruptPendingFlow } from "../lib/chatbot/pendingContext.js";
+import {
+  buildActiveConversationGoal,
+  focusActiveConversationGoal,
+  resolveConversationTurn,
+} from "../lib/chatbot/conversationGoal.js";
 
 console.log("ASK.JS LOADED");
 
@@ -1565,6 +1570,7 @@ function resetConversationContext(session) {
   session.lastSuggestedActions = [];
   session.lastBotQuestionType = null;
   session.lastBotQuestionMeta = null;
+  session.activeGoal = null;
   session.pending = null;
   session.lastFilters = {
     priceMode: null,
@@ -3344,7 +3350,7 @@ export default async function handler(req, res) {
 
   let effectiveQuestion = normalizeQuestion(privacySafeQuestion());
   let q = effectiveQuestion.toLowerCase();
-  const productQueryScope = resolveProductQueryScope(rawQuestion);
+  let productQueryScope = resolveProductQueryScope(rawQuestion);
   let usesPreviousProductContext = productQueryScope === "previous";
   let linguisticAnalysis = analyzeIndonesianQuestion(privacySafeQuestion());
   let linguisticHint = compactLinguisticAnalysis(linguisticAnalysis);
@@ -3374,6 +3380,7 @@ export default async function handler(req, res) {
       persisted.lastBotQuestionMeta ?? session.lastBotQuestionMeta;
     session.lastFilters = persisted.lastFilters ?? session.lastFilters;
     session.slots = persisted.slots ?? session.slots;
+    session.activeGoal = persisted.activeGoal ?? session.activeGoal;
     // =========================
 
     session.pending = persisted.pending ?? session.pending;
@@ -3385,6 +3392,36 @@ export default async function handler(req, res) {
     session.history = Array.isArray(persisted.history)
       ? persisted.history
       : session.history;
+  }
+
+  session.activeGoal = buildActiveConversationGoal(session.activeGoal, {
+    intent: session.lastIntent,
+    products: session.lastProducts,
+    slots: session.slots,
+    filters: session.lastFilters,
+  });
+  const conversationTurn = resolveConversationTurn(rawQuestion, {
+    activeGoal: session.activeGoal,
+    lastIntent: session.lastIntent,
+    lastProducts: session.lastProducts,
+  });
+  if (conversationTurn.changed) {
+    rawQuestion = conversationTurn.question;
+    effectiveQuestion = normalizeQuestion(privacySafeQuestion());
+    q = effectiveQuestion.toLowerCase();
+    productQueryScope = conversationTurn.usesPreviousProducts
+      ? "previous"
+      : resolveProductQueryScope(rawQuestion);
+    usesPreviousProductContext =
+      conversationTurn.usesPreviousProducts || productQueryScope === "previous";
+    linguisticAnalysis = analyzeIndonesianQuestion(privacySafeQuestion());
+    linguisticHint = compactLinguisticAnalysis(linguisticAnalysis);
+  }
+  if (conversationTurn.referencedProducts.length === 1) {
+    session.activeGoal = focusActiveConversationGoal(
+      session.activeGoal,
+      conversationTurn.referencedProducts[0],
+    );
   }
 
   expireStaleLastBotQuestion(session);
@@ -3461,6 +3498,7 @@ export default async function handler(req, res) {
     customerState,
     recentActions: session.lastSuggestedActions || [],
     contextualTurn: contextualIntent,
+    activeGoal: session.activeGoal,
   };
 
   const localIntentTask =
@@ -4299,6 +4337,12 @@ export default async function handler(req, res) {
 
       const finalIntent =
         forceIntent ?? payload.intent ?? session.lastIntent ?? "general";
+      session.activeGoal = buildActiveConversationGoal(session.activeGoal, {
+        intent: finalIntent,
+        products: session.lastProducts,
+        slots: session.slots,
+        filters: session.lastFilters,
+      });
       const suggestionLimit = finalIntent === "greeting" ? 6 : 3;
       let finalPayload = humanizeResponse(payload, {
         intent: finalIntent,
@@ -4467,6 +4511,7 @@ export default async function handler(req, res) {
         lastBotQuestionMeta: session.lastBotQuestionMeta,
         lastFilters: session.lastFilters,
         slots: session.slots,
+        activeGoal: session.activeGoal,
         pending: session.pending,
         history: session.history?.slice(-50) || [],
       });
