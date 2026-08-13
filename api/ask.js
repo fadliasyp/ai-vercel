@@ -182,6 +182,7 @@ import {
 import {
   buildQuestionUnderstanding,
   compactQuestionUnderstanding,
+  resolveContextualIntent,
 } from "../lib/chatbot/questionUnderstanding.js";
 import { buildIndonesianIntentText } from "../lib/chatbot/indonesianMorphology.js";
 import {
@@ -3396,12 +3397,24 @@ export default async function handler(req, res) {
   const budgetInfo = recommendationBudgetFollowUp
     ? extractRecommendationBudgetAnswer(rawQuestion)
     : directBudgetInfo;
-  const initialExplicitIntent = recommendationBudgetFollowUp
-    ? {
-        intent: "recommendation",
-        method: "recommendation_budget_followup_rule",
-      }
-    : detectExplicitIntentOverride(rawQuestion);
+  const directExplicitIntent = detectExplicitIntentOverride(rawQuestion);
+  const contextualIntent = resolveContextualIntent(rawQuestion, {
+    explicitIntent: directExplicitIntent?.intent || "",
+    lastIntent: session.lastIntent,
+    lastBotQuestionType: session.lastBotQuestionType,
+    lastBotQuestionMeta: session.lastBotQuestionMeta,
+    hasRecentProducts:
+      Array.isArray(session.lastProducts) && session.lastProducts.length > 0,
+    productQueryScope,
+  });
+  const initialExplicitIntent =
+    contextualIntent ||
+    (recommendationBudgetFollowUp
+      ? {
+          intent: "recommendation",
+          method: "recommendation_budget_followup_rule",
+        }
+      : directExplicitIntent);
   let questionUnderstanding = buildQuestionUnderstanding(
     privacySafeQuestion(),
     {
@@ -3447,6 +3460,7 @@ export default async function handler(req, res) {
     understanding: compactQuestionUnderstanding(questionUnderstanding),
     customerState,
     recentActions: session.lastSuggestedActions || [],
+    contextualTurn: contextualIntent,
   };
 
   const localIntentTask =
@@ -3495,6 +3509,16 @@ export default async function handler(req, res) {
     semantic: groqRoute,
     minSemanticConfidence,
   });
+
+  if (contextualIntent) {
+    intentResult = {
+      ...intentResult,
+      intent: contextualIntent.intent,
+      method: contextualIntent.method,
+      score: contextualIntent.confidence,
+      scope: "in_scope",
+    };
+  }
 
   session.lastIntent = intentResult.intent || "general";
   session.lastIntentMethod =

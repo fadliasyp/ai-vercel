@@ -105,6 +105,12 @@ test("builds compact messages with ecommerce context", () => {
         confidence: 0.95,
         needs_clarification: false,
       },
+      contextualTurn: {
+        intent: "stock_availability",
+        is_follow_up: true,
+        expected_answer_type: "previous_products",
+        confidence: 0.95,
+      },
     },
   });
 
@@ -131,6 +137,12 @@ test("builds compact messages with ecommerce context", () => {
     required_facts: ["catalog_stock"],
     confidence: 0.95,
     needs_clarification: false,
+  });
+  assert.deepEqual(userPayload.context.conversation_turn, {
+    intent: "stock_availability",
+    is_follow_up: true,
+    expected_answer_type: "previous_products",
+    confidence: 0.95,
   });
 });
 
@@ -171,5 +183,6 @@ test("semantic prompt defines the risky intent boundaries", () => {
   assert.match(prompt, /Robot Jadul adalah toko/);
   assert.match(prompt, /context\.language_analysis/);
   assert.match(prompt, /context\.question_understanding/);
+  assert.match(prompt, /context\.conversation_turn/);
   assert.match(prompt, /jangan menebak salah satu makna/);
 });

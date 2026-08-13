@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   buildQuestionUnderstanding,
   compactQuestionUnderstanding,
+  resolveContextualIntent,
 } from "../lib/chatbot/questionUnderstanding.js";
 
 test("separates store background, manufacturing origin, and shipping origin", () => {
@@ -74,4 +75,74 @@ test("keeps the compact frame bounded for LLM context", () => {
   assert.equal(compact.domain_question_type, "price_or_promotion");
   assert.deepEqual(compact.required_facts, ["catalog_price"]);
   assert.ok(JSON.stringify(compact).length < 300);
+});
+
+test("keeps a typed budget inside the recommendation conversation", () => {
+  assert.deepEqual(
+    resolveContextualIntent("Diatas 7 juta dibawah 9,5 juta", {
+      explicitIntent: "price_promo",
+      lastIntent: "recommendation",
+      lastBotQuestionType: "ask_budget_value",
+    }),
+    {
+      intent: "recommendation",
+      method: "context_expected_budget_rule",
+      confidence: 1,
+      is_follow_up: true,
+      expected_answer_type: "budget",
+    },
+  );
+
+  assert.equal(
+    resolveContextualIntent("ada promo di budget 7 juta?", {
+      explicitIntent: "price_promo",
+      lastIntent: "recommendation",
+      lastBotQuestionType: "ask_budget_value",
+    }),
+    null,
+  );
+
+  assert.equal(
+    resolveContextualIntent("7 juta sampai 9,5 juta", {
+      explicitIntent: "price_promo",
+    }),
+    null,
+  );
+});
+
+test("resolves expected product names and previous-result questions", () => {
+  assert.equal(
+    resolveContextualIntent("Vintage Gashapon Sasuraiger", {
+      lastBotQuestionType: "ask_product_name",
+      lastBotQuestionMeta: { source: "detail" },
+    })?.intent,
+    "product_detail",
+  );
+
+  assert.equal(
+    resolveContextualIntent("kalau pembayarannya bisa QRIS?", {
+      explicitIntent: "shipping_transaction",
+      lastBotQuestionType: "ask_product_name",
+      lastBotQuestionMeta: { source: "detail" },
+    }),
+    null,
+  );
+
+  assert.equal(
+    resolveContextualIntent("dari tiga tadi paling worth it mana?", {
+      hasRecentProducts: true,
+      lastIntent: "product_discovery",
+      productQueryScope: "previous",
+    })?.intent,
+    "recommendation",
+  );
+
+  assert.equal(
+    resolveContextualIntent("ada yang lain dari hasil tadi?", {
+      hasRecentProducts: true,
+      lastIntent: "recommendation",
+      productQueryScope: "previous",
+    })?.intent,
+    "recommendation",
+  );
 });
