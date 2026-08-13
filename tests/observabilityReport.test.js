@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  assessCoverageDrift,
+  buildCoverageReplayCandidates,
   renderObservabilityMarkdown,
   summarizeChatFeedback,
   summarizeChatMetrics,
@@ -109,9 +111,74 @@ test("summarizes chatbot reliability, latency, and model usage", () => {
   assert.equal(report.coverage.repairedFacets, 1);
   assert.equal(report.coverage.clarifiedFacets, 1);
   assert.equal(report.coverage.unresolvedFacets, 1);
+  assert.equal(report.coverage.unresolvedRequests, 1);
+  assert.equal(report.coverage.unresolvedRequestRate, 1 / 3);
+  assert.equal(report.coverage.fullyCoveredRate, 2 / 3);
   assert.deepEqual(report.coverage.byUnresolvedFacet, [
     { name: "completeness", occurrences: 1 },
   ]);
+});
+
+test("alerts only after enough samples and detects real coverage drift", () => {
+  const drift = assessCoverageDrift(
+    {
+      requests: 40,
+      averageAfter: 0.72,
+      unresolvedRequestRate: 0.3,
+    },
+    {
+      requests: 45,
+      averageAfter: 0.95,
+      unresolvedRequestRate: 0.05,
+    },
+  );
+
+  assert.equal(drift.status, "alert");
+  assert.deepEqual(
+    drift.alerts.map((alert) => alert.code),
+    [
+      "coverage_below_minimum",
+      "unresolved_rate_above_maximum",
+      "coverage_regressed",
+      "unresolved_rate_increased",
+    ],
+  );
+  assert.equal(
+    assessCoverageDrift(
+      { requests: 4, averageAfter: 0.2, unresolvedRequestRate: 1 },
+      { requests: 50, averageAfter: 1, unresolvedRequestRate: 0 },
+    ).status,
+    "insufficient_data",
+  );
+});
+
+test("builds privacy-safe replay candidates from unresolved facet patterns", () => {
+  const rows = [
+    {
+      intent: "price_promo",
+      response_type: "text",
+      coverage_requested: ["promo", "stock"],
+      coverage_unresolved: ["promo"],
+      question: "rahasia pelanggan 081234567890",
+      session_hash: "private-session",
+    },
+    {
+      intent: "price_promo",
+      response_type: "text",
+      coverage_requested: ["stock", "promo"],
+      coverage_unresolved: ["promo"],
+    },
+  ];
+  const candidates = buildCoverageReplayCandidates(rows);
+
+  assert.equal(candidates.length, 1);
+  assert.equal(candidates[0].occurrences, 2);
+  assert.deepEqual(candidates[0].unresolved, ["promo"]);
+  assert.match(candidates[0].synthetic_question, /promo/i);
+  assert.doesNotMatch(
+    JSON.stringify(candidates),
+    /rahasia pelanggan|081234567890|private-session/,
+  );
 });
 
 test("returns a stable empty report", () => {
@@ -150,7 +217,6 @@ test("summarizes customer satisfaction without conversation content", () => {
     },
     { rating: "invalid", intent: "general" },
   ]);
-
   assert.equal(feedback.responses, 3);
   assert.equal(feedback.helpful, 2);
   assert.equal(feedback.unhelpful, 1);
@@ -191,6 +257,7 @@ test("renders a stable readable Markdown report", () => {
       assistant_reason: "success",
     },
   ]);
+  report.coverageDrift = assessCoverageDrift(report.coverage, {});
 
   const markdown = renderObservabilityMarkdown(report, feedback, {
     days: 7,
@@ -204,6 +271,8 @@ test("renders a stable readable Markdown report", () => {
   assert.match(markdown, /## Answer Coverage/);
   assert.match(markdown, /\| Coverage sebelum auto-repair \| 50\.0% \|/);
   assert.match(markdown, /\| Coverage setelah auto-repair \| 100\.0% \|/);
+  assert.match(markdown, /## Coverage Drift/);
+  assert.match(markdown, /\| Status \| insufficient_data \|/);
   assert.match(markdown, /\| price_promo \| 1 \| 0 \| 100\.0% \| 250 ms \| 0\.90 \|/);
   assert.match(markdown, /## Kepuasan Pelanggan/);
   assert.match(markdown, /\| Helpful rate \| 100\.0% \|/);

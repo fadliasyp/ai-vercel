@@ -15,6 +15,7 @@
     "benchmark:interactive-live": "node scripts/smoke-ask.js --controlled --endpoint https://ai-vercel-ten-sigma.vercel.app/api/ask --output benchmarks/results/interactive-actions-live.json",
     "benchmark:consistency-live": "node scripts/smoke-ask.js --consistency --endpoint https://ai-vercel-ten-sigma.vercel.app/api/ask --output benchmarks/results/response-consistency-live.json",
     "report:observability": "node scripts/report-observability.js",
+    "check:coverage-drift": "node scripts/report-observability.js --fail-on-drift",
     "benchmark:images": "node scripts/benchmark-image-search.js",
     "dataset:images": "node scripts/manage-image-benchmark-dataset.js",
     "smoke:domain": "node scripts/smoke-fadli-site.js",
