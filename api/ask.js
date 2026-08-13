@@ -135,7 +135,11 @@ import {
   suggestedActionIntent,
   validateSuggestedActionSelection,
 } from "../lib/chatbot/followUpClosings.js";
-import { extractBudgetRange } from "../lib/chatbot/priceIntent.js";
+import {
+  extractRecommendationBudgetAnswer,
+  extractBudgetRange,
+  isRecommendationBudgetFollowUp,
+} from "../lib/chatbot/priceIntent.js";
 import {
   applyCustomerStateAcknowledgement,
   detectCustomerState,
@@ -3383,7 +3387,20 @@ export default async function handler(req, res) {
 
   expireStaleLastBotQuestion(session);
 
-  const initialExplicitIntent = detectExplicitIntentOverride(rawQuestion);
+  const directBudgetInfo = extractBudgetRange(rawQuestion);
+  const recommendationBudgetFollowUp = isRecommendationBudgetFollowUp(
+    session.lastBotQuestionType,
+    rawQuestion,
+  );
+  const budgetInfo = recommendationBudgetFollowUp
+    ? extractRecommendationBudgetAnswer(rawQuestion)
+    : directBudgetInfo;
+  const initialExplicitIntent = recommendationBudgetFollowUp
+    ? {
+        intent: "recommendation",
+        method: "recommendation_budget_followup_rule",
+      }
+    : detectExplicitIntentOverride(rawQuestion);
   let questionUnderstanding = buildQuestionUnderstanding(
     privacySafeQuestion(),
     {
@@ -3612,8 +3629,6 @@ export default async function handler(req, res) {
   // ==============================
   // override price_promo
   // =============================
-  const budgetInfo = extractBudgetRange(rawQuestion);
-
   const budgetCanOverrideIntent = ![
     "compare",
     "shipping_transaction",
@@ -3777,7 +3792,8 @@ export default async function handler(req, res) {
   if (
     explicitCurrentIntent &&
     !isYesAnswer(rawQuestion) &&
-    !isContextualPriceOrdering
+    !isContextualPriceOrdering &&
+    !recommendationBudgetFollowUp
   ) {
     clearLastBotQuestion(session);
   }
@@ -4482,6 +4498,7 @@ export default async function handler(req, res) {
       semantic?.needs_followup &&
       semantic.followup_question &&
       !getPending(session) &&
+      !recommendationBudgetFollowUp &&
       !isGreetingOnly(rawQuestion)
     ) {
       return await send(
@@ -5716,7 +5733,7 @@ export default async function handler(req, res) {
 
         clearFollowUpOffer(session);
 
-        const budget = extractBudgetRange(rawQuestion);
+        const budget = extractRecommendationBudgetAnswer(rawQuestion);
 
         if (budget.detected) {
           updateSlot(session, "budgetMin", budget.min);
@@ -6465,7 +6482,7 @@ export default async function handler(req, res) {
 
       clearLastBotQuestion(session);
 
-      const budget = extractBudgetRange(rawQuestion);
+      const budget = extractRecommendationBudgetAnswer(rawQuestion);
 
       if (budget.detected) {
         updateSlot(session, "budgetMin", budget.min);
