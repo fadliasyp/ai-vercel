@@ -5,3 +5,59 @@ vercel --prod
 
 mau lihat catatan intent gagal/berhasil dlm 7 hari terakhir
 npm run report:observability -- --days 7
+
+
+## Cara Test agar tau mana yg kurang baik
+
+4. Tes Chatbot Produksi
+Setelah deployment berhasil, coba beberapa pertanyaan:
+"Carikan robot ready di bawah 8 juta, kondisinya bagus, lengkap, dan cocok untuk hadiah"
+"Bisa COD, bayar pakai apa, ada asuransi dan packing kayu?"
+"Berapa ongkirnya ke Bandung?"
+Pastikan jawaban memenuhi semua kebutuhan atau meminta klarifikasi yang tepat.
+
+5. Kumpulkan Data
+Biarkan chatbot menerima setidaknya 30 pertanyaan yang memiliki facet terdeteksi. Sebelum mencapai jumlah tersebut, drift monitor akan memberi status:
+
+insufficient_data
+
+Itu normal dan mencegah alarm palsu.
+
+6. Buat Laporan
+Setelah data mulai terkumpul:
+
+npm run report:observability
+
+Hasilnya:
+benchmarks/results/observability-latest.md
+benchmarks/results/coverage-replay-candidates.json
+
+Periksa bagian:
+Coverage sebelum dan sesudah repair
+Full coverage rate
+Request masih unresolved
+Facet paling sering belum terjawab
+Coverage drift
+
+7. Jalankan Pemeriksaan Drift
+
+npm run check:coverage-drift
+
+Makna status:
+insufficient_data: data belum cukup.
+monitoring: periode saat ini cukup, periode pembanding belum cukup.
+healthy: tidak ada regresi.
+alert: ada penurunan yang perlu diperiksa.
+
+8. Tindak Lanjut Alert
+Saat status alert:
+1. Buka coverage-replay-candidates.json.
+2. Cari pola dengan occurrences terbanyak.
+3. Buat kasus percakapan sintetis baru di benchmarks/answer-coverage-replays.json.
+4. Perbaiki handler atau coverage repair terkait.
+
+Jalankan kembali:
+
+npm test
+
+npm run benchmark:coverage-replay

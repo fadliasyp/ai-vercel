@@ -58,6 +58,40 @@ test("finds a catalog product from a specific robot name", () => {
   );
 });
 
+test("ignores conversational connectors after an exact product name", () => {
+  const catalog = [
+    {
+      id: 4691,
+      name: "Soul of Chogokin Voltes V 40th Anniversary",
+      category: "Chogokin",
+      stock: "instock",
+    },
+    {
+      id: 4603,
+      name: "Soul of Chogokin GX-31V Voltes V",
+      category: "Chogokin",
+      stock: "instock",
+    },
+  ];
+
+  for (const connector of ["terus", "trus", "lalu", "kemudian"]) {
+    const result = assessProductSearchConfidence(
+      `Min, Soul of Chogokin Voltes V harganya berapa ya? Masih ready stock ngga barangnya, ${connector} kondisinya gimana?`,
+      catalog,
+    );
+
+    assert.equal(result.status, "matched");
+    assert.equal(result.product?.id, 4691);
+    assert.deepEqual(result.queryTokens, [
+      "soul",
+      "of",
+      "chogokin",
+      "voltes",
+      "v",
+    ]);
+  }
+});
+
 test("finds catalog products despite safe customer typos", () => {
   const knownSeriesTypo = findBestSingleProductMatch(
     "cari Chogokinn Maajingerr Z",
