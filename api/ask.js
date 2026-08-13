@@ -148,6 +148,7 @@ import {
   deriveRecommendationMetadata,
   extractRecommendationMetadata,
   filterByRecommendationMetadata,
+  selectDiverseBudgetRecommendations,
 } from "../lib/chatbot/recommendationMetadata.js";
 import {
   buildCatalogOverview,
@@ -2925,7 +2926,7 @@ function pickRecommendedProducts(products = [], recNeeds = {}, limit = 3) {
       return (b.totalSales || 0) - (a.totalSales || 0);
     });
 
-  return ranked.slice(0, limit);
+  return selectDiverseBudgetRecommendations(ranked, recNeeds, limit);
 }
 
 function buildRecommendationReasoning(products = [], recNeeds = {}) {

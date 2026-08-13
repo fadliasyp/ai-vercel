@@ -5,6 +5,7 @@ import {
   deriveRecommendationMetadata,
   extractRecommendationMetadata,
   filterByRecommendationMetadata,
+  selectDiverseBudgetRecommendations,
 } from "../lib/chatbot/recommendationMetadata.js";
 
 test("extracts decade, franchise, and size preferences from natural questions", () => {
@@ -122,5 +123,43 @@ test("hard-filters JUNK and non-display products from gift recommendations", () 
       wantsDisplay: true,
     }).map((product) => product.id),
     [1],
+  );
+});
+
+test("diversifies similarly ranked recommendations across an explicit budget range", () => {
+  const ranked = [
+    { id: 1, numericPrice: 7000000, recommendationScore: 100 },
+    { id: 2, numericPrice: 7300000, recommendationScore: 99 },
+    { id: 3, numericPrice: 7500000, recommendationScore: 98 },
+    { id: 4, numericPrice: 8300000, recommendationScore: 96 },
+    { id: 5, numericPrice: 9200000, recommendationScore: 95 },
+  ];
+
+  assert.deepEqual(
+    selectDiverseBudgetRecommendations(
+      ranked,
+      { budgetMin: 7000000, budgetMax: 9500000 },
+      3,
+    ).map((product) => product.id),
+    [1, 4, 5],
+  );
+});
+
+test("does not sacrifice recommendation quality only to fill a price bucket", () => {
+  const ranked = [
+    { id: 1, numericPrice: 7000000, recommendationScore: 100 },
+    { id: 2, numericPrice: 7300000, recommendationScore: 98 },
+    { id: 3, numericPrice: 7500000, recommendationScore: 96 },
+    { id: 4, numericPrice: 8500000, recommendationScore: 40 },
+    { id: 5, numericPrice: 9300000, recommendationScore: 35 },
+  ];
+
+  assert.deepEqual(
+    selectDiverseBudgetRecommendations(
+      ranked,
+      { budgetMin: 7000000, budgetMax: 9500000 },
+      3,
+    ).map((product) => product.id),
+    [1, 2, 3],
   );
 });
