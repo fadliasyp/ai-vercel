@@ -18,9 +18,11 @@ test("summarizes requested live product facts without inventing promises", () =>
     discountPercent: 10,
     isPromo: true,
     condition: "BIB",
+    description:
+      "Kondisi cat masih bagus. Fungsi normal. Kelengkapan termasuk pedang.",
   };
   const question =
-    "Mazinger Z yang promo masih ready dan kondisinya bagaimana? Bisa dikirim hari ini?";
+    "Mazinger Z yang promo masih ready, bagaimana kondisi dan kelengkapannya? Bisa dikirim hari ini?";
   const summary = buildProductTransactionSummary(product, question);
 
   assert.match(summary, /Super Robot Chogokin Mazinger Z/);
@@ -28,7 +30,26 @@ test("summarizes requested live product facts without inventing promises", () =>
   assert.match(summary, /Rp\s*900\.000/);
   assert.match(summary, /diskon \*\*10%\*\*/);
   assert.match(summary, /Kondisi: \*\*BIB\*\*/);
+  assert.match(summary, /Catatan kondisi dari deskripsi/);
+  assert.match(summary, /Fungsi normal/);
+  assert.match(summary, /Kelengkapan dari deskripsi/);
+  assert.match(summary, /termasuk pedang/);
   assert.doesNotMatch(summary, /dikirim hari ini/i);
+});
+
+test("keeps an undocumented completeness facet explicit", () => {
+  const summary = buildProductTransactionSummary(
+    {
+      name: "Robot Test",
+      stock: "instock",
+      condition: "Vintage",
+      description: "Kondisi cat masih baik.",
+    },
+    "Bagaimana kondisi dan kelengkapannya?",
+  );
+
+  assert.match(summary, /Kondisi: \*\*Vintage\*\*/);
+  assert.match(summary, /Kelengkapan:.*belum tercantum secara rinci/i);
 });
 
 test("keeps documented JUNK defects in the product detail response", () => {

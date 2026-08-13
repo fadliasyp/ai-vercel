@@ -118,6 +118,21 @@ test("builds compact messages with ecommerce context", () => {
         productNames: ["Produk A", "Produk B"],
         constraints: { budgetMin: 7000000, budgetMax: 9500000 },
       },
+      compound: {
+        compound: true,
+        facets: ["stock", "budget", "recommendation"],
+        primary_intent: "recommendation",
+        confidence: 0.96,
+        needs_clarification: false,
+        constraints: {
+          budget_min: null,
+          budget_max: 8000000,
+          stock: "ready",
+          condition: "good",
+          purposes: ["gift"],
+          promo_only: false,
+        },
+      },
     },
   });
 
@@ -158,6 +173,21 @@ test("builds compact messages with ecommerce context", () => {
     products: ["Produk A", "Produk B"],
     budget_min: 7000000,
     budget_max: 9500000,
+  });
+  assert.deepEqual(userPayload.context.compound_request, {
+    compound: true,
+    facets: ["stock", "budget", "recommendation"],
+    primary_intent: "recommendation",
+    confidence: 0.96,
+    needs_clarification: false,
+    constraints: {
+      budget_min: null,
+      budget_max: 8000000,
+      stock: "ready",
+      condition: "good",
+      purposes: ["gift"],
+      promo_only: false,
+    },
   });
 });
 

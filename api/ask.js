@@ -232,6 +232,15 @@ import {
   focusActiveConversationGoal,
   resolveConversationTurn,
 } from "../lib/chatbot/conversationGoal.js";
+import {
+  analyzeCompoundQuestion,
+  answerPlanIncludes,
+  buildAnswerPlan,
+  compactAnswerPlan,
+  compactCompoundQuestionAnalysis,
+  prependAnswerSections,
+  productMatchesCompoundConstraints,
+} from "../lib/chatbot/compoundQuestion.js";
 
 console.log("ASK.JS LOADED");
 
@@ -2861,6 +2870,11 @@ function scoreRecommendationProduct(product, recNeeds = {}) {
     }
   }
 
+  if (recNeeds.conditionPreference === "good") {
+    score += 15;
+    reasons.push("kondisi katalog sesuai permintaan");
+  }
+
   // =========================
   // 6) Preference murah / premium
   // =========================
@@ -2901,6 +2915,12 @@ function scoreRecommendationProduct(product, recNeeds = {}) {
 
 function pickRecommendedProducts(products = [], recNeeds = {}, limit = 3) {
   let source = filterByRecommendationMetadata(products, recNeeds);
+  source = source.filter((product) =>
+    productMatchesCompoundConstraints(
+      product,
+      recNeeds.compoundConstraints || {},
+    ),
+  );
 
   // Hard filter budget
   if (recNeeds.budgetMin != null) {
@@ -2983,6 +3003,16 @@ function buildRecommendationReasoning(products = [], recNeeds = {}) {
     );
   }
 
+  if (recNeeds.readyOnly) {
+    lines.push("Pilihan disaring hanya ke produk yang tercatat **ready stock**.");
+  }
+
+  if (recNeeds.conditionPreference === "good") {
+    lines.push(
+      "Pilihan disaring ke produk yang kondisi bagusnya tercantum di katalog.",
+    );
+  }
+
   if (recNeeds.requestedDecade != null) {
     lines.push(
       `Pilihan disaring berdasarkan **era franchise ${recNeeds.requestedDecade}-an**, bukan tahun produksi barangnya.`,
@@ -3024,23 +3054,40 @@ function needsReasoningRecommendation(q = "") {
   );
 }
 
-function extractRecommendationNeeds(rawQuestion = "", semantic = null) {
+function extractRecommendationNeeds(
+  rawQuestion = "",
+  semantic = null,
+  compoundAnalysis = null,
+) {
   const q = String(rawQuestion || "").toLowerCase();
 
+  const compound = compoundAnalysis || analyzeCompoundQuestion(rawQuestion);
   const budget = extractBudgetRange(q);
   const metadata = extractRecommendationMetadata(q);
 
   const wantsDisplay =
-    q.includes("display") || q.includes("pajangan") || q.includes("dipajang");
+    compound.constraints.purposes.includes("display") ||
+    q.includes("display") ||
+    q.includes("pajangan") ||
+    q.includes("dipajang");
 
   const wantsCollection =
-    q.includes("koleksi") || q.includes("kolektor") || q.includes("collector");
+    compound.constraints.purposes.includes("collection") ||
+    q.includes("koleksi") ||
+    q.includes("kolektor") ||
+    q.includes("collector");
 
   const wantsGift =
-    q.includes("hadiah") || q.includes("kado") || q.includes("gift");
+    compound.constraints.purposes.includes("gift") ||
+    q.includes("hadiah") ||
+    q.includes("kado") ||
+    q.includes("gift");
 
   const wantsBeginner =
-    q.includes("pemula") || q.includes("baru mulai") || q.includes("beginner");
+    compound.constraints.purposes.includes("beginner") ||
+    q.includes("pemula") ||
+    q.includes("baru mulai") ||
+    q.includes("beginner");
 
   const wantsCheap =
     q.includes("murah") || q.includes("hemat") || q.includes("worth it");
@@ -3051,8 +3098,7 @@ function extractRecommendationNeeds(rawQuestion = "", semantic = null) {
     q.includes("bagus banget") ||
     q.includes("kelas atas");
 
-  const promoOnly =
-    q.includes("promo") || q.includes("diskon") || q.includes("sale");
+  const promoOnly = compound.constraints.promoOnly;
 
   const needsReasoning =
     q.includes("rekom") ||
@@ -3065,8 +3111,13 @@ function extractRecommendationNeeds(rawQuestion = "", semantic = null) {
     wantsBeginner;
 
   return {
-    budgetMin: budget.detected ? budget.min : null,
-    budgetMax: budget.detected ? budget.max : null,
+    budgetMin:
+      compound.constraints.budgetMin ?? (budget.detected ? budget.min : null),
+    budgetMax:
+      compound.constraints.budgetMax ?? (budget.detected ? budget.max : null),
+    readyOnly: compound.constraints.stock === "ready",
+    conditionPreference: compound.constraints.condition,
+    compoundConstraints: compound.constraints,
     wantsDisplay,
     wantsCollection,
     wantsGift,
@@ -3426,6 +3477,16 @@ export default async function handler(req, res) {
 
   expireStaleLastBotQuestion(session);
 
+  let compoundAnalysis = analyzeCompoundQuestion(privacySafeQuestion(), {
+    recentProducts:
+      session.activeGoal?.products?.length
+        ? session.activeGoal.products
+        : session.lastProducts,
+    focusedProductName: session.activeGoal?.focusedProductName || "",
+  });
+  let answerPlan = buildAnswerPlan(compoundAnalysis);
+  let queuedAnswerSections = [];
+
   const directBudgetInfo = extractBudgetRange(rawQuestion);
   const recommendationBudgetFollowUp = isRecommendationBudgetFollowUp(
     session.lastBotQuestionType,
@@ -3435,6 +3496,16 @@ export default async function handler(req, res) {
     ? extractRecommendationBudgetAnswer(rawQuestion)
     : directBudgetInfo;
   const directExplicitIntent = detectExplicitIntentOverride(rawQuestion);
+  const compoundExplicitIntent =
+    compoundAnalysis.isCompound &&
+    compoundAnalysis.primaryIntent &&
+    compoundAnalysis.confidence >= 0.8
+      ? {
+          intent: compoundAnalysis.primaryIntent,
+          method: "compound_question_rule",
+          confidence: compoundAnalysis.confidence,
+        }
+      : null;
   const contextualIntent = resolveContextualIntent(rawQuestion, {
     explicitIntent: directExplicitIntent?.intent || "",
     lastIntent: session.lastIntent,
@@ -3451,7 +3522,7 @@ export default async function handler(req, res) {
           intent: "recommendation",
           method: "recommendation_budget_followup_rule",
         }
-      : directExplicitIntent);
+      : compoundExplicitIntent || directExplicitIntent);
   let questionUnderstanding = buildQuestionUnderstanding(
     privacySafeQuestion(),
     {
@@ -3468,6 +3539,17 @@ export default async function handler(req, res) {
   );
   if (questionUnderstanding.reference_scope === "previous_products") {
     usesPreviousProductContext = true;
+  }
+  if (compoundAnalysis.needsClarification) {
+    questionUnderstanding = {
+      ...questionUnderstanding,
+      confidence: Math.min(
+        questionUnderstanding.confidence,
+        compoundAnalysis.confidence,
+      ),
+      needs_clarification: true,
+      clarification_kind: compoundAnalysis.clarificationKind,
+    };
   }
 
   const previousCommerceContext = {
@@ -3495,6 +3577,7 @@ export default async function handler(req, res) {
       : [],
     linguistic: linguisticHint,
     understanding: compactQuestionUnderstanding(questionUnderstanding),
+    compound: compactCompoundQuestionAnalysis(compoundAnalysis),
     customerState,
     recentActions: session.lastSuggestedActions || [],
     contextualTurn: contextualIntent,
@@ -3556,6 +3639,14 @@ export default async function handler(req, res) {
       score: contextualIntent.confidence,
       scope: "in_scope",
     };
+  } else if (compoundExplicitIntent) {
+    intentResult = {
+      ...intentResult,
+      intent: compoundExplicitIntent.intent,
+      method: compoundExplicitIntent.method,
+      score: compoundExplicitIntent.confidence,
+      scope: "in_scope",
+    };
   }
 
   session.lastIntent = intentResult.intent || "general";
@@ -3572,6 +3663,15 @@ export default async function handler(req, res) {
     linguisticAnalysis = analyzeIndonesianQuestion(privacySafeQuestion());
     linguisticHint = compactLinguisticAnalysis(linguisticAnalysis);
     groqContext.linguistic = linguisticHint;
+    compoundAnalysis = analyzeCompoundQuestion(privacySafeQuestion(), {
+      recentProducts:
+        session.activeGoal?.products?.length
+          ? session.activeGoal.products
+          : session.lastProducts,
+      focusedProductName: session.activeGoal?.focusedProductName || "",
+    });
+    answerPlan = buildAnswerPlan(compoundAnalysis);
+    groqContext.compound = compactCompoundQuestionAnalysis(compoundAnalysis);
     questionUnderstanding = buildQuestionUnderstanding(
       privacySafeQuestion(),
       {
@@ -4274,6 +4374,11 @@ export default async function handler(req, res) {
 
     // ✅ bikin send() dulu supaya bisa dipakai state handler
     async function send(payload, forceIntent = null) {
+      if (queuedAnswerSections.length) {
+        payload = prependAnswerSections(payload, queuedAnswerSections);
+        queuedAnswerSections = [];
+      }
+
       if (
         payload.type === "products" &&
         Array.isArray(payload.products) &&
@@ -4458,6 +4563,8 @@ export default async function handler(req, res) {
         ...assistantMeta,
         customer_state: customerState,
         understanding: compactQuestionUnderstanding(questionUnderstanding),
+        compound: compactCompoundQuestionAnalysis(compoundAnalysis),
+        answer_plan: compactAnswerPlan(answerPlan),
         router:
           groqRoute?.provider === "groq"
             ? {
@@ -4531,6 +4638,22 @@ export default async function handler(req, res) {
           forceIntent ?? payload.intent ?? session.lastIntent ?? "general",
         assistant_meta: assistantMeta,
       });
+    }
+
+    if (
+      compoundAnalysis.needsClarification &&
+      !getPending(session)
+    ) {
+      const payload = compoundAnalysis.clarificationOptions.length
+        ? buildOptionsPayload(
+            compoundAnalysis.clarificationQuestion,
+            compoundAnalysis.clarificationOptions,
+          )
+        : {
+            type: "text",
+            message: compoundAnalysis.clarificationQuestion,
+          };
+      return await send(payload, compoundAnalysis.primaryIntent || "general");
     }
 
     if (
@@ -4925,7 +5048,10 @@ export default async function handler(req, res) {
     // =======================
     // CEK ONGKIR
     // =======================
-    if (looksLikeShippingQuoteQuestion(rawQuestion)) {
+    if (
+      looksLikeShippingQuoteQuestion(rawQuestion) &&
+      !answerPlan.isMultiSection
+    ) {
       clearPending(session);
 
       intentResult = {
@@ -6785,7 +6911,43 @@ export default async function handler(req, res) {
     // ===============================
     // Product facts + transaction policy
     // ===============================
-    if (looksLikeProductTransactionCompoundQuestion(rawQuestion)) {
+    if (
+      answerPlan.isMultiSection &&
+      answerPlanIncludes(answerPlan, "product_facts") &&
+      answerPlanIncludes(answerPlan, "shipping_quote")
+    ) {
+      let catalog = [];
+      try {
+        catalog = await getCleanProducts();
+      } catch (error) {
+        console.error("ANSWER PLAN PRODUCT FETCH ERROR:", error?.message || error);
+      }
+
+      const productMatch = catalog.length
+        ? resolveRequestedProduct(rawQuestion, catalog, { compound: true })
+        : { product: null, status: "unavailable" };
+      const product = productMatch.product;
+
+      if (product) {
+        session.lastProducts = [product];
+        queuedAnswerSections.push(
+          `**Informasi produk**\n${buildProductTransactionSummary(product, rawQuestion)}`,
+        );
+      } else {
+        queuedAnswerSections.push(
+          productMatch.status === "ambiguous"
+            ? buildProductSearchClarification(productMatch)
+            : "**Informasi produk**\nMaaf, produk yang dimaksud belum bisa dipastikan dari katalog, jadi kondisi, stok, harga, atau promonya belum dapat dikonfirmasi.",
+        );
+      }
+    }
+
+    if (
+      answerPlan.isMultiSection &&
+      answerPlanIncludes(answerPlan, "product_facts") &&
+      answerPlanIncludes(answerPlan, "transaction_policy") &&
+      !answerPlanIncludes(answerPlan, "shipping_quote")
+    ) {
       const policyMessage = buildTransactionPolicyMessage(rawQuestion, {
         codEnabled:
           String(process.env.COD_ENABLED || "false").toLowerCase() === "true",
@@ -6875,21 +7037,25 @@ export default async function handler(req, res) {
       );
 
       if (transactionPolicyMessage) {
-        return await send(
-          {
-            type: "text",
-            intent: "shipping_transaction",
-            message: transactionPolicyMessage,
-            _actionContext: looksLikePaymentMethodQuestion(rawQuestion)
-              ? "payment_methods"
-              : looksLikeInsuranceQuestion(rawQuestion)
-                ? "shipping_insurance"
-              : looksLikeShippingEstimateQuestion(rawQuestion)
-                ? "shipping_estimate"
-                : undefined,
-          },
-          "shipping_transaction",
-        );
+        if (answerPlanIncludes(answerPlan, "shipping_quote")) {
+          queuedAnswerSections.push(transactionPolicyMessage);
+        } else {
+          return await send(
+            {
+              type: "text",
+              intent: "shipping_transaction",
+              message: transactionPolicyMessage,
+              _actionContext: looksLikePaymentMethodQuestion(rawQuestion)
+                ? "payment_methods"
+                : looksLikeInsuranceQuestion(rawQuestion)
+                  ? "shipping_insurance"
+                : looksLikeShippingEstimateQuestion(rawQuestion)
+                  ? "shipping_estimate"
+                  : undefined,
+            },
+            "shipping_transaction",
+          );
+        }
       }
 
       if (looksLikeHowToBuyQuestion(rawQuestion)) {
@@ -6916,7 +7082,12 @@ export default async function handler(req, res) {
       }
 
       // kalau user langsung menulis "Tangerang, Pasar Kemis"
-      const { cityText, districtText } = splitCityDistrict(rawQuestion);
+      const plannedDestination = answerPlanIncludes(answerPlan, "shipping_quote")
+        ? extractShippingDestination(rawQuestion)
+        : "";
+      const { cityText, districtText } = splitCityDistrict(
+        plannedDestination || rawQuestion,
+      );
 
       // kalau ada format kota, kecamatan
       if (cityText && districtText) {
@@ -8294,7 +8465,11 @@ export default async function handler(req, res) {
           !excludedAlternativeProductIds.has(String(p.id || "")),
       );
       const isPopularityQuery = isPopularityStyleQuestion(rawQuestion);
-      const recNeeds = extractRecommendationNeeds(rawQuestion, semantic);
+      const recNeeds = extractRecommendationNeeds(
+        rawQuestion,
+        semantic,
+        compoundAnalysis,
+      );
       const hasStructuredCatalogPreference =
         recNeeds.requestedDecade != null ||
         recNeeds.requestedFranchiseIds.length > 0 ||
@@ -8361,9 +8536,19 @@ export default async function handler(req, res) {
       if (recNeeds.budgetMax != null) {
         updateSlot(session, "budgetMax", recNeeds.budgetMax);
       }
+      if (recNeeds.conditionPreference) {
+        updateSlot(session, "condition", recNeeds.conditionPreference);
+      }
 
       // pakai sumber kandidat yang lebih luas, jangan langsung shortlist mahal
       let recommendationSource = [...candidates];
+
+      recommendationSource = recommendationSource.filter((product) =>
+        productMatchesCompoundConstraints(
+          product,
+          recNeeds.compoundConstraints,
+        ),
+      );
 
       // 🔥 FILTER BUDGET (INI YANG PALING PENTING)
       if (recNeeds.budgetMin != null) {
@@ -8423,8 +8608,18 @@ export default async function handler(req, res) {
 
       // Ulangi dari kandidat penuh, tetapi tetap pertahankan semua constraint keras.
       if (!recommendedProducts.length) {
-        recommendedProducts = pickRecommendedProducts(candidates, recNeeds, 5);
-        recommendationSource = [...candidates];
+        const constrainedCandidates = candidates.filter((product) =>
+          productMatchesCompoundConstraints(
+            product,
+            recNeeds.compoundConstraints,
+          ),
+        );
+        recommendedProducts = pickRecommendedProducts(
+          constrainedCandidates,
+          recNeeds,
+          5,
+        );
+        recommendationSource = constrainedCandidates;
       }
 
       if (!recommendedProducts.length) {
@@ -8432,7 +8627,7 @@ export default async function handler(req, res) {
           {
             type: "text",
             message:
-              "Maaf, belum ada produk ready yang memenuhi era, franchise, ukuran, dan budget yang kamu minta. Aku tidak akan menggantinya dengan produk di luar kriteria.",
+              "Maaf, belum ada produk yang memenuhi stok, kondisi, tujuan penggunaan, dan budget yang kamu minta. Aku tidak akan menggantinya dengan produk di luar kriteria.",
           },
           "recommendation",
         );
