@@ -59,8 +59,33 @@ test("separates generic promo questions from product-specific promo searches", (
     [],
   );
   assert.deepEqual(
+    extractPromoSubjectKeywords("ada promo engga sih disini"),
+    [],
+  );
+  assert.deepEqual(
+    extractPromoSubjectKeywords("kalian punya penawaran diskon minggu ini?"),
+    [],
+  );
+  assert.deepEqual(
+    extractPromoSubjectKeywords("promo apa yang tersedia di toko Robot Jadul?"),
+    [],
+  );
+  assert.deepEqual(extractPromoSubjectKeywords("promonya apa aja?"), []);
+  assert.deepEqual(
+    extractPromoSubjectKeywords("lagi ada potongan harga nggak?"),
+    [],
+  );
+  assert.deepEqual(
+    extractPromoSubjectKeywords("ada promo terbaru buat kolektor?"),
+    [],
+  );
+  assert.deepEqual(
     extractPromoSubjectKeywords("ada promo Voltes V engga?"),
     ["voltes"],
+  );
+  assert.deepEqual(
+    extractPromoSubjectKeywords("ada promo Gundam di sini?"),
+    ["gundam"],
   );
 });
 
