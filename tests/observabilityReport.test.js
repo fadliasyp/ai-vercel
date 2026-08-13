@@ -20,6 +20,12 @@ test("summarizes chatbot reliability, latency, and model usage", () => {
       latency_ms: 100,
       product_count: 3,
       error_code: "none",
+      answer_coverage_before: 0.5,
+      answer_coverage_after: 1,
+      coverage_requested: ["promo", "cod"],
+      coverage_repaired: ["promo"],
+      coverage_clarified: ["cod"],
+      coverage_unresolved: [],
     },
     {
       status: "success",
@@ -32,6 +38,12 @@ test("summarizes chatbot reliability, latency, and model usage", () => {
       latency_ms: 200,
       product_count: 1,
       error_code: "none",
+      answer_coverage_before: 1,
+      answer_coverage_after: 1,
+      coverage_requested: ["stock"],
+      coverage_repaired: [],
+      coverage_clarified: [],
+      coverage_unresolved: [],
     },
     {
       status: "error",
@@ -56,6 +68,12 @@ test("summarizes chatbot reliability, latency, and model usage", () => {
       latency_ms: 300,
       product_count: 0,
       error_code: "none",
+      answer_coverage_before: 0,
+      answer_coverage_after: 0,
+      coverage_requested: ["completeness"],
+      coverage_repaired: [],
+      coverage_clarified: [],
+      coverage_unresolved: ["completeness"],
     },
     {
       status: "success",
@@ -84,6 +102,16 @@ test("summarizes chatbot reliability, latency, and model usage", () => {
   assert.equal(report.byIntent[0].averageConfidence, 0.8);
   assert.equal(report.byAssistant[0].name, "groq/openai/gpt-oss-20b");
   assert.equal(report.byError[0].name, "aborterror");
+  assert.equal(report.coverage.requests, 3);
+  assert.equal(report.coverage.averageBefore, 0.5);
+  assert.equal(report.coverage.averageAfter, 2 / 3);
+  assert.equal(report.coverage.fullyCovered, 2);
+  assert.equal(report.coverage.repairedFacets, 1);
+  assert.equal(report.coverage.clarifiedFacets, 1);
+  assert.equal(report.coverage.unresolvedFacets, 1);
+  assert.deepEqual(report.coverage.byUnresolvedFacet, [
+    { name: "completeness", occurrences: 1 },
+  ]);
 });
 
 test("returns a stable empty report", () => {
@@ -92,6 +120,8 @@ test("returns a stable empty report", () => {
   assert.equal(report.excludedGreetings, 0);
   assert.equal(report.successRate, 0);
   assert.deepEqual(report.byIntent, []);
+  assert.equal(report.coverage.requests, 0);
+  assert.equal(report.coverage.averageAfter, null);
 });
 
 test("summarizes customer satisfaction without conversation content", () => {
@@ -144,6 +174,12 @@ test("renders a stable readable Markdown report", () => {
       latency_ms: 250,
       product_count: 2,
       error_code: "none",
+      answer_coverage_before: 0.5,
+      answer_coverage_after: 1,
+      coverage_requested: ["promo", "stock"],
+      coverage_repaired: ["promo"],
+      coverage_clarified: [],
+      coverage_unresolved: [],
     },
   ]);
   const feedback = summarizeChatFeedback([
@@ -165,6 +201,9 @@ test("renders a stable readable Markdown report", () => {
   assert.match(markdown, /2026-08-12T00:00:00\.000Z/);
   assert.match(markdown, /\| Success rate \| 100\.0% \|/);
   assert.match(markdown, /\| Greeting otomatis diabaikan \| 0 \|/);
+  assert.match(markdown, /## Answer Coverage/);
+  assert.match(markdown, /\| Coverage sebelum auto-repair \| 50\.0% \|/);
+  assert.match(markdown, /\| Coverage setelah auto-repair \| 100\.0% \|/);
   assert.match(markdown, /\| price_promo \| 1 \| 0 \| 100\.0% \| 250 ms \| 0\.90 \|/);
   assert.match(markdown, /## Kepuasan Pelanggan/);
   assert.match(markdown, /\| Helpful rate \| 100\.0% \|/);

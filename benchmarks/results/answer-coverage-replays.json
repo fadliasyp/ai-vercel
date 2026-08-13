@@ -1,0 +1,140 @@
+{
+  "summary": {
+    "conversations": 5,
+    "turns": 6,
+    "passed": 6,
+    "failed": 0,
+    "averageCoverageBefore": 0.39166666666666666,
+    "averageCoverageAfter": 0.8333333333333334,
+    "repairedFacets": 6,
+    "clarifiedFacets": 1,
+    "unresolvedFacets": 1
+  },
+  "results": [
+    {
+      "id": "compound-product-needs:1",
+      "scenario": "Rekomendasi dengan banyak kriteria",
+      "passed": true,
+      "failures": [],
+      "observation": {
+        "requested": [
+          "product_condition",
+          "completeness",
+          "stock",
+          "recommendation",
+          "budget"
+        ],
+        "before_coverage": 0.6,
+        "after_coverage": 1,
+        "repaired": [
+          "product_condition",
+          "completeness"
+        ],
+        "clarified": [],
+        "unresolved": [],
+        "passed": true
+      }
+    },
+    {
+      "id": "transaction-policy-repair:1",
+      "scenario": "Jawaban kebijakan transaksi masih parsial",
+      "passed": true,
+      "failures": [],
+      "observation": {
+        "requested": [
+          "insurance",
+          "packing",
+          "cod",
+          "payment_methods"
+        ],
+        "before_coverage": 0.25,
+        "after_coverage": 1,
+        "repaired": [
+          "insurance",
+          "packing",
+          "payment_methods"
+        ],
+        "clarified": [],
+        "unresolved": [],
+        "passed": true
+      }
+    },
+    {
+      "id": "shipping-clarification:1",
+      "scenario": "Ongkir membutuhkan kecamatan tujuan",
+      "passed": true,
+      "failures": [],
+      "observation": {
+        "requested": [
+          "shipping_quote"
+        ],
+        "before_coverage": 0,
+        "after_coverage": 1,
+        "repaired": [],
+        "clarified": [
+          "shipping_quote"
+        ],
+        "unresolved": [],
+        "passed": true
+      }
+    },
+    {
+      "id": "honest-unresolved:1",
+      "scenario": "Data tidak tersedia dan tidak boleh dikarang",
+      "passed": true,
+      "failures": [],
+      "observation": {
+        "requested": [
+          "promo"
+        ],
+        "before_coverage": 0,
+        "after_coverage": 0,
+        "repaired": [],
+        "clarified": [],
+        "unresolved": [
+          "promo"
+        ],
+        "passed": false
+      }
+    },
+    {
+      "id": "previous-products-followup:1",
+      "scenario": "Follow-up terhadap produk sebelumnya",
+      "passed": true,
+      "failures": [],
+      "observation": {
+        "requested": [
+          "stock",
+          "recommendation",
+          "budget"
+        ],
+        "before_coverage": 1,
+        "after_coverage": 1,
+        "repaired": [],
+        "clarified": [],
+        "unresolved": [],
+        "passed": true
+      }
+    },
+    {
+      "id": "previous-products-followup:2",
+      "scenario": "Follow-up terhadap produk sebelumnya",
+      "passed": true,
+      "failures": [],
+      "observation": {
+        "requested": [
+          "packing",
+          "same_day"
+        ],
+        "before_coverage": 0.5,
+        "after_coverage": 1,
+        "repaired": [
+          "same_day"
+        ],
+        "clarified": [],
+        "unresolved": [],
+        "passed": true
+      }
+    }
+  ]
+}

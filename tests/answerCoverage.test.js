@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   detectRequestedAnswerFacets,
   evaluateAnswerCoverage,
+  repairAnswerCoverage,
 } from "../lib/chatbot/answerCoverage.js";
 import { buildTransactionPolicyMessage } from "../lib/chatbot/transactionIntent.js";
 
@@ -72,4 +73,53 @@ test("checks budget against returned product prices", () => {
 
   assert.equal(coverage.status.recommendation, "answered");
   assert.equal(coverage.status.budget, "missing");
+});
+
+test("repairs missing factual sections and records the repaired facets", () => {
+  const result = repairAnswerCoverage(
+    "Bagaimana kondisi dan kelengkapannya?",
+    {
+      type: "products",
+      products: [{ name: "Robot A", condition: "BIB" }],
+    },
+    {
+      answerSections: {
+        product_condition: "Kondisi: **BIB**.",
+        completeness: "Kelengkapan belum tercantum secara rinci di katalog.",
+      },
+    },
+  );
+
+  assert.equal(result.after.passed, true);
+  assert.deepEqual(result.repaired, ["product_condition", "completeness"]);
+  assert.match(result.payload.reasoning_text, /Kondisi: \*\*BIB\*\*/);
+  assert.match(result.payload.reasoning_text, /Kelengkapan belum tercantum/);
+});
+
+test("turns an unanswerable missing facet into a precise clarification", () => {
+  const result = repairAnswerCoverage(
+    "Berapa ongkirnya?",
+    { type: "text", message: "Aku bantu cek." },
+    {
+      clarificationSections: {
+        shipping_quote:
+          "Untuk melengkapi cek ongkir, sebutkan kota/kabupaten dan kecamatan tujuan.",
+      },
+    },
+  );
+
+  assert.equal(result.after.passed, true);
+  assert.deepEqual(result.clarified, ["shipping_quote"]);
+  assert.deepEqual(result.unresolved, []);
+});
+
+test("keeps unsupported repairs visible as unresolved instead of inventing facts", () => {
+  const result = repairAnswerCoverage(
+    "Ada promo dan bisa COD?",
+    { type: "text", message: "Aku belum punya datanya." },
+  );
+
+  assert.equal(result.after.passed, false);
+  assert.deepEqual(result.unresolved, ["promo", "cod"]);
+  assert.deepEqual(result.repaired, []);
 });

@@ -109,7 +109,7 @@ const [rows, feedbackRows] = await Promise.all([
   fetchRows(
     client,
     "chat_observability",
-    "status,intent,intent_score,assistant_provider,assistant_model,router_provider,router_model,latency_ms,product_count,error_code,created_at",
+    "status,intent,intent_score,assistant_provider,assistant_model,router_provider,router_model,latency_ms,product_count,error_code,answer_coverage_before,answer_coverage_after,coverage_requested,coverage_repaired,coverage_clarified,coverage_unresolved,created_at",
     since,
   ),
   fetchRows(
@@ -139,6 +139,29 @@ console.log(`Error         : ${report.errors}`);
 console.log(`Latency avg   : ${report.averageLatencyMs} ms`);
 console.log(`Latency p95   : ${report.p95LatencyMs} ms`);
 console.log(`Produk tampil : ${report.productsReturned}`);
+console.log(`\nAnswer coverage`);
+console.log(`Request terukur : ${report.coverage.requests}`);
+console.log(
+  `Sebelum repair  : ${
+    report.coverage.averageBefore === null
+      ? "-"
+      : percent(report.coverage.averageBefore)
+  }`,
+);
+console.log(
+  `Setelah repair  : ${
+    report.coverage.averageAfter === null
+      ? "-"
+      : percent(report.coverage.averageAfter)
+  }`,
+);
+console.log(`Tercakup penuh  : ${report.coverage.fullyCovered}`);
+console.log(`Facet diperbaiki: ${report.coverage.repairedFacets}`);
+console.log(`Facet klarifikasi: ${report.coverage.clarifiedFacets}`);
+console.log(`Facet unresolved: ${report.coverage.unresolvedFacets}`);
+if (report.coverage.byUnresolvedFacet.length) {
+  console.table(report.coverage.byUnresolvedFacet);
+}
 
 printGroups("Per intent", report.byIntent, true);
 printGroups("Editor jawaban", report.byAssistant);

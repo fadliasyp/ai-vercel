@@ -15,9 +15,25 @@ create table if not exists public.chat_observability (
   product_count integer not null default 0 check (product_count >= 0),
   option_count integer not null default 0 check (option_count >= 0),
   action_count integer not null default 0 check (action_count >= 0),
+  answer_coverage_before double precision check (answer_coverage_before between 0 and 1),
+  answer_coverage_after double precision check (answer_coverage_after between 0 and 1),
+  coverage_requested text[] not null default '{}'::text[],
+  coverage_repaired text[] not null default '{}'::text[],
+  coverage_clarified text[] not null default '{}'::text[],
+  coverage_unresolved text[] not null default '{}'::text[],
   error_code text not null default 'none',
   created_at timestamptz not null default now()
 );
+
+alter table public.chat_observability
+  add column if not exists answer_coverage_before double precision
+    check (answer_coverage_before between 0 and 1),
+  add column if not exists answer_coverage_after double precision
+    check (answer_coverage_after between 0 and 1),
+  add column if not exists coverage_requested text[] not null default '{}'::text[],
+  add column if not exists coverage_repaired text[] not null default '{}'::text[],
+  add column if not exists coverage_clarified text[] not null default '{}'::text[],
+  add column if not exists coverage_unresolved text[] not null default '{}'::text[];
 
 create index if not exists chat_observability_created_at_idx
   on public.chat_observability (created_at desc);

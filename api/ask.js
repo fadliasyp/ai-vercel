@@ -241,6 +241,7 @@ import {
   prependAnswerSections,
   productMatchesCompoundConstraints,
 } from "../lib/chatbot/compoundQuestion.js";
+import { repairAnswerCoverage } from "../lib/chatbot/answerCoverage.js";
 
 console.log("ASK.JS LOADED");
 
@@ -3486,6 +3487,7 @@ export default async function handler(req, res) {
   });
   let answerPlan = buildAnswerPlan(compoundAnalysis);
   let queuedAnswerSections = [];
+  let answerPlanProduct = null;
 
   const directBudgetInfo = extractBudgetRange(rawQuestion);
   const recommendationBudgetFollowUp = isRecommendationBudgetFollowUp(
@@ -4552,6 +4554,70 @@ export default async function handler(req, res) {
         intent: finalIntent,
       });
 
+      const coverageProduct =
+        finalPayload.products?.[0] || answerPlanProduct || null;
+      const productCoverageSection = coverageProduct
+        ? `**Informasi produk yang belum tercantum**\n${buildProductTransactionSummary(
+            coverageProduct,
+            rawQuestion,
+          )}`
+        : "";
+      const transactionCoverageSection = buildTransactionPolicyMessage(
+        privacySafeQuestion(),
+        {
+          codEnabled:
+            String(process.env.COD_ENABLED || "false").toLowerCase() ===
+            "true",
+        },
+      );
+      const storeAddress =
+        process.env.STORE_ADDRESS_TEXT ||
+        "Robot Jadul. Blok M Square lt 3A blok A no 36-37. Jl Melawai 5. Jakarta Selatan 12160. Indonesia";
+      const storeCoverageSection = buildStoreVisitMessage({
+        hoursText: process.env.STORE_HOURS_TEXT || "",
+        addressText: storeAddress,
+      });
+      const shippingDestination = extractShippingDestination(rawQuestion);
+      const productClarification =
+        "Sebutkan nama produk atau kode produknya agar data katalog yang benar bisa diperiksa.";
+      const coverageRepair = repairAnswerCoverage(
+        privacySafeQuestion(),
+        finalPayload,
+        {
+          answerSections: {
+            product_condition: productCoverageSection,
+            completeness: productCoverageSection,
+            stock: productCoverageSection,
+            promo: productCoverageSection,
+            insurance: transactionCoverageSection,
+            packing: transactionCoverageSection,
+            shipping_estimate: transactionCoverageSection,
+            same_day: transactionCoverageSection,
+            cod: transactionCoverageSection,
+            payment_methods: transactionCoverageSection,
+            store_location: storeCoverageSection,
+            store_hours: storeCoverageSection,
+            return_policy: buildReturnPolicyMessage(rawQuestion),
+            refund: buildReturnPolicyMessage(rawQuestion),
+          },
+          clarificationSections: {
+            product_condition: productClarification,
+            completeness: productClarification,
+            stock: productClarification,
+            promo: productClarification,
+            shipping_quote: shippingDestination
+              ? `Untuk menghitung ongkir ke **${shippingDestination}**, sebutkan juga kecamatan tujuan.`
+              : "Untuk melengkapi cek ongkir, sebutkan kota/kabupaten dan kecamatan tujuan.",
+          },
+        },
+      );
+      finalPayload = coverageRepair.payload;
+
+      if (isRequiredClarificationPayload(finalPayload)) {
+        delete finalPayload.actions;
+        delete finalPayload.suggestions;
+      }
+
       finalPayload = serializeSuggestedActions(finalPayload);
       const finalSuggestedActions =
         finalPayload.actions || finalPayload.suggestions || [];
@@ -4565,6 +4631,13 @@ export default async function handler(req, res) {
         understanding: compactQuestionUnderstanding(questionUnderstanding),
         compound: compactCompoundQuestionAnalysis(compoundAnalysis),
         answer_plan: compactAnswerPlan(answerPlan),
+        answer_coverage: {
+          requested: coverageRepair.after.requested,
+          repaired: coverageRepair.repaired,
+          clarified: coverageRepair.clarified,
+          unresolved: coverageRepair.unresolved,
+          coverage: coverageRepair.after.coverage,
+        },
         router:
           groqRoute?.provider === "groq"
             ? {
@@ -4605,6 +4678,12 @@ export default async function handler(req, res) {
               productCount: finalPayload.products?.length,
               optionCount: finalPayload.options?.length,
               actionCount: finalPayload.actions?.length,
+              answerCoverageBefore: coverageRepair.before.coverage,
+              answerCoverageAfter: coverageRepair.after.coverage,
+              coverageRequested: coverageRepair.after.requested,
+              coverageRepaired: coverageRepair.repaired,
+              coverageClarified: coverageRepair.clarified,
+              coverageUnresolved: coverageRepair.unresolved,
             }),
       ]);
 
@@ -6930,6 +7009,7 @@ export default async function handler(req, res) {
 
       if (product) {
         session.lastProducts = [product];
+        answerPlanProduct = product;
         queuedAnswerSections.push(
           `**Informasi produk**\n${buildProductTransactionSummary(product, rawQuestion)}`,
         );

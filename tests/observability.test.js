@@ -21,6 +21,12 @@ test("builds bounded privacy-safe chatbot metrics", () => {
       productCount: 3,
       optionCount: -2,
       actionCount: 2,
+      answerCoverageBefore: -0.2,
+      answerCoverageAfter: 1.4,
+      coverageRequested: ["promo", "cod", "promo", "nama_pelanggan"],
+      coverageRepaired: ["promo"],
+      coverageClarified: ["cod"],
+      coverageUnresolved: ["rahasia"],
       question: "email pelanggan@example.com dan 081234567890",
       image: "data:image/jpeg;base64,rahasia-foto-pelanggan",
       imageName: "koleksi-pribadi.jpg",
@@ -38,6 +44,12 @@ test("builds bounded privacy-safe chatbot metrics", () => {
   assert.equal(metric.latency_ms, 1251);
   assert.equal(metric.option_count, 0);
   assert.equal(metric.assistant_model, "openai/gpt-oss-20b");
+  assert.equal(metric.answer_coverage_before, 0);
+  assert.equal(metric.answer_coverage_after, 1);
+  assert.deepEqual(metric.coverage_requested, ["promo", "cod"]);
+  assert.deepEqual(metric.coverage_repaired, ["promo"]);
+  assert.deepEqual(metric.coverage_clarified, ["cod"]);
+  assert.deepEqual(metric.coverage_unresolved, []);
   assert.equal("question" in metric, false);
   assert.equal("image" in metric, false);
   assert.doesNotMatch(
