@@ -97,6 +97,14 @@ test("builds compact messages with ecommerce context", () => {
         question_type: "yes_no",
         entities: { product_terms: ["baju"] },
       },
+      understanding: {
+        subject_type: "product",
+        domain_question_type: "stock_availability",
+        reference_scope: "previous_products",
+        required_facts: ["catalog_stock"],
+        confidence: 0.95,
+        needs_clarification: false,
+      },
     },
   });
 
@@ -115,6 +123,14 @@ test("builds compact messages with ecommerce context", () => {
     negated: true,
     question_type: "yes_no",
     product_terms: ["baju"],
+  });
+  assert.deepEqual(userPayload.context.question_understanding, {
+    subject_type: "product",
+    domain_question_type: "stock_availability",
+    reference_scope: "previous_products",
+    required_facts: ["catalog_stock"],
+    confidence: 0.95,
+    needs_clarification: false,
   });
 });
 
@@ -154,4 +170,6 @@ test("semantic prompt defines the risky intent boundaries", () => {
   assert.match(prompt, /product_names \["baju"\]/);
   assert.match(prompt, /Robot Jadul adalah toko/);
   assert.match(prompt, /context\.language_analysis/);
+  assert.match(prompt, /context\.question_understanding/);
+  assert.match(prompt, /jangan menebak salah satu makna/);
 });

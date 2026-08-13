@@ -174,6 +174,10 @@ import {
   analyzeIndonesianQuestion,
   compactLinguisticAnalysis,
 } from "../lib/chatbot/linguisticAnalysis.js";
+import {
+  buildQuestionUnderstanding,
+  compactQuestionUnderstanding,
+} from "../lib/chatbot/questionUnderstanding.js";
 import { buildIndonesianIntentText } from "../lib/chatbot/indonesianMorphology.js";
 import {
   buildGeneralStockPolicyMessage,
@@ -3335,7 +3339,7 @@ export default async function handler(req, res) {
   let effectiveQuestion = normalizeQuestion(privacySafeQuestion());
   let q = effectiveQuestion.toLowerCase();
   const productQueryScope = resolveProductQueryScope(rawQuestion);
-  const usesPreviousProductContext = productQueryScope === "previous";
+  let usesPreviousProductContext = productQueryScope === "previous";
   let linguisticAnalysis = analyzeIndonesianQuestion(privacySafeQuestion());
   let linguisticHint = compactLinguisticAnalysis(linguisticAnalysis);
 
@@ -3379,6 +3383,25 @@ export default async function handler(req, res) {
 
   expireStaleLastBotQuestion(session);
 
+  const initialExplicitIntent = detectExplicitIntentOverride(rawQuestion);
+  let questionUnderstanding = buildQuestionUnderstanding(
+    privacySafeQuestion(),
+    {
+      explicitIntent: initialExplicitIntent?.intent || "",
+      linguisticAnalysis,
+      productQueryScope,
+      hasRecentProducts:
+        Array.isArray(session.lastProducts) && session.lastProducts.length > 0,
+      hasPageProduct: Boolean(
+        pageContext?.productId || pageContext?.productName || pageContext?.url,
+      ),
+      hasPending: Boolean(getPending(session)),
+    },
+  );
+  if (questionUnderstanding.reference_scope === "previous_products") {
+    usesPreviousProductContext = true;
+  }
+
   const previousCommerceContext = {
     lastIntent: session.lastIntent || "",
     lastTopic: usesPreviousProductContext ? session.lastTopic || "" : "",
@@ -3403,6 +3426,7 @@ export default async function handler(req, res) {
       ? session.lastProducts.map((product) => product?.name).filter(Boolean)
       : [],
     linguistic: linguisticHint,
+    understanding: compactQuestionUnderstanding(questionUnderstanding),
     customerState,
     recentActions: session.lastSuggestedActions || [],
   };
@@ -3468,6 +3492,24 @@ export default async function handler(req, res) {
     linguisticAnalysis = analyzeIndonesianQuestion(privacySafeQuestion());
     linguisticHint = compactLinguisticAnalysis(linguisticAnalysis);
     groqContext.linguistic = linguisticHint;
+    questionUnderstanding = buildQuestionUnderstanding(
+      privacySafeQuestion(),
+      {
+        explicitIntent:
+          detectExplicitIntentOverride(rawQuestion)?.intent || "",
+        linguisticAnalysis,
+        productQueryScope,
+        hasRecentProducts:
+          Array.isArray(session.lastProducts) &&
+          session.lastProducts.length > 0,
+        hasPageProduct: Boolean(
+          pageContext?.productId || pageContext?.productName || pageContext?.url,
+        ),
+        hasPending: Boolean(getPending(session)),
+      },
+    );
+    groqContext.understanding =
+      compactQuestionUnderstanding(questionUnderstanding);
   }
 
   const isPromoQuery =
@@ -3680,7 +3722,7 @@ export default async function handler(req, res) {
   const selectedSuggestionIntent = selectedSuggestion
     ? suggestedActionIntent(selectedSuggestion)
     : null;
-  const explicitCurrentIntent = detectExplicitIntentOverride(rawQuestion);
+  const explicitCurrentIntent = initialExplicitIntent;
   const pendingExplicitIntent =
     explicitCurrentIntent?.intent ||
     selectedSuggestionIntent ||
@@ -4330,6 +4372,7 @@ export default async function handler(req, res) {
       assistantMeta = {
         ...assistantMeta,
         customer_state: customerState,
+        understanding: compactQuestionUnderstanding(questionUnderstanding),
         router:
           groqRoute?.provider === "groq"
             ? {
@@ -4402,6 +4445,52 @@ export default async function handler(req, res) {
           forceIntent ?? payload.intent ?? session.lastIntent ?? "general",
         assistant_meta: assistantMeta,
       });
+    }
+
+    if (
+      questionUnderstanding.needs_clarification &&
+      questionUnderstanding.clarification_kind === "origin_meaning" &&
+      !getPending(session)
+    ) {
+      const recentProductNames = (session.lastProducts || [])
+        .map((product) => String(product?.name || "").trim())
+        .filter(Boolean);
+      const productOriginQuestion =
+        recentProductNames.length === 1
+          ? `${recentProductNames[0]} dibuat atau diproduksi di negara mana?`
+          : "Saya menanyakan negara produksi salah satu produk sebelumnya";
+
+      return await send(
+        buildOptionsPayload(
+          "Yang kamu maksud asal pengiriman dari toko atau negara produksi produknya?",
+          [
+            {
+              label: "Asal pengiriman",
+              value: "Pengiriman pesanan diproses dari mana?",
+            },
+            {
+              label: "Negara produksi produk",
+              value: productOriginQuestion,
+            },
+          ],
+        ),
+        "general",
+      );
+    }
+
+    if (
+      semantic?.needs_followup &&
+      semantic.followup_question &&
+      !getPending(session) &&
+      !isGreetingOnly(rawQuestion)
+    ) {
+      return await send(
+        {
+          type: "text",
+          message: semantic.followup_question,
+        },
+        semantic.intent || intentResult.intent || "general",
+      );
     }
 
     async function verifyOrderStatus(orderId, verification, attempts = 0) {
