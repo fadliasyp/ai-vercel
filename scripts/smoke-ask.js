@@ -209,6 +209,16 @@ const CASES = [
     minRequestedFacets: 3,
   },
   {
+    id: "compound_getter_promo_stock_pcs",
+    question:
+      "Halo, ada Getter Robo yang lagi diskon ngga? Kalo ada, ready stock sisa berapa pcs sih",
+    expectedIntent: "price_promo",
+    minProducts: 1,
+    checkCoverage: true,
+    minRequestedFacets: 2,
+    forbiddenText: ["tanya langsung ke admin", "belum punya informasi stok"],
+  },
+  {
     id: "confidence_exact_product",
     question:
       "cek stok Soul of Chogokin GX-47T Energer Z Test Type",
@@ -276,6 +286,7 @@ const COMPOUND_CASE_IDS = new Set([
   "compound_product_detail_stock",
   "compound_transaction_policy",
   "compound_stock_promo_dispatch",
+  "compound_getter_promo_stock_pcs",
   "store_visit",
   "return_policy",
 ]);

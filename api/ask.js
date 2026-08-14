@@ -206,6 +206,7 @@ import {
 import {
   buildCatalogNoMatchResponse,
   buildUnknownAnswerResponse,
+  looksLikeAdminContactQuestion,
 } from "../lib/chatbot/fallbackResponses.js";
 import {
   buildAssistantCapabilitiesMessage,
@@ -3272,25 +3273,6 @@ function isGenericProductWord(s = "") {
     x === "produk ini" ||
     x === "barang ini" ||
     x === "item ini"
-  );
-}
-
-// GENERAL FALLBACK MESSAGE
-function looksLikeAdminContactQuestion(q = "") {
-  const s = String(q || "").toLowerCase();
-
-  return (
-    s.includes("kontak admin") ||
-    s.includes("hubungi admin") ||
-    s.includes("nomor admin") ||
-    s.includes("wa admin") ||
-    s.includes("whatsapp admin") ||
-    s.includes("cs") ||
-    s.includes("customer service") ||
-    s.includes("kontak cs") ||
-    s.includes("hubungi cs") ||
-    s.includes("lebih yakin sebelum order") ||
-    s.includes("mau tanya admin")
   );
 }
 
