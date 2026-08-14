@@ -134,6 +134,14 @@ test("routes real customer turns without stale products or fallback collisions",
       return response.payload;
     };
 
+    const recommendation = await ask(
+      "Rekomendasikan robot yang paling worth it dan ready stock",
+    );
+    assert.equal(recommendation.intent, "recommendation");
+    assert.equal(recommendation.type, "products");
+    assert.ok(productNames(recommendation).length > 0);
+    assert.match(recommendation.intro, /rekomendasi|pilih/i);
+
     const godmars = await ask("Cari produk Godmars");
     assert.equal(godmars.intent, "product_discovery");
     assert.deepEqual(productNames(godmars), [
