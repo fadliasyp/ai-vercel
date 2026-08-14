@@ -563,19 +563,19 @@ export default async function handler(req, res) {
 
   const productClarificationPending = getPending(session);
   if (
-    selectedSuggestion?.product_name &&
     productClarificationPending?.type === "product_clarification" &&
     productClarificationPending?.stage === "choose_product"
   ) {
-    const selectedId = Number(selectedSuggestion.product_id);
-    const selectedName = String(selectedSuggestion.product_name).trim();
-    const selectedProduct = (
-      productClarificationPending.data?.candidates || []
-    ).find(
-      (candidate) =>
-        Number(candidate?.id) === selectedId &&
-        String(candidate?.name || "").trim() === selectedName,
-    );
+    const candidates = productClarificationPending.data?.candidates || [];
+    const selectedId = Number(selectedSuggestion?.product_id);
+    const selectedName = String(selectedSuggestion?.product_name || "").trim();
+    const selectedProduct = selectedName
+      ? candidates.find(
+          (candidate) =>
+            Number(candidate?.id) === selectedId &&
+            String(candidate?.name || "").trim() === selectedName,
+        )
+      : assessProductSearchConfidence(rawQuestion, candidates).product;
 
     if (selectedProduct) {
       rawQuestion = [
@@ -639,6 +639,39 @@ export default async function handler(req, res) {
   });
   let answerPlan = buildAnswerPlan(compoundAnalysis);
   let queuedAnswerSections = [];
+
+  function currentProductClarification(productMatch) {
+    const destination =
+      extractInternationalShippingDestination(rawQuestion) ||
+      extractShippingDestination(rawQuestion);
+    return buildProductSearchClarification(productMatch, {
+      question: privacySafeQuestion(),
+      facets: compoundAnalysis.facets,
+      destination,
+    });
+  }
+
+  function beginProductClarification(productMatch, intent) {
+    const options = buildProductSearchOptions(productMatch, intent);
+    setPending(session, {
+      type: "product_clarification",
+      stage: "choose_product",
+      data: {
+        originalQuestion: privacySafeQuestion(),
+        candidates: options.map((option) => ({
+          id: option.product_id,
+          name: option.product_name,
+        })),
+      },
+    });
+    return {
+      type: "options",
+      intro: currentProductClarification(productMatch),
+      options,
+      intent,
+      _deferCoverageUntilProductSelection: true,
+    };
+  }
   let answerPlanProduct = null;
   let plannedProductFactsPrepared = false;
   let cleanProducts = null;
@@ -1605,7 +1638,7 @@ export default async function handler(req, res) {
 
       queuedAnswerSections.push(
         productMatch.status === "ambiguous"
-          ? buildProductSearchClarification(productMatch)
+          ? currentProductClarification(productMatch)
           : productMatch.status === "unavailable"
             ? "**Informasi produk**\nMaaf, data katalog sedang sulit diakses sehingga kondisi atau kelengkapan produk belum bisa dipastikan sekarang."
             : "**Informasi produk**\nMaaf, produk yang dimaksud belum bisa dipastikan dari katalog, jadi kondisi atau kelengkapannya belum dapat dikonfirmasi.",
@@ -4214,30 +4247,9 @@ export default async function handler(req, res) {
           `**Informasi produk**\n${buildProductTransactionSummary(product, rawQuestion)}`,
         );
       } else if (productMatch.status === "ambiguous") {
-        const options = buildProductSearchOptions(
-          productMatch,
-          "shipping_transaction",
-        );
         queuedAnswerSections = [];
-        setPending(session, {
-          type: "product_clarification",
-          stage: "choose_product",
-          data: {
-            originalQuestion: privacySafeQuestion(),
-            candidates: options.map((option) => ({
-              id: option.product_id,
-              name: option.product_name,
-            })),
-          },
-        });
         return await send(
-          {
-            type: "options",
-            intro: buildProductSearchClarification(productMatch),
-            options,
-            intent: "shipping_transaction",
-            _deferCoverageUntilProductSelection: true,
-          },
+          beginProductClarification(productMatch, "shipping_transaction"),
           "shipping_transaction",
         );
       } else {
@@ -4287,14 +4299,18 @@ export default async function handler(req, res) {
       const product = productMatch.product;
 
       if (!product) {
+        if (productMatch.status === "ambiguous") {
+          return await send(
+            beginProductClarification(productMatch, "shipping_transaction"),
+            "shipping_transaction",
+          );
+        }
         const requestedTerm = extractRequestedCatalogTerm(rawQuestion);
         return await send(
           {
             type: "text",
             message: [
-              productMatch.status === "ambiguous"
-                ? buildProductSearchClarification(productMatch)
-                : `Maaf, ${requestedTerm ? `produk **${requestedTerm}**` : "produk yang kamu maksud"} belum ditemukan di katalog Robot Jadul, jadi stok, harga, atau promonya belum bisa dipastikan.`,
+              `Maaf, ${requestedTerm ? `produk **${requestedTerm}**` : "produk yang kamu maksud"} belum ditemukan di katalog Robot Jadul, jadi stok, harga, atau promonya belum bisa dipastikan.`,
               policyMessage,
             ]
               .filter(Boolean)
@@ -6234,11 +6250,7 @@ Kembalikan JSON valid:
 
       if (productMatch.status === "ambiguous") {
         return await send(
-          {
-            type: "options",
-            intro: buildProductSearchClarification(productMatch),
-            options: buildProductSearchOptions(productMatch, "price_promo"),
-          },
+          beginProductClarification(productMatch, "price_promo"),
           "price_promo",
         );
       }
@@ -6308,14 +6320,7 @@ Kembalikan JSON valid:
 
       if (productMatch.status === "ambiguous") {
         return await send(
-          {
-            type: "options",
-            intro: buildProductSearchClarification(productMatch),
-            options: buildProductSearchOptions(
-              productMatch,
-              "stock_availability",
-            ),
-          },
+          beginProductClarification(productMatch, "stock_availability"),
           "stock_availability",
         );
       }
@@ -6415,11 +6420,7 @@ Kembalikan JSON valid:
 
       if (productMatch.status === "ambiguous") {
         return await send(
-          {
-            type: "options",
-            intro: buildProductSearchClarification(productMatch),
-            options: buildProductSearchOptions(productMatch, "product_detail"),
-          },
+          beginProductClarification(productMatch, "product_detail"),
           "product_detail",
         );
       }

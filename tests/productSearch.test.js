@@ -148,6 +148,17 @@ test("separates confident, ambiguous, and partial product matches", () => {
     buildProductSearchClarification(ambiguous),
     /Mazinger Z Infinity/,
   );
+  const compoundClarification = buildProductSearchClarification(ambiguous, {
+    question:
+      "Tingginya berapa, ongkir ke Malaysia berapa, dan total harganya berapa USD?",
+    facets: ["dimensions", "price", "shipping_quote"],
+    destination: "Malaysia",
+  });
+  assert.match(compoundClarification, /tinggi produk/i);
+  assert.match(compoundClarification, /harga dan total dalam USD/i);
+  assert.match(compoundClarification, /ongkir ke Malaysia/i);
+  assert.match(compoundClarification, /sesuai produk pilihanmu/i);
+  assert.match(compoundClarification, /ketik nama produk/i);
   assert.deepEqual(buildProductSearchOptions(ambiguous, "stock_availability"), [
     {
       label: "Super Robot Chogokin Mazinger Z",

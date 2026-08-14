@@ -175,6 +175,10 @@ test("routes real customer turns without stale products or fallback collisions",
       1,
     );
     assert.doesNotMatch(productChoice.intro, /Sebutkan nama atau kode/i);
+    assert.match(productChoice.intro, /tinggi produk/i);
+    assert.match(productChoice.intro, /harga dan total dalam USD/i);
+    assert.match(productChoice.intro, /ongkir ke Malaysia/i);
+    assert.match(productChoice.intro, /setelah itu/i);
 
     const selectedProduct = productChoice.options[0];
     const internationalAnswer = await ask(selectedProduct.value, null, {
@@ -195,6 +199,24 @@ test("routes real customer turns without stale products or fallback collisions",
     assert.match(internationalText, /Total dalam USD/);
     assert.doesNotMatch(internationalText, /kota\/kabupaten|kecamatan tujuan/i);
     assert.ok(internationalAnswer.admin_handoff);
+
+    const manualProductChoice = await ask(internationalQuestion);
+    assert.equal(manualProductChoice.type, "options");
+    const manuallySelectedProduct = manualProductChoice.options[1];
+    const manualInternationalAnswer = await ask(
+      manuallySelectedProduct.label,
+    );
+    const manualInternationalText = [
+      manualInternationalAnswer.intro,
+      manualInternationalAnswer.message,
+      manualInternationalAnswer.reasoning_text,
+    ]
+      .filter(Boolean)
+      .join("\n");
+    assert.ok(manualInternationalText.includes(manuallySelectedProduct.label));
+    assert.match(manualInternationalText, /T: 21 cm/);
+    assert.match(manualInternationalText, /Malaysia/);
+    assert.ok(manualInternationalAnswer.admin_handoff);
 
     const godmars = await ask("Cari produk Godmars");
     assert.equal(godmars.intent, "product_discovery");

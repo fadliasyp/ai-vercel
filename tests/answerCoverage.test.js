@@ -146,7 +146,8 @@ test("tracks product dimensions as a separate requested fact", () => {
 test("defers coverage repair while the customer is choosing a product", () => {
   const payload = {
     type: "options",
-    intro: "Pilih produk yang kamu maksud ya:",
+    intro:
+      "Pilih produk yang kamu maksud ya. Setelah itu aku jawab tinggi produk dan ongkirnya.",
     options: [{ label: "Voltes V A", value: "Cari produk Voltes V A" }],
     _deferCoverageUntilProductSelection: true,
   };
@@ -163,6 +164,7 @@ test("defers coverage repair while the customer is choosing a product", () => {
 
   assert.equal(result.payload.intro, payload.intro);
   assert.deepEqual(result.unresolved, ["dimensions", "shipping_quote"]);
+  assert.equal(result.after.coverage, 0);
 });
 
 test("accepts a precise shipping clarification as satisfied", () => {
