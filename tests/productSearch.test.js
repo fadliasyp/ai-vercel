@@ -368,6 +368,32 @@ test("uses catalog name phrases without treating unknown detail words as the pro
   assert.equal(result.product?.id, 13);
 });
 
+test("finds a non-promo catalog product before evaluating its promotion", () => {
+  const catalog = [
+    {
+      id: 92,
+      name: "Soul of Chogokin GX-92 Ideon Full Action",
+      stock: "instock",
+      stockQuantity: 2,
+      isPromo: false,
+    },
+    {
+      id: 99,
+      name: "Unrelated Robot Promo",
+      stock: "instock",
+      isPromo: true,
+    },
+  ];
+  const matches = searchProductsForDiscovery(
+    "Halo, ada Ideon yang lagi diskon ngga? Kalo ada, ready stock sisa berapa pcs?",
+    catalog,
+  );
+
+  assert.deepEqual(matches.map((product) => product.id), [92]);
+  assert.equal(matches[0].stockQuantity, 2);
+  assert.equal(matches[0].isPromo, false);
+});
+
 test("prefers the matching promo product for a compound request", () => {
   const result = findBestProductForCompoundRequest(
     "Mazinger Z yang promonya masih ready dan bisa dikirim hari ini?",

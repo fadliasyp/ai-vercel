@@ -9166,19 +9166,34 @@ Kembalikan JSON valid:
     ) {
       const promoKeywords = extractPromoSubjectKeywords(q);
       const hasSpecificPromoKeyword = promoKeywords.length > 0;
-      let promoProducts = cleanProducts.filter((product) => product.isPromo);
-
-      // kalau query spesifik, baru filter hasil promo ringan tadi
-      if (hasSpecificPromoKeyword && promoProducts.length) {
-        promoProducts = promoProducts.filter((p) => {
-          const text = normalize(
-            `${p.name || ""} ${p.category || ""} ${stripHtml(p.description || "")}`,
-          );
-          return promoKeywords.some((kw) => text.includes(kw));
-        });
-      }
+      const subjectProducts = hasSpecificPromoKeyword
+        ? searchProductsForDiscovery(
+            promoKeywords.join(" "),
+            cleanProducts,
+            6,
+          )
+        : cleanProducts;
+      const promoProducts = subjectProducts.filter((product) => product.isPromo);
 
       if (!promoProducts.length) {
+        if (hasSpecificPromoKeyword && subjectProducts.length) {
+          const visibleProducts = subjectProducts.slice(0, 5);
+          const subjectLabel =
+            visibleProducts.length === 1
+              ? visibleProducts[0].name
+              : promoKeywords.join(" ");
+          return await send(
+            {
+              type: "products",
+              intro:
+                `Produk **${subjectLabel}** ditemukan di katalog, ` +
+                "tetapi saat ini belum sedang promo. Berikut harga dan stok yang tercatat sekarang:",
+              products: visibleProducts,
+            },
+            "price_promo",
+          );
+        }
+
         return await send(
           {
             type: "text",
