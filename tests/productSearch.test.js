@@ -350,6 +350,55 @@ test("matches a product family mentioned in the middle of catalog names", () => 
   assert.equal(result.product?.id, 11);
 });
 
+test("matches short product-name typos without depending on capitalization", () => {
+  const catalog = [
+    {
+      id: 14,
+      name: "Fewture Models EX Gokin Getter Robo Black Version",
+      stock: "instock",
+    },
+    {
+      id: 15,
+      name: "Soul of Chogokin GX-92 IDEON Full Action",
+      stock: "instock",
+    },
+  ];
+
+  const typo = assessProductSearchConfidence(
+    "Halo, ada Getter Robbo yang lagi diskon ngga? Kalo ada, ready stock sisa berapa pcs?",
+    catalog,
+  );
+  const lowerCase = assessProductSearchConfidence(
+    "cek harga soul of chogokin gx-92 ideon full action",
+    catalog,
+  );
+
+  assert.equal(typo.status, "matched");
+  assert.equal(typo.product?.id, 14);
+  assert.equal(lowerCase.status, "matched");
+  assert.equal(lowerCase.product?.id, 15);
+});
+
+test("selects a newly named product instead of stale prior candidates", () => {
+  const result = assessProductSearchConfidence(
+    "Mau tanya detail bahan buat Mazinger Z yang Jumbo Machinder, itu full die-cast ngga? Harganya berapa nett-nya?",
+    [
+      { id: 21, name: "Vintage Godaikin Godmars", stock: "instock" },
+      {
+        id: 22,
+        name: "Jumbo Machinder Mazinger Z",
+        stock: "instock",
+        description: "Material plastik dan die-cast untuk koleksi.",
+      },
+      { id: 23, name: "Action Gokin Godmars", stock: "instock" },
+    ],
+  );
+
+  assert.equal(result.status, "matched");
+  assert.equal(result.product?.id, 22);
+  assert.deepEqual(result.candidates.map((product) => product.id), [22]);
+});
+
 test("uses catalog name phrases without treating unknown detail words as the product", () => {
   const catalog = [
     {

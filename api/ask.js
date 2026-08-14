@@ -3147,12 +3147,16 @@ function getProductSearchText(p = {}) {
 // ====================
 //  Universal follow-up
 // ===================
-function detectUniversalFollowUp(text = "") {
+function detectUniversalFollowUp(
+  text = "",
+  { usesPreviousProducts = false } = {},
+) {
   const s = String(text || "")
     .toLowerCase()
     .trim();
 
   if (!s) return null;
+  if (!usesPreviousProducts && hasSpecificProductSearchTerms(s)) return null;
 
   if (isPriceOrderingFollowUp(s)) {
     return { type: "price_refine", mode: "cheapest" };
@@ -3549,6 +3553,22 @@ export default async function handler(req, res) {
   );
   if (questionUnderstanding.reference_scope === "previous_products") {
     usesPreviousProductContext = true;
+  } else if (questionUnderstanding.reference_scope === "specific_product") {
+    usesPreviousProductContext = false;
+
+    // A named product starts a new topic. Do not let the previous result list,
+    // focused product, or optional follow-up leak into matching or suggestions.
+    session.lastProducts = null;
+    session.lastTopic = null;
+    session.activeGoal = null;
+    clearFollowUpOffer(session);
+    updateSlot(session, "productName", null);
+
+    compoundAnalysis = analyzeCompoundQuestion(privacySafeQuestion(), {
+      recentProducts: [],
+      focusedProductName: "",
+    });
+    answerPlan = buildAnswerPlan(compoundAnalysis);
   }
   if (compoundAnalysis.needsClarification) {
     questionUnderstanding = {
@@ -3563,7 +3583,7 @@ export default async function handler(req, res) {
   }
 
   const previousCommerceContext = {
-    lastIntent: session.lastIntent || "",
+    lastIntent: usesPreviousProductContext ? session.lastIntent || "" : "",
     lastTopic: usesPreviousProductContext ? session.lastTopic || "" : "",
     hasPending: Boolean(getPending(session)),
     hasRecentProducts:
@@ -3591,7 +3611,7 @@ export default async function handler(req, res) {
     customerState,
     recentActions: session.lastSuggestedActions || [],
     contextualTurn: contextualIntent,
-    activeGoal: session.activeGoal,
+    activeGoal: usesPreviousProductContext ? session.activeGoal : null,
   };
 
   const localIntentTask =
@@ -5755,8 +5775,13 @@ export default async function handler(req, res) {
     // ===============================
     // UNIVERSAL CONVERSATION FOLLOW-UP
     // ===============================
-    const universalFollowUp = detectUniversalFollowUp(rawQuestion);
-    const contextFollowUp = detectContextFollowUp(rawQuestion);
+    const universalFollowUp = detectUniversalFollowUp(rawQuestion, {
+      usesPreviousProducts: usesPreviousProductContext,
+    });
+    const contextFollowUp =
+      usesPreviousProductContext || !hasSpecificProductSearchTerms(rawQuestion)
+        ? detectContextFollowUp(rawQuestion)
+        : null;
     const excludedAlternativeProductIds = new Set(
       productQueryScope === "catalog" &&
       /\b(?:alternatif|opsi|pilihan)\s+(?:lain\s+)?(?:yang\s+)?(?:lebih\s+)?(?:worth\s+it|value\s+for\s+money|bagus|baik|murah|hemat)\b/i.test(

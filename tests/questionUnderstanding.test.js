@@ -65,6 +65,36 @@ test("resolves natural pronoun follow-ups to recent products", () => {
   assert.equal(result.reference_scope, "previous_products");
 });
 
+test("keeps an explicitly named product separate from previous results", () => {
+  for (const question of [
+    "Halo, ada Getter Robbo yang lagi diskon ngga? Kalo ada, ready stock sisa berapa pcs?",
+    "Mau tanya detail bahan buat Mazinger Z yang Jumbo Machinder, itu full die-cast ngga? Harganya berapa nett-nya?",
+  ]) {
+    const result = buildQuestionUnderstanding(question, {
+      hasRecentProducts: true,
+    });
+
+    assert.equal(result.subject_type, "product");
+    assert.equal(result.reference_scope, "specific_product");
+  }
+});
+
+test("still resolves genuinely anaphoric product follow-ups", () => {
+  for (const question of [
+    "Yang ready stock saja",
+    "Kalau produk itu kondisinya bagaimana?",
+    "Produk itu bahannya full die-cast atau plastik?",
+    "Mana yang paling worth it?",
+  ]) {
+    assert.equal(
+      buildQuestionUnderstanding(question, {
+        hasRecentProducts: true,
+      }).reference_scope,
+      "previous_products",
+    );
+  }
+});
+
 test("keeps the compact frame bounded for LLM context", () => {
   const compact = compactQuestionUnderstanding(
     buildQuestionUnderstanding("Ada promo robot yang ready?", {

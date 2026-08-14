@@ -101,6 +101,40 @@ test("asks for clarification only when a previous-product reference is unresolve
   assert.equal(focused.needsClarification, false);
 });
 
+test("does not reuse old products when a compound question names a new product", () => {
+  const previousProducts = [
+    { id: 1, name: "Vintage Godaikin Godmars" },
+    { id: 2, name: "Action Gokin Godmars By Action Toys" },
+  ];
+
+  for (const question of [
+    "Halo, ada Getter Robo yang lagi diskon ngga? Kalo ada, ready stock sisa berapa pcs?",
+    "Mau tanya detail bahan buat Mazinger Z yang Jumbo Machinder, itu full die-cast ngga? Harganya berapa nett-nya?",
+  ]) {
+    const result = analyzeCompoundQuestion(question, {
+      recentProducts: previousProducts,
+    });
+
+    assert.equal(result.needsClarification, false);
+    assert.notEqual(result.clarificationKind, "ambiguous_product_reference");
+  }
+});
+
+test("keeps a material pronoun question attached to the previous product", () => {
+  const result = analyzeCompoundQuestion(
+    "Produk itu bahannya full die-cast atau plastik dan kondisinya bagus?",
+    {
+      recentProducts: [
+        { id: 1, name: "Robot Alpha" },
+        { id: 2, name: "Robot Beta" },
+      ],
+    },
+  );
+
+  assert.equal(result.needsClarification, true);
+  assert.equal(result.clarificationKind, "ambiguous_product_reference");
+});
+
 test("asks for a corrected budget when minimum exceeds maximum", () => {
   const result = analyzeCompoundQuestion(
     "Carikan robot di atas 8 juta dan di bawah 5 juta untuk hadiah",

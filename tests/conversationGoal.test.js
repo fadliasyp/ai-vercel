@@ -90,6 +90,28 @@ test("does not confuse a product model number with an ordinal reference", () => 
   assert.deepEqual(result.referencedProducts, []);
 });
 
+test("does not rewrite a newly named product to previous results", () => {
+  for (const question of [
+    "Halo, ada Getter Robo yang lagi diskon ngga? Kalo ada, ready stock sisa berapa pcs?",
+    "Mau tanya detail bahan buat Mazinger Z yang Jumbo Machinder, itu full die-cast ngga? Harganya berapa nett-nya?",
+    "cek harga soul of chogokin gx-92 ideon full action",
+  ]) {
+    const result = resolveConversationTurn(question, {
+      lastIntent: "product_discovery",
+      lastProducts: products,
+      activeGoal: {
+        intent: "product_discovery",
+        products,
+        focusedProductName: products[0].name,
+      },
+    });
+
+    assert.equal(result.question, question);
+    assert.equal(result.usesPreviousProducts, false);
+    assert.deepEqual(result.referencedProducts, []);
+  }
+});
+
 test("keeps a compact product goal and preserves it across shipping", () => {
   const goal = buildActiveConversationGoal(null, {
     intent: "recommendation",
