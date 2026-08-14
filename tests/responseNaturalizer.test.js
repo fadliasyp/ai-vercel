@@ -64,6 +64,37 @@ test("uses one valid naturalizer model when a Vercel env value contains duplicat
   assert.equal(config.model, "qwen/qwen3.6-27b");
 });
 
+test("keeps required product choices deterministic", async () => {
+  const clarification = {
+    type: "options",
+    intro: "Aku menemukan beberapa produk yang cocok. Pilih produk yang kamu maksud ya:",
+    options: [
+      {
+        label: "Robot Damashii Voltes V Legacy",
+        value: "Cari produk Robot Damashii Voltes V Legacy",
+      },
+    ],
+  };
+  let fetchCalled = false;
+  let status = null;
+
+  const result = await naturalizeResponseWithGroq(clarification, {
+    userQuestion: "Voltes V Legacy tingginya berapa?",
+    config: config(),
+    fetchImpl: async () => {
+      fetchCalled = true;
+      throw new Error("Groq tidak boleh dipanggil untuk klarifikasi wajib");
+    },
+    onStatus(value) {
+      status = value;
+    },
+  });
+
+  assert.equal(fetchCalled, false);
+  assert.deepEqual(result, clarification);
+  assert.equal(status.reason, "required_clarification");
+});
+
 test("accepts a friendlier rewrite when protected facts stay identical", async () => {
   let status = null;
   const result = await naturalizeResponseWithGroq(payload, {
