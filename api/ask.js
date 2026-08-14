@@ -4649,6 +4649,7 @@ export default async function handler(req, res) {
         finalPayload,
         {
           answerSections: {
+            material: productCoverageSection,
             product_condition: productCoverageSection,
             completeness: productCoverageSection,
             price: productCoverageSection,
@@ -4666,6 +4667,7 @@ export default async function handler(req, res) {
             refund: buildReturnPolicyMessage(rawQuestion),
           },
           clarificationSections: {
+            material: productClarification,
             product_condition: productClarification,
             completeness: productClarification,
             price: productClarification,
@@ -6629,20 +6631,6 @@ export default async function handler(req, res) {
         }),
       );
 
-      const pageProduct = looksLikeCurrentProductReference(question)
-        ? findVerifiedPageProduct(pageContext, lookupProducts)
-        : null;
-
-      if (pageProduct) {
-        return {
-          status: "matched",
-          confidence: 1,
-          reason: "verified_page_context",
-          product: pageProduct,
-          candidates: [pageProduct],
-        };
-      }
-
       const selectedProductId = Number(selectedSuggestion?.product_id);
       const selectedProductName = String(
         selectedSuggestion?.product_name || "",
@@ -6667,9 +6655,32 @@ export default async function handler(req, res) {
         };
       }
 
-      return assessProductSearchConfidence(question, lookupProducts, {
-        preferPromo: compound && /\b(?:promo|diskon)\b/i.test(question),
-      });
+      const catalogMatch = assessProductSearchConfidence(
+        question,
+        lookupProducts,
+        {
+          preferPromo: compound && /\b(?:promo|diskon)\b/i.test(question),
+        },
+      );
+
+      // A product named in the latest turn must beat stale page/session context.
+      if (catalogMatch.status !== "not_found") return catalogMatch;
+
+      const pageProduct = looksLikeCurrentProductReference(question)
+        ? findVerifiedPageProduct(pageContext, lookupProducts)
+        : null;
+
+      if (pageProduct) {
+        return {
+          status: "matched",
+          confidence: 1,
+          reason: "verified_page_context",
+          product: pageProduct,
+          candidates: [pageProduct],
+        };
+      }
+
+      return catalogMatch;
     }
 
     // ==============================

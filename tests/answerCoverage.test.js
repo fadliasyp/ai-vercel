@@ -109,6 +109,24 @@ test("tracks price and stock as separate requested product facts", () => {
   assert.equal(complete.passed, true);
 });
 
+test("tracks material questions separately from price", () => {
+  const question = "Mazinger Z ini full die-cast nggak dan harganya berapa?";
+  const partial = evaluateAnswerCoverage(question, {
+    type: "products",
+    products: [{ name: "Mazinger Z", numericPrice: 4500000 }],
+  });
+
+  assert.deepEqual(partial.requested, ["material", "price"]);
+  assert.deepEqual(partial.missing, ["material"]);
+
+  const complete = evaluateAnswerCoverage(question, {
+    type: "products",
+    products: [{ name: "Mazinger Z", numericPrice: 4500000 }],
+    reasoning_text: "Bahan dari deskripsi: die-cast dan ABS.",
+  });
+  assert.equal(complete.passed, true);
+});
+
 test("accepts a precise shipping clarification as satisfied", () => {
   const coverage = evaluateAnswerCoverage("Cek ongkir ke Tangerang", {
     type: "text",

@@ -221,6 +221,19 @@ test("keeps price and stock together in one product-facts plan", () => {
   ]);
 });
 
+test("plans material and price as product facts", () => {
+  const analysis = analyzeCompoundQuestion(
+    "Mazinger Z Jumbo Machinder ini full die-cast nggak? Harganya berapa?",
+  );
+  const plan = buildAnswerPlan(analysis);
+
+  assert.equal(analysis.primaryIntent, "product_detail");
+  assert.deepEqual(analysis.facets, ["material", "price"]);
+  assert.deepEqual(plan.sections, [
+    { key: "product_facts", facets: ["material", "price"] },
+  ]);
+});
+
 test("keeps recommendation primary across payment and shipping clauses", () => {
   const analysis = analyzeCompoundQuestion(
     "Ada rekomendasi robot jadul budget di bawah 2 juta? Sama ongkir ke Bandung kena berapa dan bisa bayar pakai apa aja",

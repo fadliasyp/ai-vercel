@@ -119,14 +119,14 @@ test("routes real customer turns without stale products or fallback collisions",
   try {
     const { default: handler } = await import("../api/ask.js");
     const sessionId = `routing_test_${Date.now()}`;
-    const ask = async (question) => {
+    const ask = async (question, pageContext = null) => {
       const response = createResponse();
       await handler(
         {
           method: "POST",
           url: "/api/ask",
           headers: { "x-session-id": sessionId },
-          body: { question, history: [] },
+          body: { question, history: [], pageContext },
         },
         response,
       );
@@ -163,6 +163,40 @@ test("routes real customer turns without stale products or fallback collisions",
     );
     assert.ok(
       productNames(mazinger).every((name) => !/Godmars|Getter Robo/i.test(name)),
+    );
+    assert.deepEqual(mazinger.assistant_meta.answer_coverage.requested, [
+      "material",
+      "price",
+    ]);
+
+    const mazingerFromGetterPage = await ask(
+      "Mau tanya detail bahan buat Mazinger Z yang Jumbo Machinder, itu full die-cast ngga? Harganya berapa nett-nya?",
+      {
+        productId: 2,
+        productName: "Fewture Models EX Gokin Getter Robo Black Version",
+        url: "https://catalog.test/product/2",
+      },
+    );
+    assert.deepEqual(productNames(mazingerFromGetterPage), [
+      "Jumbo Machinder Mazinger Z",
+    ]);
+    assert.notEqual(
+      mazingerFromGetterPage.product_match?.reason,
+      "verified_page_context",
+    );
+    assert.match(mazingerFromGetterPage.reasoning_text, /die-cast dan ABS/i);
+
+    const implicitGetterPageQuestion = await ask("harganya berapa?", {
+      productId: 2,
+      productName: "Fewture Models EX Gokin Getter Robo Black Version",
+      url: "https://catalog.test/product/2",
+    });
+    assert.deepEqual(productNames(implicitGetterPageQuestion), [
+      "Fewture Models EX Gokin Getter Robo Black Version",
+    ]);
+    assert.equal(
+      implicitGetterPageQuestion.product_match?.reason,
+      "verified_page_context",
     );
 
     const ideon = await ask(
