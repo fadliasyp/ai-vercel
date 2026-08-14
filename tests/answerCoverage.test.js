@@ -143,6 +143,30 @@ test("tracks product dimensions as a separate requested fact", () => {
   assert.equal(complete.passed, true);
 });
 
+test("does not duplicate a product when catalog dimensions are unavailable", () => {
+  const productName = "Shokugan Modeling Project Voltes V Legacy";
+  const message =
+    `**Informasi produk**\n**${productName}**\n` +
+    "- Dimensi katalog: **(tidak tercantum)**.\n" +
+    "- Harga saat ini: **Rp 1.350.000**.";
+  const result = repairAnswerCoverage(
+    "Voltes V Legacy tingginya berapa dan harganya berapa?",
+    { type: "text", message },
+    {
+      answerSections: {
+        dimensions: `**Informasi produk yang belum tercantum**\n${productName}`,
+      },
+      clarificationSections: {
+        dimensions: "Sebutkan nama produk atau kode produknya.",
+      },
+    },
+  );
+
+  assert.equal(result.payload.message, message);
+  assert.equal(result.after.passed, true);
+  assert.deepEqual(result.repaired, []);
+});
+
 test("defers coverage repair while the customer is choosing a product", () => {
   const payload = {
     type: "options",
