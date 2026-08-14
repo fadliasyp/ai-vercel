@@ -10,7 +10,9 @@
     const imageInput = document.getElementById("ai-image-input");
     const attachImageBtn = document.getElementById("ai-attach-image");
     const imagePreview = document.getElementById("ai-image-preview");
+    const sendButton = document.querySelector(".ai-send-btn");
     let selectedImage = null;
+    let requestInFlight = false;
 
     function isMobileMode() {
       return window.innerWidth <= 900;
@@ -120,15 +122,6 @@
     if (input) {
       input.addEventListener("input", function () {
         autoResize(this);
-      });
-    }
-
-    function scrollBottom() {
-      if (!messages) return;
-
-      messages.scrollTo({
-        top: messages.scrollHeight,
-        behavior: "smooth",
       });
     }
 
@@ -1508,11 +1501,16 @@
     // SEND QUESTION
     // ==============================
     window.sendQuestion = async function (forcedQuestion = null, options = {}) {
+      if (requestInFlight) return;
+
       const hasImage = !!selectedImage?.dataUrl;
       const question =
         (forcedQuestion || input?.value || "").trim() ||
         (hasImage ? "Tolong carikan produk yang mirip dengan foto ini" : "");
       if (!question && !hasImage) return;
+
+      requestInFlight = true;
+      if (sendButton) sendButton.disabled = true;
 
       const isSuggestionClick = options.isSuggestionClick === true;
       const isBootstrap = options.isBootstrap === true;
@@ -1628,6 +1626,9 @@
       } catch (err) {
         removeThinking();
         addBotText("Terjadi kesalahan koneksi.");
+      } finally {
+        requestInFlight = false;
+        if (sendButton) sendButton.disabled = false;
       }
 
       scrollBottom();

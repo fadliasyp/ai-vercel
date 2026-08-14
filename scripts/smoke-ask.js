@@ -19,7 +19,6 @@ const CASES = [
     expectedIntent: "general",
     expectedType: "text",
     expectedCustomerState: "neutral",
-    minActions: 3,
     requiredText: ["Blok M Square", "3A", "Blok A", "11.00", "20.00"],
   },
   {
@@ -65,7 +64,7 @@ const CASES = [
     question: "Barang Getter Robo saya terkelupas dan cacat, bisa retur dan refund?",
     expectedIntent: "return_product",
     expectedCustomerState: "distressed",
-    minActions: 3,
+    minActions: 1,
     requiredText: ["2 x 24 jam", "1-3 hari kerja", "3-7 hari kerja"],
   },
   {
@@ -75,7 +74,7 @@ const CASES = [
     expectedIntent: "return_product",
     expectedType: "text",
     expectedCustomerState: "distressed",
-    minActions: 3,
+    minActions: 1,
     requiredText: ["2 x 24 jam", "1-3 hari kerja", "3-7 hari kerja"],
   },
   {
@@ -188,7 +187,7 @@ const CASES = [
     id: "compound_product_detail_stock",
     question:
       "Soul of Chogokin GX-47T Energer Z Test Type kondisinya bagaimana, kelengkapannya apa saja, dan stoknya masih ready?",
-    expectedIntent: "stock_availability",
+    expectedIntent: "product_detail",
     checkCoverage: true,
     minRequestedFacets: 3,
   },

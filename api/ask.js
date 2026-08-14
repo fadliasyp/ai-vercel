@@ -4,6 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 
 import {
   getSession,
+  resolveSessionId,
   setPending,
   clearPending,
   getPending,
@@ -83,8 +84,6 @@ import {
   buildProductTransactionSummary,
 } from "../lib/chatbot/productFormatter.js";
 
-import { fetchWithTimeoutJson } from "../lib/chatbot/wpApi.js";
-
 import {
   buildOrderVerificationFailedMessage,
   buildOrderVerificationPrompt,
@@ -116,9 +115,6 @@ import {
   looksLikeShippingCoverageQuestion,
   looksLikeRecommendationRequest,
   needsRecommendationBudgetClarification,
-  buildPaymentMethodsMessage,
-  buildInsuranceMessage,
-  buildShippingEstimateMessage,
   buildTransactionTopicClarification,
   buildTransactionPolicyMessage,
 } from "../lib/chatbot/transactionIntent.js";
@@ -213,8 +209,6 @@ import {
   looksLikeAssistantCapabilitiesQuestion,
 } from "../lib/chatbot/assistantCapabilities.js";
 import {
-  buildWooAuthHeaders,
-  buildWooProductsUrl,
   getWooProductsCached,
 } from "../lib/chatbot/wooCatalog.js";
 import { buildWordPressUrl } from "../lib/chatbot/siteConfig.js";
@@ -935,31 +929,6 @@ Output JSON saja.
     console.error("SEMANTIC PARSE ERROR:", err?.message || err);
     return null;
   }
-}
-
-// ===============================
-// fetch products dengan sorting harga murah/mahal (untuk price_promo)
-// ===============================
-async function fetchProductsByPrice({ cheapest, includeOOS, limit = 3 }) {
-  const params = new URLSearchParams({
-    per_page: String(Math.min(Math.max(limit, 3), 20)),
-    orderby: "price",
-    order: cheapest ? "asc" : "desc",
-    status: "publish",
-  });
-
-  // kalau user tidak minta include OOS, filter ready stock di API
-  if (!includeOOS) params.set("stock_status", "instock");
-
-  const url = buildWooProductsUrl(Object.fromEntries(params));
-
-  return await fetchWithTimeoutJson(
-    url,
-    {
-      headers: buildWooAuthHeaders(),
-    },
-    15000,
-  );
 }
 
 function isDiscoveryStyleQuestion(q = "") {
@@ -3394,7 +3363,7 @@ export default async function handler(req, res) {
   let linguisticAnalysis = analyzeIndonesianQuestion(privacySafeQuestion());
   let linguisticHint = compactLinguisticAnalysis(linguisticAnalysis);
 
-  const sessionId = req.headers["x-session-id"] || "anon";
+  const sessionId = resolveSessionId(req.headers["x-session-id"]);
   const session = getSession(sessionId);
   console.log("SESSION ID:", sessionId);
   console.log("PENDING:", session.pending);
@@ -4011,6 +3980,27 @@ export default async function handler(req, res) {
     }
 
     console.log("SEMANTIC RESULT:", semantic);
+
+    if ((intentResult?.score || 0) < 0.55 && semantic?.intent) {
+      intentResult = {
+        intent: semantic.intent,
+        method: "semantic_fallback",
+        score: 0.6,
+        semantic,
+      };
+    } else {
+      intentResult = {
+        ...intentResult,
+        semantic,
+      };
+    }
+
+    session.lastIntent = intentResult.intent || session.lastIntent;
+    session.lastIntentMethod = intentResult.method || session.lastIntentMethod;
+    session.lastIntentScore = intentResult.score ?? session.lastIntentScore;
+
+    console.log("FINAL INTENT RESULT:", intentResult);
+
     // ✅ GREETING GUARD (BIAR "HALO/HAI" GA MASUK SEARCH)
     if (!isSuggestionClick && isGreetingOnly(rawQuestion)) {
       let pending = getPending(session);
@@ -4435,7 +4425,14 @@ export default async function handler(req, res) {
     }
 
     async function send(payload, forceIntent = null) {
-      await preparePlannedProductFacts(payload);
+      const finalIntent =
+        forceIntent ?? payload.intent ?? session.lastIntent ?? "general";
+
+      if (finalIntent === "general") {
+        queuedAnswerSections = [];
+      } else {
+        await preparePlannedProductFacts(payload);
+      }
 
       if (queuedAnswerSections.length) {
         payload =
@@ -4494,8 +4491,7 @@ export default async function handler(req, res) {
             (p) => Number(p.discountPercent || 0) > 0,
           ),
           keyword: rawQuestion,
-          source:
-            forceIntent || payload.intent || session.lastIntent || "general",
+          source: finalIntent,
         };
       }
 
@@ -4507,8 +4503,11 @@ export default async function handler(req, res) {
         productCount: payload.products?.length || 0,
       });
 
-      const finalIntent =
-        forceIntent ?? payload.intent ?? session.lastIntent ?? "general";
+      if (finalIntent !== session.lastIntent) {
+        session.lastIntentMethod = `response_${finalIntent}_route`;
+        session.lastIntentScore = 1;
+      }
+      session.lastIntent = finalIntent;
       session.activeGoal = buildActiveConversationGoal(session.activeGoal, {
         intent: finalIntent,
         products: session.lastProducts,
@@ -4790,8 +4789,7 @@ export default async function handler(req, res) {
       );
       return res.json({
         ...finalPayload,
-        intent:
-          forceIntent ?? payload.intent ?? session.lastIntent ?? "general",
+        intent: finalIntent,
         assistant_meta: assistantMeta,
       });
     }
@@ -6529,13 +6527,13 @@ export default async function handler(req, res) {
       );
     }
 
-    //===========================
-    // Guard agar tidak masuk fetch Pencarian Produk
+    // ===========================
+    // Satu pintu untuk pertanyaan yang tidak punya handler tepercaya.
     // ===========================
 
     console.log("INTENT BEFORE PRODUCT GUARD:", intentResult.intent);
 
-    const PRODUCT_FETCH_INTENTS = new Set([
+    const ROUTABLE_INTENTS = new Set([
       "product_discovery",
       "product_detail",
       "price_promo",
@@ -6549,10 +6547,35 @@ export default async function handler(req, res) {
       "return_product",
     ]);
 
-    if (!PRODUCT_FETCH_INTENTS.has(intentResult.intent)) {
-      console.log("PRODUCT GUARD HIT:", intentResult.intent);
+    const SAFE_LOW_CONFIDENCE_INTENTS = new Set([
+      "general",
+      "product_discovery",
+    ]);
+    const hasStrongRule =
+      String(intentResult.method || "").includes("override_rule") ||
+      String(intentResult.method || "").includes("rule");
+    const isNonsense =
+      Number(intentResult.score || 0) < 0.13 &&
+      !looksLikeShippingQuoteQuestion(rawQuestion) &&
+      !looksLikeTrackingQuestion(rawQuestion);
+    const isLowConfidence =
+      Number(intentResult.score || 0) < 0.35 &&
+      !hasStrongRule &&
+      !SAFE_LOW_CONFIDENCE_INTENTS.has(intentResult.intent);
+    const shouldUseGeneralFallback =
+      intentResult.intent === "general" ||
+      looksLikeAdminContactQuestion(rawQuestion) ||
+      !ROUTABLE_INTENTS.has(intentResult.intent) ||
+      isNonsense ||
+      isLowConfidence;
 
-      console.log("GENERAL FALLBACK HIT #2");
+    if (shouldUseGeneralFallback) {
+      console.log("GENERAL FALLBACK HIT:", {
+        intent: intentResult.intent,
+        isNonsense,
+        isLowConfidence,
+      });
+
       return await send(
         buildUnknownResponseForQuestion(rawQuestion),
         "general",
@@ -6992,105 +7015,6 @@ export default async function handler(req, res) {
         "product_detail",
       );
     }
-    // ===============================
-    // Intent classification (dataset)
-    // ===============================
-
-    if ((intentResult?.score || 0) < 0.55 && semantic?.intent) {
-      intentResult = {
-        intent: semantic.intent,
-        method: "semantic_fallback",
-        score: 0.6,
-        semantic,
-      };
-    } else {
-      intentResult = {
-        ...intentResult,
-        semantic,
-      };
-    }
-
-    session.lastIntent = intentResult.intent || session.lastIntent;
-    session.lastIntentMethod = intentResult.method || session.lastIntentMethod;
-    session.lastIntentScore = intentResult.score ?? session.lastIntentScore;
-
-    console.log("FINAL INTENT RESULT:", intentResult);
-
-    if (intentResult.intent === "greeting" && isGreetingOnly(rawQuestion)) {
-      session.lastIntent = "greeting";
-
-      return await send(
-        {
-          type: "text",
-          intent: "greeting",
-          message: buildGreetingMessage(),
-        },
-        "greeting",
-      );
-    }
-
-    // ==============================
-    // Kalau Intent gagal/ dibawah 0.15 confidence, masukin ke general fallback
-    // ==============================
-    if (
-      intentResult.score < 0.13 &&
-      !looksLikeShippingQuoteQuestion(rawQuestion) &&
-      !looksLikeTrackingQuestion(rawQuestion)
-    ) {
-      console.log("NONSENSE QUESTION -> GENERAL");
-
-      return await send(
-        buildUnknownResponseForQuestion(rawQuestion),
-        "general",
-      );
-    }
-
-    // ===============================
-    // GENERAL / KONTAK ADMIN HANDLER
-    // WAJIB sebelum getCleanProducts()
-    // ===============================
-    if (
-      intentResult.intent === "general" ||
-      looksLikeAdminContactQuestion(rawQuestion)
-    ) {
-      console.log("GENERAL FALLBACK HIT #3");
-      return await send(
-        buildUnknownResponseForQuestion(rawQuestion),
-        "general",
-      );
-    }
-
-    // ===============================
-    // Klau tidak ada intent yg cocok, maka masuk general
-    // =============================
-    const SAFE_LOW_CONFIDENCE_INTENTS = new Set([
-      "general",
-      "product_discovery",
-    ]);
-
-    const hasStrongRule =
-      String(intentResult.method || "").includes("override_rule") ||
-      String(intentResult.method || "").includes("rule");
-
-    const isLowConfidence = Number(intentResult.score || 0) < 0.35;
-
-    if (
-      isLowConfidence &&
-      !hasStrongRule &&
-      !SAFE_LOW_CONFIDENCE_INTENTS.has(intentResult.intent)
-    ) {
-      intentResult = {
-        intent: "general",
-        method: "low_confidence_general_fallback",
-        score: intentResult.score || 0,
-      };
-      console.log("GENERAL FALLBACK HIT #1");
-      return await send(
-        buildUnknownResponseForQuestion(rawQuestion),
-        "general",
-      );
-    }
-
     // ===============================
     // Recommendation + transaction/shipping sections
     // ===============================
@@ -7918,83 +7842,6 @@ export default async function handler(req, res) {
     // 🔹 Ambil produk WooCommerce
     // ===============================
 
-    // ✅ Jalur khusus: kalau user tanya termurah/termahal -> ambil langsung dari Woo yg sudah di-sort
-    if ((isCheapest || isMostExpensive) && !hasScopedKeyword) {
-      let raw;
-      try {
-        raw = await fetchProductsByPrice({
-          cheapest: isCheapest,
-          includeOOS,
-          limit: 5,
-        });
-      } catch (e) {
-        console.error("WC PRICE FETCH ERROR:", e?.message || e);
-        raw = null;
-      }
-
-      if (Array.isArray(raw) && raw.length) {
-        const mapped = raw
-          .map((p) => {
-            const condition =
-              p.condition || getMetaValue(p.meta_data, "condition") || "";
-            const price = toNum(p.price);
-            const regular = toNum(p.regular_price);
-            const sale = toNum(p.sale_price);
-            const effectivePrice = sale ?? price ?? regular ?? null;
-            const discountPercent = calcDiscountPercent(regular, sale);
-            const discountAmount =
-              regular && sale && sale < regular ? regular - sale : 0;
-
-            return {
-              id: p.id,
-              name: p.name,
-              price: p.price,
-              regular_price: p.regular_price,
-              sale_price: p.sale_price,
-              numericPrice: effectivePrice ?? 0,
-              effectivePrice,
-              stock: p.stock_status,
-              stockQuantity:
-                typeof p.stock_quantity === "number" ? p.stock_quantity : null,
-              description: p.description || "",
-              link: p.permalink,
-              image: getProductImageUrl(p),
-              category: p.categories
-                ?.map((c) => c.name.toLowerCase())
-                .join(" "),
-              condition,
-              weight: cleanNumberString(p.weight),
-              dimensions: {
-                length: cleanNumberString(p.dimensions?.length),
-                width: cleanNumberString(p.dimensions?.width),
-                height: cleanNumberString(p.dimensions?.height),
-              },
-              type: p.type,
-              discountPercent,
-              discountAmount,
-              isPromo: discountPercent > 0,
-            };
-          })
-          .filter((x) => x.effectivePrice !== null);
-
-        // sudah terurut dari API, tapi kita urutkan lagi biar aman
-        mapped.sort((a, b) =>
-          isCheapest
-            ? a.effectivePrice - b.effectivePrice
-            : b.effectivePrice - a.effectivePrice,
-        );
-
-        return await send({
-          type: "products",
-          intro: isCheapest
-            ? "Berikut produk dengan harga paling murah yang saya temukan:"
-            : "Berikut produk dengan harga tertinggi yang saya temukan:",
-          products: mapped.slice(0, 3),
-          closing: randomItem(closings),
-        });
-      }
-    }
-
     // Store-policy questions do not refer to one catalog product.
     if (looksLikeNegotiationPolicyQuestion(rawQuestion)) {
       return await send(
@@ -8023,97 +7870,19 @@ export default async function handler(req, res) {
       );
     }
 
-    let products;
     try {
-      products = await getProductsCached();
+      cleanProducts = await getCleanProducts();
     } catch (e) {
       console.error("WC FETCH ERROR:", e?.message || e);
-      return await send({
-        type: "text",
-        message:
-          "Server lagi sibuk ambil data produk. Coba ulangi 10–20 detik lagi ya 🙏",
-      });
+      return await send(
+        {
+          type: "text",
+          message:
+            "Server lagi sibuk mengambil data produk. Coba ulangi 10-20 detik lagi ya.",
+        },
+        intentResult.intent,
+      );
     }
-
-    if (!Array.isArray(products)) {
-      return res
-        .status(500)
-        .json({ type: "text", message: "Format produk tidak valid" });
-    }
-
-    function getMetaValue(metaData, key) {
-      if (!Array.isArray(metaData)) return "";
-      const found = metaData.find((m) => m?.key === key);
-      return found?.value ?? "";
-    }
-
-    function cleanNumberString(x) {
-      if (x == null) return "";
-      const s = String(x).trim();
-      return s === "0" ? "" : s;
-    }
-
-    function toNum(x) {
-      const n = parseFloat(String(x ?? "").replace(",", "."));
-      return Number.isFinite(n) ? n : null;
-    }
-
-    cleanProducts = products.map((p) => {
-      // condition bisa datang dari:
-      // 1) p.condition (kalau kamu inject via functions.php)
-      // 2) meta_data key "condition" (ACF)
-      const condition =
-        p.condition || getMetaValue(p.meta_data, "condition") || "";
-
-      const length = cleanNumberString(p.dimensions?.length);
-      const width = cleanNumberString(p.dimensions?.width);
-      const height = cleanNumberString(p.dimensions?.height);
-
-      // ✅ ambil harga yang paling “real”
-      const price = toNum(p.price);
-      const regular = toNum(p.regular_price);
-      const sale = toNum(p.sale_price);
-
-      // prefer sale, lalu price, lalu regular
-      const effectivePrice = sale ?? price ?? regular ?? null;
-
-      const discountPercent = calcDiscountPercent(regular, sale);
-      const discountAmount =
-        regular && sale && sale < regular ? regular - sale : 0;
-
-      return {
-        id: p.id,
-        name: p.name,
-        price: p.price,
-        regular_price: p.regular_price,
-        sale_price: p.sale_price,
-        numericPrice: effectivePrice ?? 0, // untuk sorting lama kamu
-        effectivePrice, // ✅ baru: boleh dipakai langsung
-        stock: p.stock_status,
-        stockQuantity:
-          typeof p.stock_quantity === "number" ? p.stock_quantity : null,
-        totalSales: Number(p.total_sales || 0),
-        averageRating: Number(p.average_rating || 0),
-        ratingCount: Number(p.rating_count || 0),
-        description: p.description || "",
-        shortDescription: p.short_description || "",
-        link: p.permalink,
-        image: getProductImageUrl(p),
-        category: p.categories?.map((c) => c.name.toLowerCase()).join(" "),
-        condition,
-        weight: cleanNumberString(p.weight),
-        dimensions: { length, width, height },
-        type: p.type, // simple/variable
-        discountPercent,
-        discountAmount,
-        isPromo: discountPercent > 0,
-      };
-    });
-
-    const dbg = cleanProducts.filter((p) =>
-      (p.name || "").toLowerCase().includes("grend"),
-    );
-    console.log("DBG grend candidates:", dbg.map((x) => x.name).slice(0, 10));
 
     // ===============================
     // 🔎 TYPO MATCH CHECK
@@ -9295,6 +9064,23 @@ Kembalikan JSON valid:
     }
 
     if (intentResult.intent === "stock_availability") {
+      const hasProductContext =
+        usesPreviousProductContext ||
+        Boolean(pageContext?.productId || pageContext?.productName);
+      if (
+        !hasSpecificProductSearchTerms(rawQuestion) &&
+        !hasProductContext
+      ) {
+        setLastBotQuestion(session, "ask_product_name", { source: "stock" });
+        return await send(
+          {
+            type: "text",
+            message: "Mau cek stok produk apa? Sebutkan nama produknya ya.",
+          },
+          "stock_availability",
+        );
+      }
+
       const productMatch = resolveRequestedProduct(rawQuestion, cleanProducts);
       const bestProduct = productMatch.product;
 
@@ -9355,6 +9141,24 @@ Kembalikan JSON valid:
     }
 
     if (intentResult.intent === "product_detail") {
+      const hasProductContext =
+        usesPreviousProductContext ||
+        Boolean(pageContext?.productId || pageContext?.productName);
+      if (
+        !hasSpecificProductSearchTerms(rawQuestion) &&
+        !hasProductContext
+      ) {
+        setLastBotQuestion(session, "ask_product_name", { source: "detail" });
+        return await send(
+          {
+            type: "text",
+            message:
+              "Mau cek detail produk apa? Sebutkan nama atau kode produknya ya.",
+          },
+          "product_detail",
+        );
+      }
+
       const asksManufacturingOrigin =
         looksLikeProductManufacturingOriginQuestion(rawQuestion);
       const productMatch = resolveRequestedProduct(
@@ -9447,177 +9251,6 @@ Kembalikan JSON valid:
         buildCatalogNoMatchResponse({ intent: "product_detail" }),
         "product_detail",
       );
-    }
-
-    // ===============================
-    // Routing by dataset intent
-    // ===============================
-
-    // Shipping / transaksi: arahkan ke how-to-buy atau jawab singkat
-    if (intentResult.intent === "shipping_transaction") {
-      // ==============================-
-      // Asuransi pengiriman
-      // =============================
-      if (
-        q.includes("asuransi") ||
-        q.includes("asuransi pengiriman") ||
-        q.includes("proteksi pengiriman") ||
-        q.includes("pakai asuransi") ||
-        q.includes("ada asuransi")
-      ) {
-        return await send(
-          {
-            type: "text",
-            message: buildInsuranceMessage(),
-            _actionContext: "shipping_insurance",
-          },
-          "shipping_transaction",
-        );
-      }
-
-      // ===============================
-      // PAYMENT METHODS HANDLER
-      // ===============================
-      if (looksLikePaymentMethodQuestion(rawQuestion)) {
-        return await send(
-          {
-            type: "text",
-            message: buildPaymentMethodsMessage(),
-            _actionContext: "payment_methods",
-          },
-          "shipping_transaction",
-        );
-      }
-
-      // ===============================
-      // ESTIMASI PENGIRIMAN
-      // ===============================
-      if (
-        q.includes("estimasi") ||
-        q.includes("berapa lama") ||
-        q.includes("berapa hari") ||
-        q.includes("kapan sampai") ||
-        q.includes("lama pengiriman") ||
-        q.includes("estimasi sampai")
-      ) {
-        return await send(
-          {
-            type: "text",
-            message: buildShippingEstimateMessage({ includeOffer: true }),
-            _actionContext: "shipping_estimate",
-          },
-          "shipping_transaction",
-        );
-      }
-
-      // 1) pertanyaan ongkir
-      if (q.includes("ongkir") || q.includes("ongkos kirim")) {
-        const locationGuess = extractShippingDestination(rawQuestion);
-
-        if (!locationGuess) {
-          setPending(session, {
-            type: "shipping_quote",
-            stage: "need_location",
-            data: {},
-          });
-
-          return await send(
-            {
-              type: "text",
-              message:
-                "Untuk cek ongkir, sebutkan dulu **kota/kabupaten atau kecamatan tujuan** ya 😊\nContoh: **Surabaya**, **Kota Pekalongan**, atau **Pekalongan Barat**.",
-            },
-            "shipping_transaction",
-          );
-        }
-
-        const resolved = await resolveShippingLocation(locationGuess);
-
-        if (resolved.kind === "single_city") {
-          const city = resolved.city;
-
-          return await send(
-            await beginDistrictSelection(
-              session,
-              city.city_id,
-              city.name,
-            ),
-            "shipping_transaction",
-          );
-        }
-
-        if (resolved.kind === "multi_city") {
-          setPending(session, {
-            type: "shipping_quote",
-            stage: "choose_city",
-            data: {
-              candidates: resolved.cities.slice(0, 8),
-            },
-          });
-
-          return await send(
-            {
-              type: "options",
-              intro: `Aku nemu beberapa hasil untuk **${locationGuess}**. Pilih kota/kabupaten yang benar ya:`,
-              options: resolved.cities.slice(0, 8).map((c) => ({
-                label: c.name,
-                value: c.name,
-              })),
-            },
-            "shipping_transaction",
-          );
-        }
-      }
-    }
-
-    // Stock intent: kalau ada kata kunci produk -> cari produk & tampilkan stoknya
-    if (intentResult.intent === "stock_availability") {
-      if (
-        q.split(/\s+/).length <= 2 &&
-        !q.includes("stok") &&
-        !q.includes("ready")
-      ) {
-        setLastBotQuestion(session, "ask_product_name", {
-          source: "stock",
-        });
-
-        return await send({
-          type: "text",
-          message: "Mau cek stok produk apa? Sebutkan nama produknya ya 😊",
-        });
-      }
-    }
-    // Detail intent: cenderung jawab 1 produk teratas + spesifikasinya
-    if (intentResult.intent === "product_detail") {
-      const hasContextProduct =
-        usesPreviousProductContext &&
-        (!!session.slots?.productName ||
-          (Array.isArray(session.lastProducts) &&
-            session.lastProducts.length > 0));
-
-      if (isSpecQuestion(q) && !hasContextProduct) {
-        setLastBotQuestion(session, "ask_product_name", {
-          source: "detail",
-        });
-
-        return await send({
-          type: "text",
-          message:
-            "Mau cek detail produk apa? Misalnya Voltron, Grendizer, atau Gashapon Vintage 😊",
-        });
-      }
-
-      if (q.split(/\s+/).length <= 3 && !isSpecQuestion(q)) {
-        setLastBotQuestion(session, "ask_product_name", {
-          source: "detail",
-        });
-
-        return await send({
-          type: "text",
-          message:
-            "Boleh sebutkan nama produknya? Nanti aku cek detail seperti kondisi, berat, dan dimensi kalau tersedia 😊",
-        });
-      }
     }
 
     // ===============================
@@ -10220,26 +9853,6 @@ ${JSON.stringify(facts, null, 2)}
 
     session.lastProducts = bestMatches;
     session.lastTopic = "product_list";
-
-    // ===============================
-    // 🔥 FALLBACK KE ADMIN (LOW CONFIDENCE / TIDAK TERJAWAB)
-    // ===============================
-
-    if (
-      q.includes("admin") ||
-      q.includes("cs") ||
-      q.includes("customer service") ||
-      q.includes("hubungi admin")
-    ) {
-      console.log("ADMIN FALLBACK HIT #1");
-
-      return await send(
-        buildUnknownAnswerResponse({
-          topic: "bantuan dari Admin Robot Jadul",
-        }),
-        "general",
-      );
-    }
 
     // kalau ada produk → tampilkan produk
     if (bestMatches.length > 0) {
