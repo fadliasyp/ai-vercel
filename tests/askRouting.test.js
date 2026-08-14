@@ -32,6 +32,27 @@ const PRODUCTS = [
     description:
       "Kondisi BIB. Material die-cast dan ABS. Kelengkapan sesuai foto.",
   }),
+  product({
+    id: 5,
+    name: "Robot Damashii Voltes V Legacy",
+    price: "3500000",
+    stockQuantity: 5,
+    dimensions: { length: "18", width: "12", height: "17" },
+  }),
+  product({
+    id: 6,
+    name: "Shokugan Modeling Project Voltes V Legacy : Lets Volt In Set",
+    price: "4200000",
+    stockQuantity: 3,
+    dimensions: { length: "24", width: "16", height: "21" },
+  }),
+  product({
+    id: 7,
+    name: "Shokugan Modeling Project Voltes V Legacy",
+    price: "2800000",
+    stockQuantity: 4,
+    dimensions: { length: "20", width: "14", height: "19" },
+  }),
 ];
 
 function product({
@@ -42,6 +63,7 @@ function product({
   salePrice = "",
   stockQuantity,
   description = "Kondisi BIB dan kelengkapan sesuai foto.",
+  dimensions = { length: "30", width: "20", height: "40" },
 }) {
   return {
     id,
@@ -59,7 +81,7 @@ function product({
     short_description: description,
     meta_data: [{ key: "condition", value: "BIB" }],
     weight: "1000",
-    dimensions: { length: "30", width: "20", height: "40" },
+    dimensions,
     total_sales: 10,
     average_rating: "5",
     rating_count: 2,
@@ -119,14 +141,14 @@ test("routes real customer turns without stale products or fallback collisions",
   try {
     const { default: handler } = await import("../api/ask.js");
     const sessionId = `routing_test_${Date.now()}`;
-    const ask = async (question, pageContext = null) => {
+    const ask = async (question, pageContext = null, request = {}) => {
       const response = createResponse();
       await handler(
         {
           method: "POST",
           url: "/api/ask",
           headers: { "x-session-id": sessionId },
-          body: { question, history: [], pageContext },
+          body: { question, history: [], pageContext, ...request },
         },
         response,
       );
@@ -141,6 +163,38 @@ test("routes real customer turns without stale products or fallback collisions",
     assert.equal(recommendation.type, "products");
     assert.ok(productNames(recommendation).length > 0);
     assert.match(recommendation.intro, /rekomendasi|pilih/i);
+
+    const internationalQuestion =
+      "Ini Voltes V Legacy ukurannya berapa cm ya tingginya? Kalau kirim ke Malaysia ongkirnya berapa dan total harganya jadi berapa USD?";
+    const productChoice = await ask(internationalQuestion);
+    assert.equal(productChoice.type, "options");
+    assert.equal(productChoice.options.length, 3);
+    assert.equal(
+      (productChoice.intro.match(/Aku menemukan beberapa produk/gi) || [])
+        .length,
+      1,
+    );
+    assert.doesNotMatch(productChoice.intro, /Sebutkan nama atau kode/i);
+
+    const selectedProduct = productChoice.options[0];
+    const internationalAnswer = await ask(selectedProduct.value, null, {
+      isSuggestionClick: true,
+      suggestedAction: selectedProduct,
+    });
+    const internationalText = [
+      internationalAnswer.intro,
+      internationalAnswer.message,
+      internationalAnswer.reasoning_text,
+    ]
+      .filter(Boolean)
+      .join("\n");
+    assert.equal(internationalAnswer.intent, "shipping_transaction");
+    assert.match(internationalText, /Robot Damashii Voltes V Legacy/);
+    assert.match(internationalText, /T: 17 cm/);
+    assert.match(internationalText, /Malaysia/);
+    assert.match(internationalText, /Total dalam USD/);
+    assert.doesNotMatch(internationalText, /kota\/kabupaten|kecamatan tujuan/i);
+    assert.ok(internationalAnswer.admin_handoff);
 
     const godmars = await ask("Cari produk Godmars");
     assert.equal(godmars.intent, "product_discovery");

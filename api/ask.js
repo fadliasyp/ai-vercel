@@ -103,6 +103,9 @@ import {
   needsRecommendationBudgetClarification,
   buildTransactionTopicClarification,
   buildTransactionPolicyMessage,
+  buildInternationalShippingMessage,
+  extractInternationalShippingDestination,
+  looksLikeInternationalShippingQuestion,
 } from "../lib/chatbot/transactionIntent.js";
 
 import {
@@ -500,7 +503,8 @@ export default async function handler(req, res) {
     isBootstrapRequest && isGreetingOnly(rawQuestion);
 
   const privacySafeQuestion = () => redactOrderVerification(rawQuestion);
-  const customerState = detectCustomerState(privacySafeQuestion());
+  let customerState = detectCustomerState(privacySafeQuestion());
+  let resumedProductClarification = false;
 
   function normalizeQuestion(rawQuestion = "") {
     const q = normalizeCustomerQuestion(rawQuestion);
@@ -555,6 +559,43 @@ export default async function handler(req, res) {
     session.history = Array.isArray(persisted.history)
       ? persisted.history
       : session.history;
+  }
+
+  const productClarificationPending = getPending(session);
+  if (
+    selectedSuggestion?.product_name &&
+    productClarificationPending?.type === "product_clarification" &&
+    productClarificationPending?.stage === "choose_product"
+  ) {
+    const selectedId = Number(selectedSuggestion.product_id);
+    const selectedName = String(selectedSuggestion.product_name).trim();
+    const selectedProduct = (
+      productClarificationPending.data?.candidates || []
+    ).find(
+      (candidate) =>
+        Number(candidate?.id) === selectedId &&
+        String(candidate?.name || "").trim() === selectedName,
+    );
+
+    if (selectedProduct) {
+      rawQuestion = [
+        String(
+          productClarificationPending.data?.originalQuestion || "",
+        ).trim(),
+        `Produk yang dipilih: ${selectedProduct.name}.`,
+      ]
+        .filter(Boolean)
+        .join("\n");
+      effectiveQuestion = normalizeQuestion(privacySafeQuestion());
+      q = effectiveQuestion.toLowerCase();
+      productQueryScope = resolveProductQueryScope(rawQuestion);
+      usesPreviousProductContext = false;
+      linguisticAnalysis = analyzeIndonesianQuestion(privacySafeQuestion());
+      linguisticHint = compactLinguisticAnalysis(linguisticAnalysis);
+      customerState = detectCustomerState(privacySafeQuestion());
+      resumedProductClarification = true;
+      clearPending(session);
+    }
   }
 
   session.activeGoal = buildActiveConversationGoal(session.activeGoal, {
@@ -1019,7 +1060,8 @@ export default async function handler(req, res) {
     };
   }
 
-  const selectedSuggestionIntent = selectedSuggestion
+  const selectedSuggestionIntent =
+    selectedSuggestion && !resumedProductClarification
     ? suggestedActionIntent(selectedSuggestion)
     : null;
   const explicitCurrentIntent = initialExplicitIntent;
@@ -1089,6 +1131,7 @@ export default async function handler(req, res) {
     // jangan hapus pending kalau user sedang ada di flow multi-step penting
     const protectedPending =
       pending?.type === "shipping_quote" ||
+      pending?.type === "product_clarification" ||
       pending?.type === "compare" ||
       pending?.type === "checkout_flow" ||
       pending?.type === "shipment_tracking" ||
@@ -1795,6 +1838,7 @@ export default async function handler(req, res) {
         {
           answerSections: {
             material: productCoverageSection,
+            dimensions: productCoverageSection,
             product_condition: productCoverageSection,
             completeness: productCoverageSection,
             price: productCoverageSection,
@@ -1813,6 +1857,7 @@ export default async function handler(req, res) {
           },
           clarificationSections: {
             material: productClarification,
+            dimensions: productClarification,
             product_condition: productClarification,
             completeness: productClarification,
             price: productClarification,
@@ -1928,6 +1973,7 @@ export default async function handler(req, res) {
       delete finalPayload._noTruncateReasoning;
       delete finalPayload._followUpType;
       delete finalPayload._followUpMeta;
+      delete finalPayload._deferCoverageUntilProductSelection;
 
       console.log("SAVING SESSION PENDING:", session.pending);
       console.log(
@@ -4148,6 +4194,7 @@ export default async function handler(req, res) {
       answerPlanIncludes(answerPlan, "product_facts") &&
       answerPlanIncludes(answerPlan, "shipping_quote")
     ) {
+      plannedProductFactsPrepared = true;
       let catalog = [];
       try {
         catalog = await getCleanProducts();
@@ -4166,11 +4213,36 @@ export default async function handler(req, res) {
         queuedAnswerSections.push(
           `**Informasi produk**\n${buildProductTransactionSummary(product, rawQuestion)}`,
         );
+      } else if (productMatch.status === "ambiguous") {
+        const options = buildProductSearchOptions(
+          productMatch,
+          "shipping_transaction",
+        );
+        queuedAnswerSections = [];
+        setPending(session, {
+          type: "product_clarification",
+          stage: "choose_product",
+          data: {
+            originalQuestion: privacySafeQuestion(),
+            candidates: options.map((option) => ({
+              id: option.product_id,
+              name: option.product_name,
+            })),
+          },
+        });
+        return await send(
+          {
+            type: "options",
+            intro: buildProductSearchClarification(productMatch),
+            options,
+            intent: "shipping_transaction",
+            _deferCoverageUntilProductSelection: true,
+          },
+          "shipping_transaction",
+        );
       } else {
         queuedAnswerSections.push(
-          productMatch.status === "ambiguous"
-            ? buildProductSearchClarification(productMatch)
-            : "**Informasi produk**\nMaaf, produk yang dimaksud belum bisa dipastikan dari katalog, jadi kondisi, stok, harga, atau promonya belum dapat dikonfirmasi.",
+          "**Informasi produk**\nMaaf, produk yang dimaksud belum bisa dipastikan dari katalog, jadi kondisi, stok, harga, atau promonya belum dapat dikonfirmasi.",
         );
       }
     }
@@ -4325,6 +4397,29 @@ export default async function handler(req, res) {
             intent: "shipping_transaction",
             message: buildTransactionTopicClarification(),
             _actionContext: "transaction_topic_selection",
+          },
+          "shipping_transaction",
+        );
+      }
+
+      const internationalDestination =
+        extractInternationalShippingDestination(rawQuestion);
+      if (
+        internationalDestination &&
+        looksLikeInternationalShippingQuestion(rawQuestion)
+      ) {
+        clearPending(session);
+        return await send(
+          {
+            type: "text",
+            intent: "shipping_transaction",
+            message: buildInternationalShippingMessage(
+              internationalDestination,
+            ),
+            admin_handoff: {
+              label: "Tanya Admin soal Pengiriman Internasional",
+              topic: `pengiriman internasional ke ${internationalDestination}`,
+            },
           },
           "shipping_transaction",
         );

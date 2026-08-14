@@ -144,7 +144,10 @@ test("separates confident, ambiguous, and partial product matches", () => {
   assert.equal(ambiguous.product, null);
   assert.ok(ambiguous.candidates.length >= 2);
   assert.match(buildProductSearchClarification(ambiguous), /beberapa produk/i);
-  assert.match(buildProductSearchClarification(ambiguous), /Mazinger Z Infinity/);
+  assert.doesNotMatch(
+    buildProductSearchClarification(ambiguous),
+    /Mazinger Z Infinity/,
+  );
   assert.deepEqual(buildProductSearchOptions(ambiguous, "stock_availability"), [
     {
       label: "Super Robot Chogokin Mazinger Z",

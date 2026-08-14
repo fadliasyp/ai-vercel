@@ -484,6 +484,7 @@ test("sends compact conversation context to the Groq editor", async () => {
   assert.equal(requestBody.temperature, 0.2);
   assert.match(requestBody.messages[0].content, /seluruh poinnya/i);
   assert.match(requestBody.messages[0].content, /customer_state/i);
+  assert.match(requestBody.messages[0].content, /min, kak, gan/i);
   assert.deepEqual(userMessage.conversation_context, {
     previous_intent: "product_discovery",
     previous_topic: "chogokin",

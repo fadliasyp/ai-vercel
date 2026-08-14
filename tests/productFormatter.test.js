@@ -52,6 +52,19 @@ test("keeps an undocumented completeness facet explicit", () => {
   assert.match(summary, /Kelengkapan:.*belum tercantum secara rinci/i);
 });
 
+test("answers requested dimensions from WooCommerce catalog data", () => {
+  const summary = buildProductTransactionSummary(
+    {
+      name: "Robot Damashii Voltes V Legacy",
+      dimensions: { length: "30", width: "20", height: "40" },
+    },
+    "Ukurannya berapa cm, terutama tingginya?",
+  );
+
+  assert.match(summary, /Dimensi katalog/);
+  assert.match(summary, /T: 40 cm/);
+});
+
 test("answers condition and completeness before a return-policy follow-up", () => {
   const summary = buildProductTransactionSummary(
     {

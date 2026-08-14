@@ -127,6 +127,44 @@ test("tracks material questions separately from price", () => {
   assert.equal(complete.passed, true);
 });
 
+test("tracks product dimensions as a separate requested fact", () => {
+  const question = "Voltes V Legacy tingginya berapa cm?";
+  const missing = evaluateAnswerCoverage(question, {
+    type: "text",
+    message: "Aku menemukan produknya.",
+  });
+  assert.deepEqual(missing.requested, ["dimensions"]);
+  assert.deepEqual(missing.missing, ["dimensions"]);
+
+  const complete = evaluateAnswerCoverage(question, {
+    type: "text",
+    message: "Dimensi katalog: P: 30 cm, L: 20 cm, T: 40 cm.",
+  });
+  assert.equal(complete.passed, true);
+});
+
+test("defers coverage repair while the customer is choosing a product", () => {
+  const payload = {
+    type: "options",
+    intro: "Pilih produk yang kamu maksud ya:",
+    options: [{ label: "Voltes V A", value: "Cari produk Voltes V A" }],
+    _deferCoverageUntilProductSelection: true,
+  };
+  const result = repairAnswerCoverage(
+    "Voltes V tingginya berapa dan ongkir ke Malaysia berapa?",
+    payload,
+    {
+      clarificationSections: {
+        dimensions: "Sebutkan nama produk.",
+        shipping_quote: "Sebutkan kota tujuan.",
+      },
+    },
+  );
+
+  assert.equal(result.payload.intro, payload.intro);
+  assert.deepEqual(result.unresolved, ["dimensions", "shipping_quote"]);
+});
+
 test("accepts a precise shipping clarification as satisfied", () => {
   const coverage = evaluateAnswerCoverage("Cek ongkir ke Tangerang", {
     type: "text",

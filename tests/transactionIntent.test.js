@@ -3,18 +3,38 @@ import assert from "node:assert/strict";
 
 import {
   buildCODPolicyMessage,
+  buildInternationalShippingMessage,
   buildTransactionTopicClarification,
   buildTransactionPolicyMessage,
+  extractInternationalShippingDestination,
   looksLikeProductTransactionCompoundQuestion,
   looksLikePackingProtectionQuestion,
   looksLikePaymentMethodQuestion,
   looksLikePayLaterQuestion,
   looksLikeSameDayDispatchQuestion,
   looksLikeShippingCoverageQuestion,
+  looksLikeInternationalShippingQuestion,
   looksLikeShippingOriginQuestion,
   looksLikeProductManufacturingOriginQuestion,
   needsRecommendationBudgetClarification,
 } from "../lib/chatbot/transactionIntent.js";
+
+test("routes international shipping to admin without inventing a quote", () => {
+  const question =
+    "Kalau kirim Voltes V ke Malaysia ongkir dan total harganya berapa USD?";
+  assert.equal(extractInternationalShippingDestination(question), "Malaysia");
+  assert.equal(looksLikeInternationalShippingQuestion(question), true);
+  assert.equal(
+    looksLikeInternationalShippingQuestion("Ongkir ke Tangerang berapa?"),
+    false,
+  );
+
+  const message = buildInternationalShippingMessage("Malaysia");
+  assert.match(message, /Admin Robot Jadul/);
+  assert.match(message, /packing tambahan/);
+  assert.match(message, /Total dalam USD/);
+  assert.doesNotMatch(message, /Rp\s*[\d.]+/);
+});
 
 test("recognizes shipping coverage without forcing an ongkir flow", () => {
   const questions = [

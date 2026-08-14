@@ -234,6 +234,19 @@ test("plans material and price as product facts", () => {
   ]);
 });
 
+test("plans dimensions before an international shipping quote", () => {
+  const analysis = analyzeCompoundQuestion(
+    "Voltes V Legacy tingginya berapa cm dan ongkir ke Malaysia berapa?",
+  );
+  const plan = buildAnswerPlan(analysis);
+
+  assert.deepEqual(analysis.facets, ["dimensions", "shipping_quote"]);
+  assert.deepEqual(plan.sections, [
+    { key: "product_facts", facets: ["dimensions"] },
+    { key: "shipping_quote", facets: ["shipping_quote"] },
+  ]);
+});
+
 test("keeps recommendation primary across payment and shipping clauses", () => {
   const analysis = analyzeCompoundQuestion(
     "Ada rekomendasi robot jadul budget di bawah 2 juta? Sama ongkir ke Bandung kena berapa dan bisa bayar pakai apa aja",
