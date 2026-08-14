@@ -119,6 +119,21 @@ test("accepts a precise shipping clarification as satisfied", () => {
   assert.equal(coverage.passed, true);
 });
 
+test("accepts naturalized city choices without appending another prompt", () => {
+  const coverage = evaluateAnswerCoverage("Cek ongkir ke Tangerang", {
+    type: "options",
+    intro:
+      "Ongkir ke Tangerang tergantung kota/kabupaten spesifiknya. Bisa pilih yang benar di bawah ini ya:",
+    options: [
+      { label: "KAB.TANGERANG", value: "KAB.TANGERANG" },
+      { label: "TANGERANG", value: "TANGERANG" },
+    ],
+  });
+
+  assert.deepEqual(coverage.clarified, ["shipping_quote"]);
+  assert.equal(coverage.passed, true);
+});
+
 test("checks budget against returned product prices", () => {
   const coverage = evaluateAnswerCoverage(
     "Rekomendasikan robot untuk pajangan di bawah 2 juta",

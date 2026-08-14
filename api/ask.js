@@ -5199,65 +5199,6 @@ export default async function handler(req, res) {
     }
 
     console.log("ONGKIR PENDING:", JSON.stringify(session.pending, null, 2));
-    // =======================
-    // CEK ONGKIR
-    // =======================
-    if (
-      looksLikeShippingQuoteQuestion(rawQuestion) &&
-      !answerPlan.isMultiSection
-    ) {
-      clearPending(session);
-
-      intentResult = {
-        intent: "shipping_transaction",
-        method: "shipping_quote_override_rule",
-        score: 0.99,
-      };
-
-      const policyContext = buildTransactionPolicyMessage(rawQuestion, {
-        codEnabled:
-          String(process.env.COD_ENABLED || "false").toLowerCase() === "true",
-      });
-      const withPolicyContext = (message) =>
-        [policyContext, message].filter(Boolean).join("\n\n");
-      const locationText = looksLikeShippingCoverageQuestion(rawQuestion)
-        ? ""
-        : extractShippingDestination(rawQuestion);
-
-      if (locationText) {
-        const resolved = await resolveShippingLocation(locationText);
-
-        if (resolved.kind === "single_city") {
-          return await send(
-            await beginDistrictSelection(
-              session,
-              resolved.city.city_id,
-              resolved.city.name,
-            ),
-            "shipping_transaction",
-          );
-        }
-      }
-
-      setPending(session, {
-        type: "shipping_quote",
-        stage: "need_city",
-        data: {},
-      });
-
-      return await send(
-        {
-          type: "text",
-          message: withPolicyContext(
-            "Untuk cek ongkir, kamu bisa kirim sekaligus **kota/kabupaten, kecamatan**, " +
-              "misalnya **Kabupaten Tangerang, Rajeg**. Kalau baru tahu kota/kabupatennya, " +
-              "kirim itu dulu dan aku bantu lanjutkan.",
-          ),
-          intent: "shipping_transaction",
-        },
-        "shipping_transaction",
-      );
-    }
 
     // ===============================
     // ✅ UNIVERSAL STATE HANDLER (RUN FIRST)

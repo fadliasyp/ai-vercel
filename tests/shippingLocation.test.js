@@ -16,6 +16,10 @@ import {
 test("extracts only the destination from a compound shipping question", () => {
   assert.equal(extractShippingDestination("Cek ongkir ke Tangerang?"), "Tangerang");
   assert.equal(
+    extractShippingDestination("ongkir ke tangerang beraapaa ya"),
+    "tangerang",
+  );
+  assert.equal(
     extractShippingDestination(
       "Ongkir ke Surabaya untuk Getter Robo GX-74 berapa, bisa pakai asuransi?",
     ),
