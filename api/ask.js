@@ -870,7 +870,9 @@ export default async function handler(req, res) {
     llmAssistantConfig.mode === "active"
       ? llmLedIntentResult
       : legacyIntentResult;
-  const llmToolPlan = buildLlmToolPlan(groqRoute);
+  const llmToolPlan = buildLlmToolPlan(groqRoute, {
+    internationalShipping: looksLikeInternationalShippingQuestion(rawQuestion),
+  });
 
   const semanticDecisionIsPrimary =
     groqRoute?.scope === "in_scope" &&
@@ -1989,7 +1991,23 @@ export default async function handler(req, res) {
               : "not_run",
         accepted: false,
       };
-      if (
+      const canReuseShadowComposition =
+        llmAssistantConfig.mode === "shadow" &&
+        coverageRepair.repaired.length === 0 &&
+        coverageRepair.clarified.length === 0;
+
+      if (canReuseShadowComposition) {
+        llmComposerMeta = {
+          mode: "shadow",
+          status: assistantMeta.naturalized
+            ? "shadow_reused_legacy_composer"
+            : assistantMeta.reason || "not_composed",
+          accepted: Boolean(assistantMeta.naturalized),
+          changed: Boolean(assistantMeta.naturalized),
+          provider: assistantMeta.provider,
+          model: assistantMeta.model,
+        };
+      } else if (
         llmAssistantConfig.mode !== "legacy" &&
         finalIntent !== "transaction_status"
       ) {

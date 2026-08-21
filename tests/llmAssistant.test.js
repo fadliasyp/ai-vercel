@@ -92,6 +92,18 @@ test("plans trusted data tools for every compound need", () => {
     }).map((step) => step.tool),
     ["woo_catalog", "shipping_quote", "store_policy"],
   );
+
+  assert.deepEqual(
+    buildLlmToolPlan(
+      {
+        scope: "in_scope",
+        requires_product: true,
+        goals: ["dimensions", "price", "shipping_quote"],
+      },
+      { internationalShipping: true },
+    ).map((step) => step.tool),
+    ["woo_catalog", "store_policy"],
+  );
 });
 
 test("builds a bounded packet from tool facts instead of the LLM interpretation", () => {

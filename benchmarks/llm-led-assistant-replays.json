@@ -34,14 +34,15 @@
       "question": "Voltes V Legacy tingginya berapa, ongkir ke Malaysia berapa, dan totalnya jadi berapa USD?",
       "intent": "shipping_transaction",
       "goals": ["dimensions", "price", "shipping_quote"],
-      "tools": ["woo_catalog", "shipping_quote"]
+      "tools": ["woo_catalog", "store_policy"]
     },
     {
       "id": "topic-switch-product",
       "question": "Tadi abaikan Godmars. Sekarang mau cek harga, bahan, dan stok Mazinger Z Jumbo Machinder.",
       "intent": "product_detail",
       "goals": ["material", "price", "stock"],
-      "tools": ["woo_catalog"]
+      "tools": ["woo_catalog"],
+      "topic_relation": "topic_switch"
     }
   ]
 }
