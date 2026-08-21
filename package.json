@@ -9,7 +9,7 @@
     "benchmark:groq-intents": "node scripts/benchmark-groq-intents.js",
     "benchmark:customers": "node scripts/benchmark-customer-conversations.js",
     "benchmark:coverage-replay": "node scripts/benchmark-answer-coverage-replays.js",
-    "benchmark:llm-shadow": "node scripts/benchmark-llm-led-shadow.js",
+    "benchmark:llm-shadow": "node --env-file-if-exists=.env scripts/benchmark-llm-led-shadow.js",
     "benchmark:simulations-live": "node scripts/benchmark-live-customer-simulations.js",
     "benchmark:compound-live": "node scripts/smoke-ask.js --compound --endpoint https://ai-vercel-ten-sigma.vercel.app/api/ask --output benchmarks/results/compound-answers-live.json",
     "benchmark:confidence-live": "node scripts/smoke-ask.js --confidence --endpoint https://ai-vercel-ten-sigma.vercel.app/api/ask --output benchmarks/results/product-confidence-live.json",

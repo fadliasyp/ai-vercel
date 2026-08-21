@@ -817,6 +817,7 @@ export default async function handler(req, res) {
       routerEnabled: groqConfig.enabled,
     },
   );
+  let groqRouteError = null;
   const groqRouteTask =
     (useLlmLedUnderstanding ||
     shouldUseSemanticRouter({
@@ -829,6 +830,11 @@ export default async function handler(req, res) {
         context: groqContext,
         config: groqConfig,
       }).catch((error) => {
+        groqRouteError = {
+          code: error?.code || "UNKNOWN",
+          status: Number(error?.status || 0),
+          retryAfter: error?.retryAfter || null,
+        };
         console.error("GROQ SEMANTIC ROUTER ERROR:", {
           code: error?.code || "UNKNOWN",
           status: error?.status || 0,
@@ -1863,6 +1869,12 @@ export default async function handler(req, res) {
           naturalized: false,
           reason: "sensitive_intent",
         };
+      } else if (groqRouteError?.status === 429) {
+        assistantMeta = {
+          provider: "template",
+          naturalized: false,
+          reason: "understanding_rate_limited",
+        };
       } else if (naturalizerConfig.enabled) {
         finalPayload = await naturalizeResponseWithGroq(finalPayload, {
           userQuestion: privacySafeQuestion(),
@@ -1986,6 +1998,10 @@ export default async function handler(req, res) {
         status:
           llmAssistantConfig.mode === "legacy"
             ? "disabled"
+            : groqRouteError?.status === 429
+              ? "understanding_rate_limited"
+              : assistantMeta.reason === "error_429"
+                ? "error_429"
             : finalIntent === "transaction_status"
               ? "sensitive_intent"
               : "not_run",
@@ -1993,8 +2009,9 @@ export default async function handler(req, res) {
       };
       const canReuseShadowComposition =
         llmAssistantConfig.mode === "shadow" &&
-        coverageRepair.repaired.length === 0 &&
-        coverageRepair.clarified.length === 0;
+        (assistantMeta.reason === "error_429" ||
+          (coverageRepair.repaired.length === 0 &&
+            coverageRepair.clarified.length === 0));
 
       if (canReuseShadowComposition) {
         llmComposerMeta = {
@@ -2010,6 +2027,7 @@ export default async function handler(req, res) {
           repaired_fields: assistantMeta.repaired_fields || [],
         };
       } else if (
+        groqRouteError?.status !== 429 &&
         llmAssistantConfig.mode !== "legacy" &&
         finalIntent !== "transaction_status"
       ) {
@@ -2081,6 +2099,11 @@ export default async function handler(req, res) {
         llm_led: {
           mode: llmAssistantConfig.mode,
           understanding_provider: groqRoute?.provider || "local_rules_ml",
+          understanding_status:
+            groqRoute?.provider === "groq"
+              ? "success"
+              : groqRouteError?.code ||
+                (useLlmLedUnderstanding ? "fallback" : "not_run"),
           understanding_intent: llmLedIntentResult.intent,
           understanding_confidence: llmLedIntentResult.score,
           understanding_goals: Array.isArray(groqRoute?.goals)

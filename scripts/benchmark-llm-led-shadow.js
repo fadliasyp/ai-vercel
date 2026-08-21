@@ -21,11 +21,13 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 let passed = 0;
 let composerPassed = 0;
+let rateLimited = false;
 const composerStatuses = new Map();
 const acceptedComposerStatuses = new Set([
   "shadow_accepted",
   "shadow_reused_legacy_composer",
 ]);
+console.log(`LLM-led shadow benchmark: jeda ${delayMs} ms antar kasus`);
 for (const [index, item] of dataset.cases.entries()) {
   if (index > 0 && delayMs > 0) await sleep(delayMs);
   const response = await fetch(endpoint, {
@@ -38,6 +40,18 @@ for (const [index, item] of dataset.cases.entries()) {
   });
   const body = await response.json();
   const meta = body?.assistant_meta?.llm_led || {};
+  const composerStatus = meta.composer_status || "unknown";
+  if (
+    composerStatus === "error_429" ||
+    composerStatus === "understanding_rate_limited" ||
+    meta.understanding_status === "GROQ_RATE_LIMITED"
+  ) {
+    rateLimited = true;
+    console.log(
+      `RATE LIMITED ${item.id}: benchmark dihentikan agar tidak menambah beban kuota Groq.`,
+    );
+    break;
+  }
   const goals = new Set(meta.understanding_goals || []);
   const tools = new Set(meta.tool_plan || []);
   const missingGoals = item.goals.filter((goal) => !goals.has(goal));
@@ -55,7 +69,6 @@ for (const [index, item] of dataset.cases.entries()) {
     missingTools.length === 0;
 
   passed += Number(ok);
-  const composerStatus = meta.composer_status || "unknown";
   const composerMatches = item.composer_status
     ? composerStatus === item.composer_status
     : acceptedComposerStatuses.has(composerStatus);
@@ -91,18 +104,25 @@ for (const [index, item] of dataset.cases.entries()) {
   }
 }
 
-console.log(`\nLLM-led shadow benchmark: ${passed}/${dataset.cases.length}`);
-console.log(
-  `Composer statuses: ${[...composerStatuses.entries()]
-    .map(([status, count]) => `${status}=${count}`)
-    .join(", ")}`,
-);
-console.log(
-  `Composer readiness: ${composerPassed}/${dataset.cases.length}`,
-);
-const activationReady =
-  passed === dataset.cases.length && composerPassed === dataset.cases.length;
-console.log(
-  `Activation readiness: ${activationReady ? "READY" : "NOT READY - keep LLM_LED_ASSISTANT_MODE=shadow"}`,
-);
-if (!activationReady) process.exitCode = 1;
+if (rateLimited) {
+  console.log(
+    "\nLLM-led shadow benchmark: INCONCLUSIVE - tunggu kuota Groq pulih lalu jalankan ulang.",
+  );
+  process.exitCode = 2;
+} else {
+  console.log(`\nLLM-led shadow benchmark: ${passed}/${dataset.cases.length}`);
+  console.log(
+    `Composer statuses: ${[...composerStatuses.entries()]
+      .map(([status, count]) => `${status}=${count}`)
+      .join(", ")}`,
+  );
+  console.log(
+    `Composer readiness: ${composerPassed}/${dataset.cases.length}`,
+  );
+  const activationReady =
+    passed === dataset.cases.length && composerPassed === dataset.cases.length;
+  console.log(
+    `Activation readiness: ${activationReady ? "READY" : "NOT READY - keep LLM_LED_ASSISTANT_MODE=shadow"}`,
+  );
+  if (!activationReady) process.exitCode = 1;
+}
