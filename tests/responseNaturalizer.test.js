@@ -157,8 +157,46 @@ test("rejects a rewrite that changes a protected price", async () => {
   });
 
   assert.equal(result.message, payload.message);
-  assert.equal(status.validation_reason, "protected_numbers_changed");
+  assert.equal(status.validation_reason, "immutable_placeholder_changed");
   assert.equal(status.reason, "unsafe_rewrite_no_safe_change");
+});
+
+test("restores immutable facts after Groq rewrites the surrounding language", async () => {
+  let requestBody = null;
+  const result = await naturalizeResponseWithGroq(payload, {
+    userQuestion: "harganya berapa?",
+    intent: "price_promo",
+    config: config(),
+    fetchImpl: async (_url, options) => {
+      requestBody = JSON.parse(options.body);
+      const editable = JSON.parse(requestBody.messages[1].content).editable_text;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  ...editable,
+                  message: `Saat ini, ${editable.message}`,
+                  closing: `Kamu bisa ${editable.closing.toLowerCase()}`,
+                }),
+              },
+            },
+          ],
+        }),
+      };
+    },
+  });
+
+  assert.doesNotMatch(
+    JSON.parse(requestBody.messages[1].content).editable_text.message,
+    /3\.500\.000|Soul of Chogokin GX-91/,
+  );
+  assert.match(result.message, /\*\*Soul of Chogokin GX-91\*\*/);
+  assert.match(result.message, /\*\*Rp 3\.500\.000\*\*/);
+  assert.match(result.closing, /https:\/\/example\.com\/product\/gx-91/);
 });
 
 test("keeps safe rewritten fields when another field changes a protected fact", async () => {
@@ -568,13 +606,13 @@ test("sends compact conversation context to the Groq editor", async () => {
   assert.match(requestBody.messages[0].content, /customer_state/i);
   assert.match(requestBody.messages[0].content, /min, kak, gan/i);
   assert.match(requestBody.messages[0].content, /field_contracts/i);
-  assert.deepEqual(userMessage.field_contracts.message.numbers, [
-    "3.500.000",
-    "91",
-  ]);
-  assert.deepEqual(userMessage.field_contracts.closing.urls, [
-    "https://example.com/product/gx-91",
-  ]);
+  assert.match(requestBody.messages[0].content, /RJLOCK/);
+  assert.deepEqual(userMessage.field_contracts.message.numbers, []);
+  assert.deepEqual(userMessage.field_contracts.closing.urls, []);
+  assert.ok(userMessage.field_contracts.message.immutable_placeholders.length > 0);
+  assert.ok(userMessage.field_contracts.closing.immutable_placeholders.length > 0);
+  assert.doesNotMatch(userMessage.editable_text.message, /3\.500\.000/);
+  assert.doesNotMatch(userMessage.editable_text.closing, /https:\/\//);
   assert.deepEqual(userMessage.conversation_context, {
     previous_intent: "product_discovery",
     previous_topic: "chogokin",
