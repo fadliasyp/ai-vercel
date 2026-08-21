@@ -2007,6 +2007,7 @@ export default async function handler(req, res) {
           provider: assistantMeta.provider,
           model: assistantMeta.model,
           safety_issue: assistantMeta.validation_reason || null,
+          repaired_fields: assistantMeta.repaired_fields || [],
         };
       } else if (
         llmAssistantConfig.mode !== "legacy" &&
@@ -2092,6 +2093,7 @@ export default async function handler(req, res) {
           composer_changed: Boolean(llmComposerMeta.changed),
           composer_validation: llmComposerMeta.validation || null,
           composer_safety_issue: llmComposerMeta.safety_issue || null,
+          composer_repaired_fields: llmComposerMeta.repaired_fields || [],
         },
       };
 

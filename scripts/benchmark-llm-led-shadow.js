@@ -70,6 +70,11 @@ for (const [index, item] of dataset.cases.entries()) {
   if (meta.composer_safety_issue) {
     console.log(`  composer safety: ${meta.composer_safety_issue}`);
   }
+  if (meta.composer_repaired_fields?.length) {
+    console.log(
+      `  composer fallback fields: ${meta.composer_repaired_fields.join(", ")}`,
+    );
+  }
   if (!ok) {
     if (!intentMatches) {
       console.log(`  expected intent: ${expectedIntents.join(" or ")}`);

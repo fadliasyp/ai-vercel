@@ -106,7 +106,7 @@ test("accepts a friendlier rewrite when protected facts stay identical", async (
       message:
         "Saat ini, harga **Soul of Chogokin GX-91** adalah **Rp 3.500.000**.",
       reasoning_text: "",
-      closing: "Detailnya ada di https://example.com/product/gx-91",
+      closing: payload.closing,
     }),
     onStatus(value) {
       status = value;
@@ -149,7 +149,7 @@ test("rejects a rewrite that changes a protected price", async () => {
       message:
         "Saat ini, harga **Soul of Chogokin GX-91** adalah **Rp 2.500.000**.",
       reasoning_text: "",
-      closing: "Detailnya ada di https://example.com/product/gx-91",
+      closing: payload.closing,
     }),
     onStatus(value) {
       status = value;
@@ -158,6 +158,33 @@ test("rejects a rewrite that changes a protected price", async () => {
 
   assert.equal(result.message, payload.message);
   assert.equal(status.validation_reason, "protected_numbers_changed");
+  assert.equal(status.reason, "unsafe_rewrite_no_safe_change");
+});
+
+test("keeps safe rewritten fields when another field changes a protected fact", async () => {
+  let status = null;
+  const result = await naturalizeResponseWithGroq(payload, {
+    userQuestion: "harganya berapa?",
+    intent: "price_promo",
+    config: config(),
+    fetchImpl: mockFetch({
+      intro: "",
+      message:
+        "Saat ini, harga **Soul of Chogokin GX-91** adalah **Rp 2.500.000**.",
+      reasoning_text: "",
+      closing:
+        "Detail produknya bisa kamu lihat di https://example.com/product/gx-91",
+    }),
+    onStatus(value) {
+      status = value;
+    },
+  });
+
+  assert.equal(result.message, payload.message);
+  assert.match(result.closing, /^Detail produknya/);
+  assert.equal(status.naturalized, true);
+  assert.equal(status.reason, "success_with_field_fallback");
+  assert.deepEqual(status.repaired_fields, ["message"]);
 });
 
 test("keeps safe generated suggestions when an unsafe text rewrite is rejected", async () => {
@@ -540,6 +567,14 @@ test("sends compact conversation context to the Groq editor", async () => {
   assert.match(requestBody.messages[0].content, /seluruh poinnya/i);
   assert.match(requestBody.messages[0].content, /customer_state/i);
   assert.match(requestBody.messages[0].content, /min, kak, gan/i);
+  assert.match(requestBody.messages[0].content, /field_contracts/i);
+  assert.deepEqual(userMessage.field_contracts.message.numbers, [
+    "3.500.000",
+    "91",
+  ]);
+  assert.deepEqual(userMessage.field_contracts.closing.urls, [
+    "https://example.com/product/gx-91",
+  ]);
   assert.deepEqual(userMessage.conversation_context, {
     previous_intent: "product_discovery",
     previous_topic: "chogokin",
