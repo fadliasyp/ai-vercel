@@ -21,6 +21,9 @@ create table if not exists public.chat_observability (
   coverage_repaired text[] not null default '{}'::text[],
   coverage_clarified text[] not null default '{}'::text[],
   coverage_unresolved text[] not null default '{}'::text[],
+  llm_assistant_mode text not null default 'legacy',
+  llm_composer_status text not null default 'disabled',
+  llm_composer_accepted boolean not null default false,
   error_code text not null default 'none',
   created_at timestamptz not null default now()
 );
@@ -34,6 +37,11 @@ alter table public.chat_observability
   add column if not exists coverage_repaired text[] not null default '{}'::text[],
   add column if not exists coverage_clarified text[] not null default '{}'::text[],
   add column if not exists coverage_unresolved text[] not null default '{}'::text[];
+
+alter table public.chat_observability
+  add column if not exists llm_assistant_mode text not null default 'legacy',
+  add column if not exists llm_composer_status text not null default 'disabled',
+  add column if not exists llm_composer_accepted boolean not null default false;
 
 create index if not exists chat_observability_created_at_idx
   on public.chat_observability (created_at desc);

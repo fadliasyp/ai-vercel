@@ -27,6 +27,9 @@ test("builds bounded privacy-safe chatbot metrics", () => {
       coverageRepaired: ["promo"],
       coverageClarified: ["cod"],
       coverageUnresolved: ["rahasia"],
+      llmAssistantMode: "shadow",
+      llmComposerStatus: "shadow_accepted",
+      llmComposerAccepted: true,
       question: "email pelanggan@example.com dan 081234567890",
       image: "data:image/jpeg;base64,rahasia-foto-pelanggan",
       imageName: "koleksi-pribadi.jpg",
@@ -50,6 +53,9 @@ test("builds bounded privacy-safe chatbot metrics", () => {
   assert.deepEqual(metric.coverage_repaired, ["promo"]);
   assert.deepEqual(metric.coverage_clarified, ["cod"]);
   assert.deepEqual(metric.coverage_unresolved, []);
+  assert.equal(metric.llm_assistant_mode, "shadow");
+  assert.equal(metric.llm_composer_status, "shadow_accepted");
+  assert.equal(metric.llm_composer_accepted, true);
   assert.equal("question" in metric, false);
   assert.equal("image" in metric, false);
   assert.doesNotMatch(

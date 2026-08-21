@@ -165,10 +165,12 @@ import {
   resolveContextualIntent,
 } from "../lib/chatbot/questionUnderstanding.js";
 import {
+  buildBulkPurchaseOfferMessage,
   buildGeneralStockPolicyMessage,
   buildNegotiationPolicyMessage,
   buildReturnPolicyMessage,
   getReturnActionContext,
+  looksLikeBulkPurchaseOfferQuestion,
   looksLikeGeneralStockPolicyQuestion,
   looksLikeNegotiationPolicyQuestion,
   looksLikeReturnPolicyQuestion,
@@ -227,6 +229,12 @@ import {
   productMatchesCompoundConstraints,
 } from "../lib/chatbot/compoundQuestion.js";
 import { repairAnswerCoverage } from "../lib/chatbot/answerCoverage.js";
+import {
+  buildLlmToolPlan,
+  resolveLlmAssistantConfig,
+  runLlmAnswerComposer,
+  shouldUseLlmUnderstanding,
+} from "../lib/chatbot/llmAssistant.js";
 import {
   CORRECTION_WORDS,
   TYPO_MAP,
@@ -777,6 +785,7 @@ export default async function handler(req, res) {
   });
 
   const groqConfig = resolveGroqRouterConfig();
+  const llmAssistantConfig = resolveLlmAssistantConfig();
   const groqContext = {
     lastIntent: previousCommerceContext.lastIntent,
     lastTopic: previousCommerceContext.lastTopic,
@@ -803,11 +812,20 @@ export default async function handler(req, res) {
         })
       : classifyIntentHybrid(effectiveQuestion);
 
-  const groqRouteTask = shouldUseSemanticRouter({
-    enabled: groqConfig.enabled,
-    localScope: localScopeDecision,
-    question: privacySafeQuestion(),
-  })
+  const useLlmLedUnderstanding = shouldUseLlmUnderstanding(
+    privacySafeQuestion(),
+    {
+      mode: llmAssistantConfig.mode,
+      routerEnabled: groqConfig.enabled,
+    },
+  );
+  const groqRouteTask =
+    (useLlmLedUnderstanding ||
+    shouldUseSemanticRouter({
+      enabled: groqConfig.enabled,
+      localScope: localScopeDecision,
+      question: privacySafeQuestion(),
+    }))
     ? classifyCommerceWithGroqFallback({
         question: privacySafeQuestion(),
         context: groqContext,
@@ -833,15 +851,50 @@ export default async function handler(req, res) {
     ? configuredSemanticConfidence
     : 0.65;
 
-  let intentResult = chooseSemanticIntent({
+  const legacyIntentResult = chooseSemanticIntent({
     question: privacySafeQuestion(),
     localScope: localScopeDecision,
     local: localIntentResult,
     semantic: groqRoute,
     minSemanticConfidence,
   });
+  const llmLedIntentResult = chooseSemanticIntent({
+    question: privacySafeQuestion(),
+    localScope: localScopeDecision,
+    local: localIntentResult,
+    semantic: groqRoute,
+    minSemanticConfidence,
+    llmLed: true,
+  });
+  let intentResult =
+    llmAssistantConfig.mode === "active"
+      ? llmLedIntentResult
+      : legacyIntentResult;
+  const llmToolPlan = buildLlmToolPlan(groqRoute);
 
-  if (contextualIntent) {
+  const semanticDecisionIsPrimary =
+    groqRoute?.scope === "in_scope" &&
+    Number(groqRoute.confidence || 0) >= minSemanticConfidence &&
+    String(intentResult.method || "").startsWith("groq_semantic:");
+
+  if (semanticDecisionIsPrimary) {
+    const semanticFacets = Array.isArray(groqRoute.goals)
+      ? groqRoute.goals
+      : [];
+    compoundAnalysis = {
+      ...compoundAnalysis,
+      isCompound:
+        compoundAnalysis.isCompound ||
+        semanticFacets.length > 1 ||
+        (groqRoute.intents || []).length > 1,
+      facets: [...new Set([...compoundAnalysis.facets, ...semanticFacets])],
+      primaryIntent: intentResult.intent,
+      confidence: Number(groqRoute.confidence || 0),
+    };
+    answerPlan = buildAnswerPlan(compoundAnalysis);
+    groqContext.compound = compactCompoundQuestionAnalysis(compoundAnalysis);
+    groqContext.semanticDecision = groqRoute;
+  } else if (contextualIntent) {
     intentResult = {
       ...intentResult,
       intent: contextualIntent.intent,
@@ -921,7 +974,11 @@ export default async function handler(req, res) {
 
   const isShippingQuoteQuestion = looksLikeShippingQuoteQuestion(rawQuestion);
 
-  if (isShippingQuoteQuestion && !keepsRecommendationAsPrimary()) {
+  if (
+    !semanticDecisionIsPrimary &&
+    isShippingQuoteQuestion &&
+    !keepsRecommendationAsPrimary()
+  ) {
     clearPending(session); // keluar dari pending status transaksi
     intentResult = {
       intent: "shipping_transaction",
@@ -931,6 +988,7 @@ export default async function handler(req, res) {
   }
 
   if (
+    !semanticDecisionIsPrimary &&
     looksLikePaymentMethodQuestion(rawQuestion) &&
     !keepsRecommendationAsPrimary()
   ) {
@@ -943,6 +1001,7 @@ export default async function handler(req, res) {
   }
 
   if (
+    !semanticDecisionIsPrimary &&
     (looksLikeTransactionPolicyQuestion(rawQuestion) ||
       looksLikeHowToBuyQuestion(rawQuestion)) &&
     !keepsRecommendationAsPrimary()
@@ -955,7 +1014,7 @@ export default async function handler(req, res) {
     };
   }
 
-  if (looksLikeShippingOriginQuestion(rawQuestion)) {
+  if (!semanticDecisionIsPrimary && looksLikeShippingOriginQuestion(rawQuestion)) {
     clearPending(session);
     intentResult = {
       intent: "shipping_origin",
@@ -964,7 +1023,7 @@ export default async function handler(req, res) {
     };
   }
 
-  if (looksLikeCompareQuestion(rawQuestion)) {
+  if (!semanticDecisionIsPrimary && looksLikeCompareQuestion(rawQuestion)) {
     clearPending(session);
     intentResult = {
       intent: "compare",
@@ -973,7 +1032,10 @@ export default async function handler(req, res) {
     };
   }
 
-  if (looksLikeSpecificCatalogAvailabilityQuestion(rawQuestion)) {
+  if (
+    !semanticDecisionIsPrimary &&
+    looksLikeSpecificCatalogAvailabilityQuestion(rawQuestion)
+  ) {
     intentResult = {
       intent: "product_discovery",
       method: "specific_catalog_availability_override_rule",
@@ -982,6 +1044,7 @@ export default async function handler(req, res) {
   }
 
   if (
+    !semanticDecisionIsPrimary &&
     intentResult.score < 0.3 &&
     intentResult.ml_intent === "shipping_transaction"
   ) {
@@ -1000,7 +1063,11 @@ export default async function handler(req, res) {
     "shipment_tracking",
   ].includes(intentResult.intent);
 
-  if (budgetInfo.detected && budgetCanOverrideIntent) {
+  if (
+    !semanticDecisionIsPrimary &&
+    budgetInfo.detected &&
+    budgetCanOverrideIntent
+  ) {
     session.slots.budgetMin = budgetInfo.min;
     session.slots.budgetMax = budgetInfo.max;
 
@@ -1033,7 +1100,7 @@ export default async function handler(req, res) {
   const isReturnProductQuestion = looksLikeReturnPolicyQuestion(rawQuestion);
 
   // 🔥 FORCE INTENT
-  if (isReturnProductQuestion) {
+  if (!semanticDecisionIsPrimary && isReturnProductQuestion) {
     intentResult = {
       intent: "return_product",
       method: "return_product_override_rule",
@@ -1042,6 +1109,7 @@ export default async function handler(req, res) {
   }
 
   if (
+    !semanticDecisionIsPrimary &&
     pageContext &&
     looksLikeCurrentProductDetailQuestion(rawQuestion)
   ) {
@@ -1062,6 +1130,7 @@ export default async function handler(req, res) {
   }
 
   if (
+    !semanticDecisionIsPrimary &&
     (q.includes("asuransi") ||
       q.includes("proteksi pengiriman") ||
       q.includes("barang diasuransikan") ||
@@ -1782,7 +1851,13 @@ export default async function handler(req, res) {
         reason: "groq_disabled",
       };
 
-      if (finalIntent === "transaction_status") {
+      if (llmAssistantConfig.mode === "active") {
+        assistantMeta = {
+          provider: "template",
+          naturalized: false,
+          reason: "deferred_to_llm_composer",
+        };
+      } else if (finalIntent === "transaction_status") {
         assistantMeta = {
           provider: "template",
           naturalized: false,
@@ -1904,6 +1979,41 @@ export default async function handler(req, res) {
       );
       finalPayload = coverageRepair.payload;
 
+      let llmComposerMeta = {
+        mode: llmAssistantConfig.mode,
+        status:
+          llmAssistantConfig.mode === "legacy"
+            ? "disabled"
+            : finalIntent === "transaction_status"
+              ? "sensitive_intent"
+              : "not_run",
+        accepted: false,
+      };
+      if (
+        llmAssistantConfig.mode !== "legacy" &&
+        finalIntent !== "transaction_status"
+      ) {
+        const composed = await runLlmAnswerComposer({
+          payload: finalPayload,
+          question: privacySafeQuestion(),
+          intent: finalIntent,
+          conversationContext: groqContext,
+          actionCandidates,
+          config: llmAssistantConfig,
+        });
+        finalPayload = composed.payload;
+        llmComposerMeta = composed.meta;
+
+        if (llmAssistantConfig.mode === "active") {
+          assistantMeta = {
+            provider: composed.meta.provider || "template",
+            model: composed.meta.model,
+            naturalized: composed.meta.accepted,
+            reason: composed.meta.status,
+          };
+        }
+      }
+
       for (const field of ["actions", "suggestions"]) {
         if (Array.isArray(finalPayload[field])) {
           finalPayload[field] = filterAnsweredSuggestedActions(
@@ -1948,6 +2058,21 @@ export default async function handler(req, res) {
             : {
                 provider: "local_rules_ml",
               },
+        llm_led: {
+          mode: llmAssistantConfig.mode,
+          understanding_provider: groqRoute?.provider || "local_rules_ml",
+          understanding_intent: llmLedIntentResult.intent,
+          understanding_confidence: llmLedIntentResult.score,
+          understanding_goals: Array.isArray(groqRoute?.goals)
+            ? groqRoute.goals
+            : [],
+          topic_relation: groqRoute?.topic_relation || "new_topic",
+          tool_plan: llmToolPlan.map((step) => step.tool),
+          composer_status: llmComposerMeta.status,
+          composer_accepted: Boolean(llmComposerMeta.accepted),
+          composer_changed: Boolean(llmComposerMeta.changed),
+          composer_validation: llmComposerMeta.validation || null,
+        },
       };
 
       console.log("AI RESPONSE EDITOR:", assistantMeta);
@@ -1985,6 +2110,9 @@ export default async function handler(req, res) {
               coverageRepaired: coverageRepair.repaired,
               coverageClarified: coverageRepair.clarified,
               coverageUnresolved: coverageRepair.unresolved,
+              llmAssistantMode: llmAssistantConfig.mode,
+              llmComposerStatus: llmComposerMeta.status,
+              llmComposerAccepted: llmComposerMeta.accepted,
             }),
       ]);
 

@@ -57,6 +57,23 @@ ${JSON.stringify(
   assert.equal(parsed.entities.location, "Jakarta Selatan");
 });
 
+test("keeps the LLM-led interpretation and conversation relation structured", () => {
+  const parsed = parseSemanticRouterOutput(
+    validOutput({
+      interpretation:
+        "Pelanggan meminta harga dan stok Getter Robo sebagai topik baru.",
+      topic_relation: "topic_switch",
+      address_term: "min",
+      customer_state: "urgent",
+    }),
+  );
+
+  assert.equal(parsed.topic_relation, "topic_switch");
+  assert.equal(parsed.address_term, "min");
+  assert.equal(parsed.customer_state, "urgent");
+  assert.match(parsed.interpretation, /harga dan stok Getter Robo/);
+});
+
 test("rejects unsupported intent and invalid confidence", () => {
   assert.throws(
     () => parseSemanticRouterOutput(validOutput({ intent: "payment_method" })),
@@ -231,4 +248,6 @@ test("semantic prompt defines the risky intent boundaries", () => {
   assert.match(prompt, /context\.conversation_turn/);
   assert.match(prompt, /context\.active_goal/);
   assert.match(prompt, /jangan menebak salah satu makna/);
+  assert.match(prompt, /topic_switch/);
+  assert.match(prompt, /interpretation/);
 });

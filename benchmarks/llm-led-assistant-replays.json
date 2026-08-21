@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "bulk-discount-depok",
+      "question": "Kalau saya beli 3 barang total 10 juta, dapat potongan atau gratis ongkir ke Depok nggak?",
+      "intent": "price_promo",
+      "goals": ["bulk_discount", "free_shipping"],
+      "tools": ["store_policy"]
+    },
+    {
+      "id": "recommendation-shipping-payment",
+      "question": "Ada rekomendasi robot di bawah 2 juta, ongkir ke Bandung berapa, dan bisa bayar pakai apa aja?",
+      "intent": "recommendation",
+      "goals": ["recommendation", "shipping_quote", "payment_methods"],
+      "tools": ["woo_catalog", "shipping_quote", "store_policy"]
+    },
+    {
+      "id": "getter-promo-stock",
+      "question": "Min, Getter Robo yang lagi diskon ada nggak? Kalau ada stoknya sisa berapa pcs?",
+      "intent": "price_promo",
+      "goals": ["promo", "stock"],
+      "tools": ["woo_catalog"]
+    },
+    {
+      "id": "product-condition-return",
+      "question": "Getter Robo ini lengkap dan bukan JUNK kan? Kalau pas sampai ada part hilang, bisa retur nggak?",
+      "intent": "return_product",
+      "goals": ["product_condition", "completeness", "return_policy"],
+      "tools": ["woo_catalog", "store_policy"]
+    },
+    {
+      "id": "international-product-detail",
+      "question": "Voltes V Legacy tingginya berapa, ongkir ke Malaysia berapa, dan totalnya jadi berapa USD?",
+      "intent": "shipping_transaction",
+      "goals": ["dimensions", "price", "shipping_quote"],
+      "tools": ["woo_catalog", "shipping_quote"]
+    },
+    {
+      "id": "topic-switch-product",
+      "question": "Tadi abaikan Godmars. Sekarang mau cek harga, bahan, dan stok Mazinger Z Jumbo Machinder.",
+      "intent": "product_detail",
+      "goals": ["material", "price", "stock"],
+      "tools": ["woo_catalog"]
+    }
+  ]
+}

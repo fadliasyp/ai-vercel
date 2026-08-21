@@ -189,6 +189,22 @@ test("low semantic confidence falls back to the existing local decision", () => 
   assert.match(result.method, /^local_low_semantic_confidence:/);
 });
 
+test("LLM-led mode does not let a local scope rule overwrite a confident interpretation", () => {
+  const result = chooseSemanticIntent({
+    question: "kalau beli 3 barang total 10 juta ada diskon?",
+    localScope: "out_of_scope",
+    local: { intent: "general", method: "out_of_scope_guard", score: 1 },
+    semantic: semantic("price_promo", {
+      confidence: 0.94,
+      goals: ["bulk_discount"],
+    }),
+    llmLed: true,
+  });
+
+  assert.equal(result.intent, "price_promo");
+  assert.match(result.method, /^groq_semantic:/);
+});
+
 test("maps semantic entities into the legacy recommendation shape", () => {
   const legacy = semanticRouteToLegacy(
     semantic("compare", {
@@ -205,14 +221,14 @@ test("maps semantic entities into the legacy recommendation shape", () => {
   assert.match(legacy.budget_text, /1000000/);
 });
 
-test("saves semantic-router tokens for deterministic questions", () => {
+test("routes every nontrivial commerce question through semantic understanding", () => {
   assert.equal(
     shouldUseSemanticRouter({
       enabled: true,
       localScope: "in_scope",
       question: "cek stok Mazinger Z",
     }),
-    false,
+    true,
   );
   assert.equal(
     shouldUseSemanticRouter({
