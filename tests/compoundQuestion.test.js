@@ -182,6 +182,19 @@ test("compacts the compound frame before sending it to an LLM", () => {
 });
 
 test("plans product facts and shipping quote as ordered answer sections", () => {
+  const offerPlan = buildAnswerPlan(
+    analyzeCompoundQuestion(
+      "Kalau beli 3 barang total 10 juta, dapat potongan atau gratis ongkir ke Depok nggak?",
+    ),
+  );
+  assert.equal(offerPlan.primaryIntent, "price_promo");
+  assert.deepEqual(offerPlan.sections, [
+    {
+      key: "transaction_policy",
+      facets: ["bulk_discount", "free_shipping"],
+    },
+  ]);
+
   const plan = buildAnswerPlan(
     analyzeCompoundQuestion(
       "Cek kondisi produk ini, ada promo, dan ongkir ke Bandung berapa?",

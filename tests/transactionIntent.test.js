@@ -107,6 +107,12 @@ test("builds one consistent COD policy from the configured state", () => {
 });
 
 test("answers every requested transaction policy in one response", () => {
+  const bulkOffer = buildTransactionPolicyMessage(
+    "Kalau beli 3 barang total 10 juta, dapat potongan atau gratis ongkir ke Depok nggak?",
+  );
+  assert.match(bulkOffer, /potongan tambahan atau gratis ongkir ke Depok/i);
+  assert.match(bulkOffer, /belum bisa dijanjikan otomatis/i);
+
   const payment = buildTransactionPolicyMessage(
     "Bisa COD tidak? Pembayarannya bisa pakai apa saja?",
     { codEnabled: false },

@@ -4,7 +4,7 @@
     {
       "id": "bulk-discount-depok",
       "question": "Kalau saya beli 3 barang total 10 juta, dapat potongan atau gratis ongkir ke Depok nggak?",
-      "intent": "price_promo",
+      "intents": ["price_promo", "shipping_transaction"],
       "goals": ["bulk_discount", "free_shipping"],
       "tools": ["store_policy"]
     },
@@ -34,7 +34,8 @@
       "question": "Voltes V Legacy tingginya berapa, ongkir ke Malaysia berapa, dan totalnya jadi berapa USD?",
       "intent": "shipping_transaction",
       "goals": ["dimensions", "price", "shipping_quote"],
-      "tools": ["woo_catalog", "store_policy"]
+      "tools": ["woo_catalog", "store_policy"],
+      "composer_status": "required_clarification"
     },
     {
       "id": "topic-switch-product",

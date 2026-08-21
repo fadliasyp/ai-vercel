@@ -119,7 +119,27 @@ test("accepts a friendlier rewrite when protected facts stay identical", async (
   assert.equal(status.naturalized, true);
 });
 
+test("drops text invented in fields that were originally empty", async () => {
+  const result = await naturalizeResponseWithGroq(payload, {
+    userQuestion: "harganya berapa?",
+    intent: "price_promo",
+    config: config(),
+    fetchImpl: mockFetch({
+      intro: "Tambahan yang tidak diminta",
+      message:
+        "Saat ini, harga **Soul of Chogokin GX-91** adalah **Rp 3.500.000**.",
+      reasoning_text: "Tambahan lain",
+      closing: payload.closing,
+    }),
+  });
+
+  assert.equal(result.intro, "");
+  assert.equal(result.reasoning_text, "");
+  assert.match(result.message, /^Saat ini/);
+});
+
 test("rejects a rewrite that changes a protected price", async () => {
+  let status = null;
   const result = await naturalizeResponseWithGroq(payload, {
     userQuestion: "harganya berapa?",
     intent: "price_promo",
@@ -131,9 +151,13 @@ test("rejects a rewrite that changes a protected price", async () => {
       reasoning_text: "",
       closing: "Detailnya ada di https://example.com/product/gx-91",
     }),
+    onStatus(value) {
+      status = value;
+    },
   });
 
   assert.equal(result.message, payload.message);
+  assert.equal(status.validation_reason, "protected_numbers_changed");
 });
 
 test("keeps safe generated suggestions when an unsafe text rewrite is rejected", async () => {

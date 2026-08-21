@@ -165,12 +165,10 @@ import {
   resolveContextualIntent,
 } from "../lib/chatbot/questionUnderstanding.js";
 import {
-  buildBulkPurchaseOfferMessage,
   buildGeneralStockPolicyMessage,
   buildNegotiationPolicyMessage,
   buildReturnPolicyMessage,
   getReturnActionContext,
-  looksLikeBulkPurchaseOfferQuestion,
   looksLikeGeneralStockPolicyQuestion,
   looksLikeNegotiationPolicyQuestion,
   looksLikeReturnPolicyQuestion,
@@ -1954,6 +1952,8 @@ export default async function handler(req, res) {
             price: productCoverageSection,
             stock: productCoverageSection,
             promo: productCoverageSection,
+            bulk_discount: transactionCoverageSection,
+            free_shipping: transactionCoverageSection,
             insurance: transactionCoverageSection,
             packing: transactionCoverageSection,
             shipping_estimate: transactionCoverageSection,
@@ -2006,6 +2006,7 @@ export default async function handler(req, res) {
           changed: Boolean(assistantMeta.naturalized),
           provider: assistantMeta.provider,
           model: assistantMeta.model,
+          safety_issue: assistantMeta.validation_reason || null,
         };
       } else if (
         llmAssistantConfig.mode !== "legacy" &&
@@ -2090,6 +2091,7 @@ export default async function handler(req, res) {
           composer_accepted: Boolean(llmComposerMeta.accepted),
           composer_changed: Boolean(llmComposerMeta.changed),
           composer_validation: llmComposerMeta.validation || null,
+          composer_safety_issue: llmComposerMeta.safety_issue || null,
         },
       };
 

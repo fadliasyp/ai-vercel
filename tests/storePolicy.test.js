@@ -2,11 +2,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  buildBulkPurchaseOfferMessage,
   buildGeneralStockPolicyMessage,
   buildNegotiationPolicyMessage,
   buildReturnPolicyMessage,
   detectReturnIssue,
   detectReturnQuestionType,
+  extractBulkPurchaseOfferContext,
   getReturnActionContext,
   looksLikeGeneralStockPolicyQuestion,
   looksLikeNegotiationPolicyQuestion,
@@ -15,6 +17,22 @@ import {
   RETURN_POLICY,
   summarizeCatalogStockModes,
 } from "../lib/chatbot/storePolicy.js";
+
+test("extracts the full context of a bulk purchase offer", () => {
+  const context = extractBulkPurchaseOfferContext(
+    "Kalau beli 3 barang total 10 juta, dapat potongan atau gratis ongkir ke Depok nggak?",
+  );
+
+  assert.deepEqual(context, {
+    quantity: 3,
+    cartTotal: 10_000_000,
+    location: "Depok",
+    asksFreeShipping: true,
+  });
+  assert.match(buildBulkPurchaseOfferMessage(context), /3 barang/);
+  assert.match(buildBulkPurchaseOfferMessage(context), /Rp 10\.000\.000/);
+  assert.match(buildBulkPurchaseOfferMessage(context), /Depok/);
+});
 
 test("recognizes general negotiation questions without requiring a product", () => {
   assert.equal(

@@ -11,6 +11,12 @@ import { buildTransactionPolicyMessage } from "../lib/chatbot/transactionIntent.
 test("detects every requested facet in compound customer questions", () => {
   assert.deepEqual(
     detectRequestedAnswerFacets(
+      "Kalau beli 3 barang total 10 juta, dapat potongan atau gratis ongkir ke Depok nggak?",
+    ),
+    ["bulk_discount", "free_shipping"],
+  );
+  assert.deepEqual(
+    detectRequestedAnswerFacets(
       "Bisa COD dan bayar pakai apa? Pengirimannya pakai asuransi serta packing kayu?",
     ),
     ["insurance", "packing", "cod", "payment_methods"],

@@ -20,7 +20,12 @@ const delayMs = Number.isFinite(configuredDelay)
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 let passed = 0;
+let composerPassed = 0;
 const composerStatuses = new Map();
+const acceptedComposerStatuses = new Set([
+  "shadow_accepted",
+  "shadow_reused_legacy_composer",
+]);
 for (const [index, item] of dataset.cases.entries()) {
   if (index > 0 && delayMs > 0) await sleep(delayMs);
   const response = await fetch(endpoint, {
@@ -37,7 +42,8 @@ for (const [index, item] of dataset.cases.entries()) {
   const tools = new Set(meta.tool_plan || []);
   const missingGoals = item.goals.filter((goal) => !goals.has(goal));
   const missingTools = item.tools.filter((tool) => !tools.has(tool));
-  const intentMatches = meta.understanding_intent === item.intent;
+  const expectedIntents = item.intents || [item.intent];
+  const intentMatches = expectedIntents.includes(meta.understanding_intent);
   const relationMatches =
     !item.topic_relation || meta.topic_relation === item.topic_relation;
   const ok =
@@ -50,15 +56,24 @@ for (const [index, item] of dataset.cases.entries()) {
 
   passed += Number(ok);
   const composerStatus = meta.composer_status || "unknown";
+  const composerMatches = item.composer_status
+    ? composerStatus === item.composer_status
+    : acceptedComposerStatuses.has(composerStatus);
+  composerPassed += Number(composerMatches);
   composerStatuses.set(
     composerStatus,
     (composerStatuses.get(composerStatus) || 0) + 1,
   );
   console.log(
-    `${ok ? "PASS" : "FAIL"} ${item.id}: intent=${meta.understanding_intent || "-"}, relation=${meta.topic_relation || "-"}, composer=${composerStatus}`,
+    `${ok ? "PASS" : "FAIL"} ${item.id}: intent=${meta.understanding_intent || "-"}, relation=${meta.topic_relation || "-"}, composer=${composerStatus} (${composerMatches ? "ready" : "not ready"})`,
   );
+  if (meta.composer_safety_issue) {
+    console.log(`  composer safety: ${meta.composer_safety_issue}`);
+  }
   if (!ok) {
-    if (!intentMatches) console.log(`  expected intent: ${item.intent}`);
+    if (!intentMatches) {
+      console.log(`  expected intent: ${expectedIntents.join(" or ")}`);
+    }
     if (!relationMatches) {
       console.log(`  expected relation: ${item.topic_relation}`);
     }
@@ -77,4 +92,12 @@ console.log(
     .map(([status, count]) => `${status}=${count}`)
     .join(", ")}`,
 );
-if (passed !== dataset.cases.length) process.exitCode = 1;
+console.log(
+  `Composer readiness: ${composerPassed}/${dataset.cases.length}`,
+);
+const activationReady =
+  passed === dataset.cases.length && composerPassed === dataset.cases.length;
+console.log(
+  `Activation readiness: ${activationReady ? "READY" : "NOT READY - keep LLM_ASSISTANT_MODE=shadow"}`,
+);
+if (!activationReady) process.exitCode = 1;
