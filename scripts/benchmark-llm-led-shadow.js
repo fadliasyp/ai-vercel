@@ -103,6 +103,6 @@ console.log(
 const activationReady =
   passed === dataset.cases.length && composerPassed === dataset.cases.length;
 console.log(
-  `Activation readiness: ${activationReady ? "READY" : "NOT READY - keep LLM_ASSISTANT_MODE=shadow"}`,
+  `Activation readiness: ${activationReady ? "READY" : "NOT READY - keep LLM_LED_ASSISTANT_MODE=shadow"}`,
 );
 if (!activationReady) process.exitCode = 1;

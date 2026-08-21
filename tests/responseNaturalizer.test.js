@@ -199,6 +199,30 @@ test("restores immutable facts after Groq rewrites the surrounding language", as
   assert.match(result.closing, /https:\/\/example\.com\/product\/gx-91/);
 });
 
+test("accepts exact immutable facts when Groq removes only markdown emphasis", async () => {
+  let status = null;
+  const result = await naturalizeResponseWithGroq(payload, {
+    userQuestion: "harganya berapa?",
+    intent: "price_promo",
+    config: config(),
+    fetchImpl: mockFetch({
+      intro: "",
+      message:
+        "Saat ini harga Soul of Chogokin GX-91 adalah Rp 3.500.000.",
+      reasoning_text: "",
+      closing: "Detailnya ada di https://example.com/product/gx-91",
+    }),
+    onStatus(value) {
+      status = value;
+    },
+  });
+
+  assert.match(result.message, /Soul of Chogokin GX-91/);
+  assert.match(result.message, /Rp 3\.500\.000/);
+  assert.equal(status.naturalized, true);
+  assert.equal(status.reason, "success");
+});
+
 test("keeps safe rewritten fields when another field changes a protected fact", async () => {
   let status = null;
   const result = await naturalizeResponseWithGroq(payload, {
