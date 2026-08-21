@@ -337,6 +337,37 @@ test("matches an exact catalog name before long return-policy clauses", () => {
   assert.equal(result.product?.id, 10);
 });
 
+test("prioritizes the named product phrase over condition and return-policy noise", () => {
+  const result = assessProductSearchConfidence(
+    "Ini Grendizer U part-nya lengkap kan ya, bukan barang JUNK yang kondisinya rusak parah? Kalau pas sampai ternyata part ada yang hilang, syarat retur-nya gimana?",
+    [
+      {
+        id: 20,
+        name: "Super Robot Wars Action Robo Part 3 Voltes V White Color",
+        description:
+          "Part koleksi dengan informasi kondisi JUNK, bagian rusak, dan syarat retur.",
+        stock: "instock",
+      },
+      {
+        id: 21,
+        name: "Soul of Chogokin GX-76X Grendizer D.C. Spazer Set",
+        description: "Kondisi lengkap dan tersedia informasi retur.",
+        stock: "instock",
+      },
+      {
+        id: 22,
+        name: "Shokugan Modeling Project Grendizer U",
+        description: "Kondisi BIB dan kelengkapan sesuai foto.",
+        stock: "instock",
+      },
+    ],
+  );
+
+  assert.equal(result.status, "matched");
+  assert.equal(result.reason, "catalog_name_phrase_match");
+  assert.equal(result.product?.id, 22);
+});
+
 test("matches a product family mentioned in the middle of catalog names", () => {
   const question =
     "Halo, ada Getter Robo yang lagi diskon ngga? Kalo ada, ready stock sisa berapa pcs?";

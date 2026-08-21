@@ -53,6 +53,22 @@ const PRODUCTS = [
     stockQuantity: 4,
     dimensions: { length: "20", width: "14", height: "19" },
   }),
+  product({
+    id: 8,
+    name: "Super Robot Wars Action Robo Part 3 Voltes V White Color",
+    price: "1800000",
+    stockQuantity: 1,
+    description:
+      "Part koleksi dengan informasi kondisi JUNK, bagian rusak, dan syarat retur.",
+  }),
+  product({
+    id: 9,
+    name: "Shokugan Modeling Project Grendizer U",
+    price: "650000",
+    stockQuantity: 2,
+    description:
+      "Kondisi BIB, bukan JUNK. Kelengkapan part sesuai foto dan tidak ada part yang hilang.",
+  }),
 ];
 
 function product({
@@ -252,6 +268,25 @@ test("routes real customer turns without stale products or fallback collisions",
       "material",
       "price",
     ]);
+
+    const grendizerReturn = await ask(
+      "Ini Grendizer U part-nya lengkap kan ya, bukan barang JUNK yang kondisinya rusak parah? Kalau pas sampai ternyata part ada yang hilang, syarat retur-nya gimana?",
+    );
+    const grendizerReturnText = [
+      grendizerReturn.intro,
+      grendizerReturn.message,
+      grendizerReturn.reasoning_text,
+    ]
+      .filter(Boolean)
+      .join("\n");
+    assert.equal(grendizerReturn.intent, "return_product");
+    assert.match(
+      grendizerReturnText,
+      /Shokugan Modeling Project Grendizer U/,
+    );
+    assert.match(grendizerReturnText, /bukan JUNK/i);
+    assert.match(grendizerReturnText, /syarat|klaim|retur/i);
+    assert.doesNotMatch(grendizerReturnText, /belum bisa dipastikan dari katalog/i);
 
     const mazingerFromGetterPage = await ask(
       "Mau tanya detail bahan buat Mazinger Z yang Jumbo Machinder, itu full die-cast ngga? Harganya berapa nett-nya?",
