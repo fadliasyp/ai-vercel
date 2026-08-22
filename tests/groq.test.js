@@ -116,6 +116,36 @@ test("returns a validated semantic route from Groq", async () => {
   assert.equal(route.provider, "groq");
 });
 
+test("preserves an explicit topic switch when Groq labels it as new topic", async () => {
+  const route = await classifyCommerceWithGroq({
+    question:
+      "Tadi abaikan Godmars. Sekarang mau cek harga, bahan, dan stok Mazinger Z.",
+    config: testConfig,
+    fetchImpl: async () =>
+      mockResponse({
+        payload: {
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  scope: "in_scope",
+                  intent: "product_detail",
+                  confidence: 0.95,
+                  entities: { product_names: ["Mazinger Z"] },
+                  topic_relation: "new_topic",
+                  needs_clarification: false,
+                  clarification_question: null,
+                }),
+              },
+            },
+          ],
+        },
+      }),
+  });
+
+  assert.equal(route.topic_relation, "topic_switch");
+});
+
 test("uses low reasoning for GPT-OSS and omits it for non-reasoning models", async () => {
   const capturedBodies = [];
   const response = () =>

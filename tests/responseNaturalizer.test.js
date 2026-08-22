@@ -199,6 +199,59 @@ test("restores immutable facts after Groq rewrites the surrounding language", as
   assert.match(result.closing, /https:\/\/example\.com\/product\/gx-91/);
 });
 
+test("sends every immutable placeholder from a long answer to Groq", async () => {
+  const longMessage =
+    `${"Detail kebijakan retur tetap berlaku. ".repeat(24)}` +
+    "Ajukan maksimal **2 x 24 jam** melalui https://wa.me/6285975313930.";
+  let requestPayload = null;
+  let status = null;
+
+  const result = await naturalizeResponseWithGroq(
+    { type: "text", message: longMessage },
+    {
+      userQuestion: "kalau part-nya hilang bisa retur?",
+      intent: "return_product",
+      config: config(),
+      fetchImpl: async (_url, options) => {
+        const request = JSON.parse(options.body);
+        requestPayload = JSON.parse(request.messages[1].content);
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            choices: [
+              {
+                message: {
+                  content: JSON.stringify({
+                    intro: "",
+                    message: `Tenang, ${requestPayload.editable_text.message}`,
+                    reasoning_text: "",
+                    closing: "",
+                  }),
+                },
+              },
+            ],
+          }),
+        };
+      },
+      onStatus(value) {
+        status = value;
+      },
+    },
+  );
+
+  const sentPlaceholders =
+    requestPayload.editable_text.message.match(/\{\{RJLOCK[A-Z]+\}\}/g) || [];
+  assert.ok(requestPayload.editable_text.message.length > 800);
+  assert.equal(
+    sentPlaceholders.length,
+    requestPayload.field_contracts.message.immutable_placeholders.length,
+  );
+  assert.match(result.message, /2 x 24 jam/);
+  assert.match(result.message, /https:\/\/wa\.me\/6285975313930/);
+  assert.equal(status.reason, "success");
+});
+
 test("accepts exact immutable facts when Groq removes only markdown emphasis", async () => {
   let status = null;
   const result = await naturalizeResponseWithGroq(payload, {
