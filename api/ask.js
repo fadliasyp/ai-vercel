@@ -4558,6 +4558,29 @@ export default async function handler(req, res) {
     // Shipping Transaction / Cek Ongkir
     // ===============================
     if (intentResult.intent === "shipping_transaction") {
+      if (looksLikeHowToBuyQuestion(rawQuestion)) {
+        const steps = await getHowToBuy();
+
+        if (!steps) {
+          return await send({
+            type: "text",
+            message:
+              "Saya bisa jelaskan cara belinya, tapi halaman panduannya sedang sulit diakses. Coba lagi sebentar ya, atau bilang kamu stuck di langkah mana (login, cart, checkout, pembayaran).",
+          });
+        }
+
+        session.lastIntent = "how_to_buy";
+        session.lastStep = null;
+
+        return await send({
+          type: "how_to_buy",
+          intro: "Berikut panduan cara beli di Robot Jadul (step-by-step):",
+          steps,
+          _noTruncateReasoning: true,
+          _actionContext: "how_to_buy",
+        });
+      }
+
       const transactionPolicyMessage = buildTransactionPolicyMessage(
         privacySafeQuestion(),
         {
@@ -4588,29 +4611,6 @@ export default async function handler(req, res) {
             "shipping_transaction",
           );
         }
-      }
-
-      if (looksLikeHowToBuyQuestion(rawQuestion)) {
-        const steps = await getHowToBuy();
-
-        if (!steps) {
-          return await send({
-            type: "text",
-            message:
-              "Saya bisa jelaskan cara belinya, tapi halaman panduannya sedang sulit diakses. Coba lagi sebentar ya, atau bilang kamu stuck di langkah mana (login, cart, checkout, pembayaran).",
-          });
-        }
-
-        session.lastIntent = "how_to_buy";
-        session.lastStep = null;
-
-        return await send({
-          type: "how_to_buy",
-          intro: "Berikut panduan cara beli di Robot Jadul (step-by-step):",
-          steps,
-          _noTruncateReasoning: true,
-          _actionContext: "how_to_buy",
-        });
       }
 
       const shippingQuoteRequested =

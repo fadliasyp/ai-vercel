@@ -14,10 +14,27 @@ import {
   looksLikeSameDayDispatchQuestion,
   looksLikeShippingCoverageQuestion,
   looksLikeInternationalShippingQuestion,
+  looksLikeHowToBuyQuestion,
   looksLikeShippingOriginQuestion,
   looksLikeProductManufacturingOriginQuestion,
   needsRecommendationBudgetClarification,
 } from "../lib/chatbot/transactionIntent.js";
+
+test("recognizes natural how-to-buy and checkout phrasing", () => {
+  for (const question of [
+    "Langkah checkout di website ini seperti apa?",
+    "Tahapan untuk membeli produknya bagaimana?",
+    "Checkout barang ini caranya gimana?",
+    "Alur order di Robot Jadul seperti apa?",
+  ]) {
+    assert.equal(looksLikeHowToBuyQuestion(question), true, question);
+  }
+
+  assert.equal(
+    looksLikeHowToBuyQuestion("Kalau checkout sekarang bisa dikirim hari ini?"),
+    false,
+  );
+});
 
 test("routes international shipping to admin without inventing a quote", () => {
   const question =

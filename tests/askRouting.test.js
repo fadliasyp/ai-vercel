@@ -145,11 +145,28 @@ test("routes real customer turns without stale products or fallback collisions",
   delete process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   global.fetch = async (url) => {
-    if (new URL(String(url)).hostname === "catalog.test") {
+    const requestUrl = new URL(String(url));
+    if (requestUrl.hostname === "catalog.test") {
       return new Response(JSON.stringify(PRODUCTS), {
         status: 200,
         headers: { "content-type": "application/json" },
       });
+    }
+    if (
+      requestUrl.hostname === "fadli.site" &&
+      requestUrl.pathname.includes("/wp-json/wp/v2/pages")
+    ) {
+      return new Response(
+        JSON.stringify([
+          {
+            content: {
+              rendered:
+                '<ol><li>Pilih produk yang ingin dibeli.</li><li>Tambahkan produk ke keranjang lalu checkout.</li></ol><img src="https://fadli.site/how-to-buy-step.jpg">',
+            },
+          },
+        ]),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
     }
     throw new Error(`Unexpected network request: ${url}`);
   };
@@ -338,6 +355,14 @@ test("routes real customer turns without stale products or fallback collisions",
     assert.equal(admin.intent, "general");
     assert.ok(admin.admin_handoff);
     assert.doesNotMatch(admin.message, /sebutkan nama produk/i);
+
+    const howToBuy = await ask(
+      "Langkah checkout di website ini seperti apa?",
+    );
+    assert.equal(howToBuy.type, "how_to_buy");
+    assert.equal(howToBuy.steps.length, 2);
+    assert.match(howToBuy.intro, /step-by-step/i);
+    assert.match(howToBuy.steps[0].text, /Pilih produk/i);
   } finally {
     global.fetch = originalFetch;
     process.env = originalEnv;
