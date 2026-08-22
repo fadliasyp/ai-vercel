@@ -71,6 +71,7 @@ import {
 import {
   formatDimensions,
   extractSpecsFromDescription,
+  extractProductComparisonNotes,
   buildProductConsiderationsMessage,
   buildProductDetailMessage,
   buildProductTransactionSummary,
@@ -5376,7 +5377,7 @@ export default async function handler(req, res) {
       };
     }
 
-    function keywordScore(q, product) {
+    function keywordScore(q, product, excludedWords = new Set()) {
       // kata “umum” yang sering muncul di pertanyaan compare
       const stop = new Set([
         "bandingkan",
@@ -5397,8 +5398,11 @@ export default async function handler(req, res) {
       const words = q
         .toLowerCase()
         .split(/\s+/)
-        .map((w) => w.trim())
-        .filter((w) => w.length > 2 && !stop.has(w));
+        .map((w) => w.replace(/[^\p{L}\p{N}]+/gu, "").trim())
+        .filter(
+          (w) =>
+            w.length > 2 && !stop.has(w) && !excludedWords.has(w),
+        );
 
       if (!words.length) return 0;
 
@@ -5433,8 +5437,13 @@ export default async function handler(req, res) {
       } else reasonsB.push("Stok tidak ready / out of stock.");
 
       // 2) Keyword relevance
-      const kA = keywordScore(q, A);
-      const kB = keywordScore(q, B);
+      const comparedNameWords = new Set(
+        `${A.name || ""} ${B.name || ""}`
+          .toLowerCase()
+          .match(/[\p{L}\p{N}]+/gu) || [],
+      );
+      const kA = keywordScore(q, A, comparedNameWords);
+      const kB = keywordScore(q, B, comparedNameWords);
       scoreA += kA;
       scoreB += kB;
       if (kA)
@@ -5463,15 +5472,6 @@ export default async function handler(req, res) {
             scoreB += 1;
             reasonsB.push("Cenderung premium (harga lebih tinggi).");
           }
-        } else {
-          // default: value for money (sedikit condong yang lebih murah)
-          if (pA < pB) {
-            scoreA += 1;
-            reasonsA.push("Value lebih baik (harga lebih rendah).");
-          } else if (pB < pA) {
-            scoreB += 1;
-            reasonsB.push("Value lebih baik (harga lebih rendah).");
-          }
         }
       } else {
         reasonsA.push("Info harga tidak lengkap, penilaian harga terbatas.");
@@ -5479,13 +5479,15 @@ export default async function handler(req, res) {
       }
 
       // Winner
-      let winner = "A";
+      let winner = null;
       if (scoreB > scoreA) winner = "B";
-      else if (scoreA === scoreB) {
-        // tie-breaker: instock, lalu lebih murah
+      else if (scoreA > scoreB) winner = "A";
+      else {
         if (A.stock !== B.stock) winner = A.stock === "instock" ? "A" : "B";
-        else if (pA > 0 && pB > 0) winner = pA <= pB ? "A" : "B";
       }
+
+      const notesA = extractProductComparisonNotes(A);
+      const notesB = extractProductComparisonNotes(B);
 
       const facts = {
         A: {
@@ -5495,7 +5497,9 @@ export default async function handler(req, res) {
           category: A.category || "",
           link: A.link,
           // tambahan penting:
-          description: stripHtml(A.description || "").slice(0, 250),
+          description: stripHtml(A.description || "").slice(0, 1200),
+          strengths: notesA.strengths,
+          caveats: notesA.caveats,
           condition: A.condition || "(tidak tercantum)",
           weight: A.weight || "",
           dimensions: A.dimensions || {},
@@ -5511,7 +5515,9 @@ export default async function handler(req, res) {
           stock: B.stock,
           category: B.category || "",
           link: B.link,
-          description: stripHtml(B.description || "").slice(0, 250),
+          description: stripHtml(B.description || "").slice(0, 1200),
+          strengths: notesB.strengths,
+          caveats: notesB.caveats,
           condition: B.condition || "(tidak tercantum)",
           weight: B.weight || "",
           dimensions: B.dimensions || {},
@@ -5570,6 +5576,17 @@ export default async function handler(req, res) {
           `- Sinyal toko: terjual ${Number(product.totalSales).toLocaleString("id-ID")}x.`,
         );
       }
+      const comparisonNotes = extractProductComparisonNotes(product);
+      if (comparisonNotes.strengths.length) {
+        lines.push(
+          `- Kelebihan dari deskripsi: ${comparisonNotes.strengths.join("; ")}`,
+        );
+      }
+      if (comparisonNotes.caveats.length) {
+        lines.push(
+          `- Kekurangan dari deskripsi: ${comparisonNotes.caveats.join("; ")}`,
+        );
+      }
       if (reasons.length) {
         lines.push(`- Catatan: ${reasons.join(" ")}`);
       }
@@ -5580,8 +5597,10 @@ export default async function handler(req, res) {
     function buildCompareReasoning(rawQuestion, A, B, rule) {
       const pA = Number(A.numericPrice || 0);
       const pB = Number(B.numericPrice || 0);
-      const winnerProduct = rule.winner === "B" ? B : A;
-      const loserProduct = rule.winner === "B" ? A : B;
+      const winnerProduct =
+        rule.winner === "A" ? A : rule.winner === "B" ? B : null;
+      const loserProduct =
+        rule.winner === "A" ? B : rule.winner === "B" ? A : null;
       const priceLine =
         pA > 0 && pB > 0
           ? `Secara harga, **${pA <= pB ? A.name : B.name}** lebih hemat (${formatRupiah(Math.min(pA, pB))}) dibanding **${pA <= pB ? B.name : A.name}** (${formatRupiah(Math.max(pA, pB))}).`
@@ -5595,7 +5614,9 @@ export default async function handler(req, res) {
         summarizeCompareProduct("B", B, rule.reasons?.B || []),
         "",
         priceLine,
-        `**Rekomendasi sementara: ${winnerProduct.name}** lebih unggul untuk kebutuhan umum saat ini. Pilih **${loserProduct.name}** kalau kamu lebih suka karakter/seri tersebut atau kondisinya lebih sesuai selera koleksi kamu.`,
+        winnerProduct
+          ? `**Rekomendasi sementara: ${winnerProduct.name}** lebih sesuai dengan prioritas yang kamu sebutkan. Pilih **${loserProduct.name}** kalau kelebihan dan kondisinya lebih cocok untuk koleksi kamu.`
+          : "**Tidak ada pemenang mutlak tanpa prioritas tambahan.** Gunakan kelebihan, kekurangan, kondisi, dan selisih harga di atas untuk memilih yang paling sesuai dengan kebutuhan koleksi kamu.",
       ];
 
       if (/pajangan|display|koleksi/i.test(rawQuestion || "")) {

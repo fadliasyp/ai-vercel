@@ -69,6 +69,22 @@ const PRODUCTS = [
     description:
       "Kondisi BIB, bukan JUNK. Kelengkapan part sesuai foto dan tidak ada part yang hilang.",
   }),
+  product({
+    id: 10,
+    name: "Comparison Robot Alpha",
+    price: "10000000",
+    stockQuantity: 2,
+    description:
+      "Kelebihan: fungsi normal dan aksesori lengkap. Kekurangan: sudut box sedikit penyok.",
+  }),
+  product({
+    id: 11,
+    name: "Comparison Robot Beta",
+    price: "2000000",
+    stockQuantity: 2,
+    description:
+      "Kelebihan: kondisi mulus dan tidak ada part hilang. Kekurangan: artikulasi terbatas.",
+  }),
 ];
 
 function product({
@@ -363,6 +379,17 @@ test("routes real customer turns without stale products or fallback collisions",
     assert.equal(howToBuy.steps.length, 2);
     assert.match(howToBuy.intro, /step-by-step/i);
     assert.match(howToBuy.steps[0].text, /Pilih produk/i);
+
+    const comparison = await ask(
+      "Bandingkan Comparison Robot Alpha dengan Comparison Robot Beta",
+    );
+    assert.equal(comparison.type, "compare_reasoned");
+    assert.equal(comparison.winner, null);
+    assert.match(comparison.reasoning_text, /aksesori lengkap/i);
+    assert.match(comparison.reasoning_text, /box sedikit penyok/i);
+    assert.match(comparison.reasoning_text, /tidak ada part hilang/i);
+    assert.match(comparison.reasoning_text, /artikulasi terbatas/i);
+    assert.match(comparison.reasoning_text, /tidak ada pemenang mutlak/i);
   } finally {
     global.fetch = originalFetch;
     process.env = originalEnv;

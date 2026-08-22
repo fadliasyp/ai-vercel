@@ -5,6 +5,7 @@ import {
   buildProductConsiderationsMessage,
   buildProductDetailMessage,
   buildProductTransactionSummary,
+  extractProductComparisonNotes,
   extractProductConsiderations,
 } from "../lib/chatbot/productFormatter.js";
 
@@ -164,4 +165,17 @@ test("does not invent flaws when the catalog explicitly negates them", () => {
   assert.deepEqual(considerations.caveats, []);
   assert.match(message, /tidak mencantumkan kekurangan/i);
   assert.match(message, /tidak akan mengarang/i);
+});
+
+test("extracts explicit comparison strengths and caveats from WooCommerce descriptions", () => {
+  const notes = extractProductComparisonNotes({
+    condition: "New in Original Packaging",
+    shortDescription: "Kelebihan: fungsi normal dan aksesori lengkap.",
+    description:
+      "<ul><li>Kekurangan: sudut box sedikit penyok</li><li>Tidak ada part hilang</li></ul>",
+  });
+
+  assert.equal(notes.strengths.some((line) => /aksesori lengkap/i.test(line)), true);
+  assert.equal(notes.strengths.some((line) => /tidak ada part hilang/i.test(line)), true);
+  assert.equal(notes.caveats.some((line) => /box sedikit penyok/i.test(line)), true);
 });
