@@ -271,7 +271,6 @@ import {
   basePopularityScore,
   buildProductOpinionReasoning,
   buildPromoReasoning,
-  buildReasonFirstRecommendationIntro,
   buildRecommendationReasoning,
   detectPriceMode,
   detectUniversalFollowUp,
@@ -6220,11 +6219,10 @@ export default async function handler(req, res) {
       return await send(
         {
           type: "products",
-          intro: buildReasonFirstRecommendationIntro({
-            heading: recommendationHeading,
-            reasoning: recommendationReasoning,
-          }),
+          intro: recommendationHeading,
+          reasoning_text: recommendationReasoning,
           products: finalProducts,
+          _noTruncateReasoning: true,
         },
         "recommendation",
       );
@@ -6380,12 +6378,11 @@ Kembalikan JSON valid:
       return await send(
         {
           type: "products",
-          intro: buildReasonFirstRecommendationIntro({
-            heading:
-              "Ini rekomendasi yang menurutku paling cocok untuk kebutuhan kamu:",
-            reasoning: semanticRecommendationReasoning,
-          }),
+          intro:
+            "Ini rekomendasi yang menurutku paling cocok untuk kebutuhan kamu:",
+          reasoning_text: semanticRecommendationReasoning,
           products: finalProducts,
+          _noTruncateReasoning: true,
         },
         "recommendation",
       );
@@ -7030,13 +7027,12 @@ ${JSON.stringify(facts, null, 2)}
 
         return await send({
           type: "products",
-          intro: buildReasonFirstRecommendationIntro({
-            heading: recTopic
-              ? `Untuk kategori **${recTopic}**, ini rekomendasi yang paling cocok menurutku:`
-              : `Ini rekomendasi yang menurutku paling cocok buat kamu:`,
-            reasoning: searchRecommendationReasoning,
-          }),
+          intro: recTopic
+            ? `Untuk kategori **${recTopic}**, ini rekomendasi yang paling cocok menurutku:`
+            : `Ini rekomendasi yang menurutku paling cocok buat kamu:`,
+          reasoning_text: searchRecommendationReasoning,
           products: recommendedProducts,
+          _noTruncateReasoning: true,
         });
       }
 

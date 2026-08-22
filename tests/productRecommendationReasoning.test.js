@@ -6,6 +6,7 @@ import {
   buildRecommendationReasoning,
 } from "../lib/chatbot/productRecommendation.js";
 import { explainBestRuleBased } from "../lib/chatbot/productRanking.js";
+import { humanizeResponse } from "../lib/chatbot/responsePresentation.js";
 
 const products = [
   {
@@ -59,4 +60,24 @@ test("opinion and legacy ranking use the same WooCommerce description notes", ()
     assert.match(output, /box sedikit penyok/i);
   }
   assert.match(ranked, /artikulasi terbatas/i);
+});
+
+test("keeps complete recommendation reasoning outside the short intro", () => {
+  const reasoning = buildRecommendationReasoning(products, {
+    wantsCollection: true,
+  });
+  const response = humanizeResponse(
+    {
+      type: "products",
+      intro: "Ini rekomendasi terbaik yang aku temukan:",
+      reasoning_text: reasoning,
+      products,
+      _noTruncateReasoning: true,
+    },
+    { intent: "recommendation" },
+  );
+
+  assert.equal(response.intro, "Ini rekomendasi terbaik yang aku temukan:");
+  assert.equal(response.reasoning_text, reasoning);
+  assert.match(response.reasoning_text, /artikulasi terbatas/i);
 });

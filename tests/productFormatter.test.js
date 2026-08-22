@@ -181,3 +181,14 @@ test("extracts explicit comparison strengths and caveats from WooCommerce descri
   assert.equal(notes.caveats.some((line) => /box sedikit penyok/i.test(line)), true);
   assert.equal(notes.caveats.some((line) => /bukan junk|tidak ada part/i.test(line)), false);
 });
+
+test("splits WooCommerce sections and ignores empty strength or caveat headings", () => {
+  const notes = extractProductComparisonNotes({
+    description:
+      "<p>Detail & Keunggulan:</p><p>Kualitas dus mulus tanpa cacat.</p>" +
+      "<br>Kekurangan / Catatan yang Perlu Diperhatikan:<br>Sudut box penyok ringan.",
+  });
+
+  assert.deepEqual(notes.strengths, ["Kualitas dus mulus tanpa cacat"]);
+  assert.deepEqual(notes.caveats, ["Sudut box penyok ringan"]);
+});
