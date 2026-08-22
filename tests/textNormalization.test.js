@@ -57,3 +57,11 @@ test("keeps catalog typo matching conservative", () => {
   assert.equal(isLikelyTypoMatch("gx", "dx"), false);
   assert.equal(isLikelyTypoMatch("500rb", "50000"), false);
 });
+
+test("preserves short Indonesian place names near commerce words", () => {
+  assert.equal(
+    normalizeIndonesianCommerceText("Iyaaa kotanya Kulon Progo"),
+    "iyaaa kotanya kulon progo",
+  );
+  assert.equal(normalizeIndonesianCommerceText("Kecamatan Bayat"), "kecamatan bayat");
+});

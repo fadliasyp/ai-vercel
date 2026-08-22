@@ -136,6 +136,13 @@ test("explicit rules resolve recommendation, compare, store, and insurance bound
   );
 });
 
+test("does not reinterpret an Indonesian place-name correction as a promo", () => {
+  assert.equal(
+    detectExplicitIntentOverride("Iyaaa kotanya Kulon Progo"),
+    null,
+  );
+});
+
 test("separates catalog condition questions from implicit return problems", () => {
   assert.equal(
     detectExplicitIntentOverride(

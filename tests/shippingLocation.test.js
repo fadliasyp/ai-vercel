@@ -30,6 +30,10 @@ test("extracts only the destination from a compound shipping question", () => {
     extractShippingDestination("Sama ongkir ke Bandung kena berapa dan bisa bayar pakai apa aja"),
     "Bandung",
   );
+  assert.equal(
+    extractShippingDestination("ongkir ke kulonprogo dari jakarta berapa?"),
+    "kulonprogo",
+  );
 });
 
 test("splits a city and district answer from one message", () => {
@@ -40,6 +44,10 @@ test("splits a city and district answer from one message", () => {
   assert.equal(normalizeLocationText("Kabupaten Tangerang"), "tangerang");
   assert.equal(extractDistrictFollowUp("Surabaya, Wonokromo"), "Wonokromo");
   assert.equal(extractDistrictFollowUp("Wonokromo"), "Wonokromo");
+  assert.equal(
+    normalizeLocationText("Iyaaa kotanya Kulon Progo ya"),
+    "kulon progo",
+  );
 });
 
 test("keeps shipping quote pending recognizable above intent routing", () => {
@@ -154,6 +162,20 @@ test("distinguishes an unavailable shipping API from an unknown place", async ()
 
   assert.equal(unavailable.kind, "unavailable");
   assert.equal(notFound.kind, "not_found");
+});
+
+test("asks for the city when only global district lookup is unavailable", async () => {
+  const result = await resolveShippingLocation("Kalibawang", {
+    searchCities: async () => ({ cities: [] }),
+    searchDistrictsGlobal: async () => {
+      throw new Error("DISTRICTS_GLOBAL_FAILED:401");
+    },
+  });
+
+  assert.deepEqual(result, {
+    kind: "not_found",
+    districtLookupUnavailable: true,
+  });
 });
 
 test("accepts a globally resolved district", async () => {
