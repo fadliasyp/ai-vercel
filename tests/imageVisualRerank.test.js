@@ -1,7 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { applyVisualMatches } from "../api/ask-image.js";
+import {
+  applyVisualMatches,
+  buildImageAnalysisPrompt,
+  buildVisualRerankPrompt,
+} from "../api/ask-image.js";
 
 test("keeps the strongest image angle once per reranked product", () => {
   const product = { id: 10, name: "Getter Robo", imageMatchScore: 50 };
@@ -39,4 +43,21 @@ test("caps description-only Cloudflare rerank confidence", () => {
   );
 
   assert.equal(result.products[0].visualScore, 75);
+});
+
+test("keeps nonvisual customer constraints out of visual prompts", () => {
+  const customerQuestion = "Cari yang sama, budget maksimal 4 juta dan ready";
+  const analysisPrompt = buildImageAnalysisPrompt({
+    question: customerQuestion,
+    imageName: "upload.jpg",
+  });
+  const rerankPrompt = buildVisualRerankPrompt({
+    question: customerQuestion,
+    analysis: { colors: ["merah"] },
+    candidates: [],
+  });
+
+  assert.equal(analysisPrompt.includes(customerQuestion), false);
+  assert.equal(rerankPrompt.includes(customerQuestion), false);
+  assert.match(rerankPrompt, /constraint pelanggan diterapkan terpisah/i);
 });

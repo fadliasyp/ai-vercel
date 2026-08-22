@@ -559,7 +559,7 @@ async function attachCandidateImages(
     .filter((x) => x?.imagePart);
 }
 
-function buildVisualRerankPrompt({ question, analysis, candidates }) {
+export function buildVisualRerankPrompt({ analysis, candidates }) {
   return `
 Kamu adalah visual matcher untuk katalog Robot Jadul.
 Bandingkan USER_IMAGE dengan setiap CANDIDATE_IMAGE.
@@ -571,10 +571,8 @@ Tugas:
 - Jika kandidat tampak produk yang sama, beri skor 85-100.
 - Jika hanya mirip kategori/seri, beri skor 50-75.
 - Jika tidak mirip, beri skor di bawah 40.
-- Jangan memilih produk hanya karena ready stock atau harga.
-
-Perintah user:
-${question || "(tidak ada teks)"}
+- Abaikan permintaan nonvisual seperti budget, harga, stok, promo, dan rekomendasi.
+- Nilai identitas visual dahulu; constraint pelanggan diterapkan terpisah setelah rerank.
 
 Analisis awal foto user:
 ${JSON.stringify(analysis, null, 2)}
@@ -670,6 +668,11 @@ async function rerankVisualBatchWithGemini({
     models: GEMINI_MODEL_FALLBACKS.VISION,
     taskName: "image_visual_rerank",
     contents: [{ role: "user", parts }],
+    config: {
+      temperature: 0,
+      responseMimeType: "application/json",
+      maxOutputTokens: 1200,
+    },
   });
 
   const txt = geminiResponseText(result?.response);
@@ -802,7 +805,7 @@ async function rerankProductsVisually({
   if (deadline?.expired(14000)) return null;
 
   const visualCandidates = await attachCandidateImages(candidates, {
-    maxProducts: 8,
+    maxProducts: 12,
     maxImagesPerProduct: 2,
     maxTotalImages: 12,
     deadline,
@@ -817,7 +820,7 @@ async function rerankProductsVisually({
   });
 }
 
-function buildImageAnalysisPrompt({ question = "", imageName = "" } = {}) {
+export function buildImageAnalysisPrompt({ imageName = "" } = {}) {
   return `
 Kamu adalah asisten visual search untuk toko koleksi robot vintage bernama Robot Jadul.
 Analisis foto user, lalu kembalikan JSON valid saja.
@@ -830,16 +833,14 @@ Fokus:
 - warna, bentuk, aksesoris, tipe barang
 - ciri visual pembeda: kepala/wajah, dada, senjata, sayap, bentuk kendaraan, logo, proporsi
 - keyword pencarian produk dalam bahasa Indonesia dan Inggris
-- kebutuhan user dari teks pendamping
 
 Jangan menebak produk utuh hanya dari warna umum. Untuk foto parsial, jelaskan bagian
 yang benar-benar terlihat dan cari ciri identitas lokal seperti bentuk kepala, emblem,
 pola dada, senjata, sambungan, atau potongan teks.
 Jangan mengarang kepastian. Jika tidak yakin, isi banyak kemungkinan di possible_names
 dan search_queries.
-
-Teks/perintah user:
-${question || "(tidak ada teks)"}
+Permintaan nonvisual pelanggan seperti budget, harga, stok, promo, dan rekomendasi
+diproses terpisah. Jangan biarkan permintaan tersebut mengubah fakta visual foto.
 
 Nama file foto user (bukan bukti identitas produk):
 ${imageName || "(tidak ada nama file)"}
@@ -865,7 +866,7 @@ async function analyzeImageWithGemini({ image, question, imageName = "" }) {
     throw new Error("GEMINI_API_KEY is not configured");
   }
 
-  const prompt = buildImageAnalysisPrompt({ question, imageName });
+  const prompt = buildImageAnalysisPrompt({ imageName });
 
   const result = await geminiGenerateContentWithFallback({
     models: GEMINI_MODEL_FALLBACKS.VISION,
@@ -879,6 +880,11 @@ async function analyzeImageWithGemini({ image, question, imageName = "" }) {
         ],
       },
     ],
+    config: {
+      temperature: 0,
+      responseMimeType: "application/json",
+      maxOutputTokens: 1200,
+    },
   });
 
   const txt = geminiResponseText(result?.response);
@@ -909,7 +915,7 @@ async function analyzeImageWithGemini({ image, question, imageName = "" }) {
 
 async function analyzeImageWithMistral({ image, question, imageName = "" }) {
   const result = await generateVisionJsonWithMistral({
-    prompt: buildImageAnalysisPrompt({ question, imageName }),
+    prompt: buildImageAnalysisPrompt({ imageName }),
     images: [{ ...image, label: "USER_IMAGE" }],
   });
   return {
@@ -921,7 +927,7 @@ async function analyzeImageWithMistral({ image, question, imageName = "" }) {
 
 async function analyzeImageWithCloudflare({ image, question, imageName = "" }) {
   const result = await generateVisionJsonWithCloudflare({
-    prompt: buildImageAnalysisPrompt({ question, imageName }),
+    prompt: buildImageAnalysisPrompt({ imageName }),
     image,
   });
   return {
@@ -1381,7 +1387,7 @@ export default async function handler(req, res) {
     ]);
     const visualCandidatePool = interleaveUniqueProducts(
       [scoredVisualIndexCandidates, lexicalCandidates],
-      8,
+      12,
     );
 
     const visualResult = canUseVisualRerank

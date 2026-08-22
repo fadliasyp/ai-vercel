@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-08-10T12:11:22.729Z",
-  "target": "local-handler",
+  "generated_at": "2026-08-22T14:44:41.664Z",
+  "target": "https://ai-vercel-ten-sigma.vercel.app/api/ask-image",
   "dataset": {
     "path": "C:\\kumpulan-coding-fadli\\ai-vercel\\benchmarks\\image-search\\dataset.json",
-    "fingerprint": "be697065aef28b84afcad60ee62b23d56bbfa4cbc210ac38df0aef2009444c0f",
+    "fingerprint": "73e66236cf591a1dedc6ae83f49123870385a0e4532df647a39929a039119b2a",
     "total_cases": 45,
-    "evaluated_cases": 1
+    "evaluated_cases": 5
   },
   "settings": {
     "delay_ms": 5000,
@@ -13,7 +13,7 @@
     "retries": 1,
     "source_filter": null,
     "view_filter": null,
-    "case_filter": "store-full-5480-budget-max-4m"
+    "case_filter": null
   },
   "production_gate": {
     "passed": false,
@@ -22,8 +22,8 @@
       "at_least_5_negative_cases": false,
       "at_least_10_internet_cases": false,
       "at_least_10_crop_cases": false,
-      "top1_at_least_80_percent": true,
-      "top3_at_least_95_percent": true,
+      "top1_at_least_80_percent": false,
+      "top3_at_least_95_percent": false,
       "false_confident_at_most_5_percent": true,
       "api_success_at_least_95_percent": true,
       "p95_latency_at_most_60_seconds": true
@@ -31,81 +31,135 @@
   },
   "metrics": {
     "overall": {
-      "total": 1,
-      "successes": 1,
+      "total": 5,
+      "successes": 5,
       "failures": 0,
-      "positive_cases": 1,
+      "positive_cases": 5,
       "negative_cases": 0,
-      "top1_accuracy": 1,
-      "top3_accuracy": 1,
-      "top5_accuracy": 1,
+      "top1_accuracy": 0.6,
+      "top3_accuracy": 0.6,
+      "top5_accuracy": 0.6,
       "negative_rejection_accuracy": 0,
-      "abstention_rate": 0,
+      "abstention_rate": 0.4,
       "false_confident_count": 0,
       "false_confident_rate": 0,
       "confidence_distribution": {
-        "high": 1
+        "high": 3,
+        "low": 2
       },
       "latency_ms": {
-        "average": 54909,
-        "p50": 54909,
-        "p95": 54909,
-        "max": 54909
+        "average": 26901.8,
+        "p50": 25877,
+        "p95": 40480,
+        "max": 40480
       }
     },
     "by_source_type": {
       "store": {
-        "total": 1,
-        "successes": 1,
+        "total": 5,
+        "successes": 5,
         "failures": 0,
-        "positive_cases": 1,
+        "positive_cases": 5,
         "negative_cases": 0,
-        "top1_accuracy": 1,
-        "top3_accuracy": 1,
-        "top5_accuracy": 1,
+        "top1_accuracy": 0.6,
+        "top3_accuracy": 0.6,
+        "top5_accuracy": 0.6,
         "negative_rejection_accuracy": 0,
-        "abstention_rate": 0,
+        "abstention_rate": 0.4,
         "false_confident_count": 0,
         "false_confident_rate": 0,
         "confidence_distribution": {
-          "high": 1
+          "high": 3,
+          "low": 2
         },
         "latency_ms": {
-          "average": 54909,
-          "p50": 54909,
-          "p95": 54909,
-          "max": 54909
+          "average": 26901.8,
+          "p50": 25877,
+          "p95": 40480,
+          "max": 40480
         }
       }
     },
     "by_view_type": {
       "full": {
-        "total": 1,
-        "successes": 1,
+        "total": 5,
+        "successes": 5,
         "failures": 0,
-        "positive_cases": 1,
+        "positive_cases": 5,
         "negative_cases": 0,
-        "top1_accuracy": 1,
-        "top3_accuracy": 1,
-        "top5_accuracy": 1,
+        "top1_accuracy": 0.6,
+        "top3_accuracy": 0.6,
+        "top5_accuracy": 0.6,
         "negative_rejection_accuracy": 0,
-        "abstention_rate": 0,
+        "abstention_rate": 0.4,
         "false_confident_count": 0,
         "false_confident_rate": 0,
         "confidence_distribution": {
-          "high": 1
+          "high": 3,
+          "low": 2
         },
         "latency_ms": {
-          "average": 54909,
-          "p50": 54909,
-          "p95": 54909,
-          "max": 54909
+          "average": 26901.8,
+          "p50": 25877,
+          "p95": 40480,
+          "max": 40480
+        }
+      }
+    },
+    "by_analysis_provider": {
+      "gemini": {
+        "total": 5,
+        "successes": 5,
+        "failures": 0,
+        "positive_cases": 5,
+        "negative_cases": 0,
+        "top1_accuracy": 0.6,
+        "top3_accuracy": 0.6,
+        "top5_accuracy": 0.6,
+        "negative_rejection_accuracy": 0,
+        "abstention_rate": 0.4,
+        "false_confident_count": 0,
+        "false_confident_rate": 0,
+        "confidence_distribution": {
+          "high": 3,
+          "low": 2
+        },
+        "latency_ms": {
+          "average": 26901.8,
+          "p50": 25877,
+          "p95": 40480,
+          "max": 40480
+        }
+      }
+    },
+    "by_rerank_provider": {
+      "gemini": {
+        "total": 5,
+        "successes": 5,
+        "failures": 0,
+        "positive_cases": 5,
+        "negative_cases": 0,
+        "top1_accuracy": 0.6,
+        "top3_accuracy": 0.6,
+        "top5_accuracy": 0.6,
+        "negative_rejection_accuracy": 0,
+        "abstention_rate": 0.4,
+        "false_confident_count": 0,
+        "false_confident_rate": 0,
+        "confidence_distribution": {
+          "high": 3,
+          "low": 2
+        },
+        "latency_ms": {
+          "average": 26901.8,
+          "p50": 25877,
+          "p95": 40480,
+          "max": 40480
         }
       }
     }
   },
-  "errors": [],
-  "results": [
+  "errors": [
     {
       "id": "store-full-5480-budget-max-4m",
       "image": "images/store-full-5480-reference.jpg",
@@ -124,14 +178,143 @@
       "negative": false,
       "status_code": 200,
       "api_succeeded": true,
-      "latency_ms": 54909,
+      "latency_ms": 21530,
       "vision_evaluated": true,
+      "analysis_provider": "gemini",
+      "rerank_provider": "gemini",
+      "confidence_level": "low",
+      "confidence": {
+        "level": "low",
+        "top_score": 65,
+        "score_gap": 65,
+        "visually_reranked": true,
+        "rerank_provider": "gemini"
+      },
+      "expected_rank": null,
+      "top1_correct": false,
+      "top3_correct": false,
+      "top5_correct": false,
+      "negative_correct": false,
+      "constraints_correct": true,
+      "correct": false,
+      "abstained": true,
+      "false_confident": false,
+      "candidates": [
+        {
+          "rank": 1,
+          "id": 476,
+          "name": "Soul of Chogokin GX-74 Getter 1 Dynamic Classic",
+          "numeric_price": 2500000,
+          "visual_score": 65,
+          "lexical_score": 167,
+          "confidence": "high",
+          "matches_expected": false
+        }
+      ],
+      "response_intro": "Aku sudah cek fotonya, tapi gambarnya belum cukup jelas buat memastikan produknya. Ini kandidat terdekat yang mirip:",
+      "error": null,
+      "attempts": 1
+    },
+    {
+      "id": "store-full-4649-reference",
+      "image": "images/store-full-4649-reference.jpg",
+      "source_type": "store",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama dengan foto referensi katalog ini.",
+      "expected": {
+        "product_id": 4649,
+        "product_name": "Mecha Labo Sengoku Majin Goshogun",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "negative": false,
+      "status_code": 200,
+      "api_succeeded": true,
+      "latency_ms": 25877,
+      "vision_evaluated": true,
+      "analysis_provider": "gemini",
+      "rerank_provider": "gemini",
+      "confidence_level": "low",
+      "confidence": {
+        "level": "low",
+        "top_score": 65,
+        "score_gap": 5,
+        "visually_reranked": true,
+        "rerank_provider": "gemini"
+      },
+      "expected_rank": null,
+      "top1_correct": false,
+      "top3_correct": false,
+      "top5_correct": false,
+      "negative_correct": false,
+      "constraints_correct": true,
+      "correct": false,
+      "abstained": true,
+      "false_confident": false,
+      "candidates": [
+        {
+          "rank": 1,
+          "id": 4580,
+          "name": "Most Wanted Sky Gaiking - Gaiking The Legend of Daikumaryu",
+          "numeric_price": 450000,
+          "visual_score": 65,
+          "lexical_score": 197,
+          "confidence": "medium",
+          "matches_expected": false
+        },
+        {
+          "rank": 2,
+          "id": 4562,
+          "name": "Most Wanted Daikumaryu - Gaiking The Legend of Daikumaryu",
+          "numeric_price": 600000,
+          "visual_score": 60,
+          "lexical_score": 162,
+          "confidence": "medium",
+          "matches_expected": false
+        },
+        {
+          "rank": 3,
+          "id": 560,
+          "name": "Mighty Deformed Great Five Action Toys",
+          "numeric_price": 1500000,
+          "visual_score": 45,
+          "lexical_score": 188,
+          "confidence": "low",
+          "matches_expected": false
+        }
+      ],
+      "response_intro": "Aku sudah cek foto itu, tapi belum bisa memastikan produknya secara pasti. Ini kandidat terdekat yang mirip:",
+      "error": null,
+      "attempts": 1
+    }
+  ],
+  "results": [
+    {
+      "id": "store-full-5480-reference",
+      "image": "images/store-full-5480-reference.jpg",
+      "source_type": "store",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama dengan foto referensi katalog ini.",
+      "expected": {
+        "product_id": 5480,
+        "product_name": "Soul of Chogokin GX-91 Getter 2 &amp; 3 Dynamic Classic",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "negative": false,
+      "status_code": 200,
+      "api_succeeded": true,
+      "latency_ms": 26952,
+      "vision_evaluated": true,
+      "analysis_provider": "gemini",
+      "rerank_provider": "gemini",
       "confidence_level": "high",
       "confidence": {
         "level": "high",
         "top_score": 100,
-        "score_gap": 45,
-        "visually_reranked": true
+        "score_gap": 40,
+        "visually_reranked": true,
+        "rerank_provider": "gemini"
       },
       "expected_rank": 1,
       "top1_correct": true,
@@ -149,32 +332,323 @@
           "name": "Soul of Chogokin GX-91 Getter 2 &amp; 3 Dynamic Classic",
           "numeric_price": 3500000,
           "visual_score": 100,
-          "lexical_score": 118,
+          "lexical_score": 233,
           "confidence": "high",
           "matches_expected": true
         },
         {
           "rank": 2,
-          "id": 3622,
-          "name": "Soul of Chogokin GX-08 Aphorodai A",
+          "id": 5381,
+          "name": "Soul of Chogokin GX-76X Grendizer D.C. Spazer Set",
           "numeric_price": 1750000,
-          "visual_score": 55,
-          "lexical_score": 100,
+          "visual_score": 60,
+          "lexical_score": 125,
           "confidence": "medium",
           "matches_expected": false
         },
         {
           "rank": 3,
-          "id": 5240,
-          "name": "DX Chogokin Grendizer Popy Reissue",
+          "id": 476,
+          "name": "Soul of Chogokin GX-74 Getter 1 Dynamic Classic",
           "numeric_price": 2500000,
+          "visual_score": 55,
+          "lexical_score": 209,
+          "confidence": "medium",
+          "matches_expected": false
+        },
+        {
+          "rank": 4,
+          "id": 431,
+          "name": "Soul of Chogokin GX-87 Getter Emperor",
+          "numeric_price": 4800000,
           "visual_score": 45,
-          "lexical_score": 81,
+          "lexical_score": 202,
           "confidence": "low",
           "matches_expected": false
         }
       ],
       "response_intro": "Aku sudah membandingkan foto itu dengan foto produk katalog. Kandidat pertama memiliki kecocokan visual yang kuat:",
+      "error": null,
+      "attempts": 1
+    },
+    {
+      "id": "store-full-5480-budget-max-4m",
+      "image": "images/store-full-5480-reference.jpg",
+      "source_type": "store",
+      "view_type": "full",
+      "question": "Carikan produk yang sama atau paling mirip dengan foto ini, budget maksimal 4 juta.",
+      "expected": {
+        "product_id": 5480,
+        "product_name": "Soul of Chogokin GX-91 Getter 2 &amp; 3 Dynamic Classic",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": [],
+        "constraints": {
+          "max_price": 4000000
+        }
+      },
+      "negative": false,
+      "status_code": 200,
+      "api_succeeded": true,
+      "latency_ms": 21530,
+      "vision_evaluated": true,
+      "analysis_provider": "gemini",
+      "rerank_provider": "gemini",
+      "confidence_level": "low",
+      "confidence": {
+        "level": "low",
+        "top_score": 65,
+        "score_gap": 65,
+        "visually_reranked": true,
+        "rerank_provider": "gemini"
+      },
+      "expected_rank": null,
+      "top1_correct": false,
+      "top3_correct": false,
+      "top5_correct": false,
+      "negative_correct": false,
+      "constraints_correct": true,
+      "correct": false,
+      "abstained": true,
+      "false_confident": false,
+      "candidates": [
+        {
+          "rank": 1,
+          "id": 476,
+          "name": "Soul of Chogokin GX-74 Getter 1 Dynamic Classic",
+          "numeric_price": 2500000,
+          "visual_score": 65,
+          "lexical_score": 167,
+          "confidence": "high",
+          "matches_expected": false
+        }
+      ],
+      "response_intro": "Aku sudah cek fotonya, tapi gambarnya belum cukup jelas buat memastikan produknya. Ini kandidat terdekat yang mirip:",
+      "error": null,
+      "attempts": 1
+    },
+    {
+      "id": "store-full-5020-reference",
+      "image": "images/store-full-5020-reference.jpg",
+      "source_type": "store",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama dengan foto referensi katalog ini.",
+      "expected": {
+        "product_id": 5020,
+        "product_name": "Fewture Getter Set 1,2,3 Black Version",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "negative": false,
+      "status_code": 200,
+      "api_succeeded": true,
+      "latency_ms": 40480,
+      "vision_evaluated": true,
+      "analysis_provider": "gemini",
+      "rerank_provider": "gemini",
+      "confidence_level": "high",
+      "confidence": {
+        "level": "high",
+        "top_score": 100,
+        "score_gap": 5,
+        "visually_reranked": true,
+        "rerank_provider": "gemini"
+      },
+      "expected_rank": 1,
+      "top1_correct": true,
+      "top3_correct": true,
+      "top5_correct": true,
+      "negative_correct": false,
+      "constraints_correct": true,
+      "correct": true,
+      "abstained": false,
+      "false_confident": false,
+      "candidates": [
+        {
+          "rank": 1,
+          "id": 5020,
+          "name": "Fewture Getter Set 1,2,3 Black Version",
+          "numeric_price": 12000000,
+          "visual_score": 100,
+          "lexical_score": 216,
+          "confidence": "high",
+          "matches_expected": true
+        },
+        {
+          "rank": 2,
+          "id": 5009,
+          "name": "Fewture Shin Getter 1 Changing Black Getter",
+          "numeric_price": 5000000,
+          "visual_score": 95,
+          "lexical_score": 234,
+          "confidence": "high",
+          "matches_expected": false
+        },
+        {
+          "rank": 3,
+          "id": 3346,
+          "name": "Vinyl Collectible Dolls Shin Getter Armagedon : Black Getter",
+          "numeric_price": 3500000,
+          "visual_score": 60,
+          "lexical_score": 214,
+          "confidence": "medium",
+          "matches_expected": false
+        },
+        {
+          "rank": 4,
+          "id": 5480,
+          "name": "Soul of Chogokin GX-91 Getter 2 &amp; 3 Dynamic Classic",
+          "numeric_price": 3500000,
+          "visual_score": 55,
+          "lexical_score": 184,
+          "confidence": "medium",
+          "matches_expected": false
+        },
+        {
+          "rank": 5,
+          "id": 3336,
+          "name": "Vinyl Collectible Dolls Shin Getter Armagedon : Getter 1",
+          "numeric_price": 3500000,
+          "visual_score": 50,
+          "lexical_score": 185,
+          "confidence": "medium",
+          "matches_expected": false
+        }
+      ],
+      "response_intro": "Aku sudah membandingkan foto itu dengan foto produk katalog. Kandidat pertama memiliki kecocokan visual yang kuat:",
+      "error": null,
+      "attempts": 1
+    },
+    {
+      "id": "store-full-4819-reference",
+      "image": "images/store-full-4819-reference.jpg",
+      "source_type": "store",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama dengan foto referensi katalog ini.",
+      "expected": {
+        "product_id": 4819,
+        "product_name": "Transformers Masterpiece MP-25L LOUDPEDAL Takara Tomy",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "negative": false,
+      "status_code": 200,
+      "api_succeeded": true,
+      "latency_ms": 19670,
+      "vision_evaluated": true,
+      "analysis_provider": "gemini",
+      "rerank_provider": "gemini",
+      "confidence_level": "high",
+      "confidence": {
+        "level": "high",
+        "top_score": 100,
+        "score_gap": 35,
+        "visually_reranked": true,
+        "rerank_provider": "gemini"
+      },
+      "expected_rank": 1,
+      "top1_correct": true,
+      "top3_correct": true,
+      "top5_correct": true,
+      "negative_correct": false,
+      "constraints_correct": true,
+      "correct": true,
+      "abstained": false,
+      "false_confident": false,
+      "candidates": [
+        {
+          "rank": 1,
+          "id": 4819,
+          "name": "Transformers Masterpiece MP-25L LOUDPEDAL Takara Tomy",
+          "numeric_price": 1500000,
+          "visual_score": 100,
+          "lexical_score": 275,
+          "confidence": "high",
+          "matches_expected": true
+        },
+        {
+          "rank": 2,
+          "id": 4812,
+          "name": "Transformers Masterpiece MP-25 TRACKS Takara Tomy",
+          "numeric_price": 1750000,
+          "visual_score": 65,
+          "lexical_score": 171,
+          "confidence": "medium",
+          "matches_expected": false
+        }
+      ],
+      "response_intro": "Aku sudah membandingkan foto itu dengan katalog. Kandidat pertama punya kecocokan visual yang kuat:",
+      "error": null,
+      "attempts": 1
+    },
+    {
+      "id": "store-full-4649-reference",
+      "image": "images/store-full-4649-reference.jpg",
+      "source_type": "store",
+      "view_type": "full",
+      "question": "Tolong carikan produk yang sama dengan foto referensi katalog ini.",
+      "expected": {
+        "product_id": 4649,
+        "product_name": "Mecha Labo Sengoku Majin Goshogun",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "negative": false,
+      "status_code": 200,
+      "api_succeeded": true,
+      "latency_ms": 25877,
+      "vision_evaluated": true,
+      "analysis_provider": "gemini",
+      "rerank_provider": "gemini",
+      "confidence_level": "low",
+      "confidence": {
+        "level": "low",
+        "top_score": 65,
+        "score_gap": 5,
+        "visually_reranked": true,
+        "rerank_provider": "gemini"
+      },
+      "expected_rank": null,
+      "top1_correct": false,
+      "top3_correct": false,
+      "top5_correct": false,
+      "negative_correct": false,
+      "constraints_correct": true,
+      "correct": false,
+      "abstained": true,
+      "false_confident": false,
+      "candidates": [
+        {
+          "rank": 1,
+          "id": 4580,
+          "name": "Most Wanted Sky Gaiking - Gaiking The Legend of Daikumaryu",
+          "numeric_price": 450000,
+          "visual_score": 65,
+          "lexical_score": 197,
+          "confidence": "medium",
+          "matches_expected": false
+        },
+        {
+          "rank": 2,
+          "id": 4562,
+          "name": "Most Wanted Daikumaryu - Gaiking The Legend of Daikumaryu",
+          "numeric_price": 600000,
+          "visual_score": 60,
+          "lexical_score": 162,
+          "confidence": "medium",
+          "matches_expected": false
+        },
+        {
+          "rank": 3,
+          "id": 560,
+          "name": "Mighty Deformed Great Five Action Toys",
+          "numeric_price": 1500000,
+          "visual_score": 45,
+          "lexical_score": 188,
+          "confidence": "low",
+          "matches_expected": false
+        }
+      ],
+      "response_intro": "Aku sudah cek foto itu, tapi belum bisa memastikan produknya secara pasti. Ini kandidat terdekat yang mirip:",
       "error": null,
       "attempts": 1
     }
