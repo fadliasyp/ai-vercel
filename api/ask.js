@@ -6273,19 +6273,24 @@ export default async function handler(req, res) {
 
       const shortlist = candidates.slice(0, 8);
 
-      const facts = shortlist.map((p) => ({
-        id: p.id,
-        name: p.name,
-        price: Number(p.numericPrice || 0),
-        stock: p.stock,
-        stockQuantity: p.stockQuantity ?? null,
-        category: p.category || "",
-        condition: p.condition || "",
-        weight: p.weight || "",
-        dimensions: p.dimensions || {},
-        description: stripHtml(p.description || "").slice(0, 500),
-        link: p.link,
-      }));
+      const facts = shortlist.map((p) => {
+        const notes = extractProductComparisonNotes(p);
+        return {
+          id: p.id,
+          name: p.name,
+          price: Number(p.numericPrice || 0),
+          stock: p.stock,
+          stockQuantity: p.stockQuantity ?? null,
+          category: p.category || "",
+          condition: p.condition || "",
+          weight: p.weight || "",
+          dimensions: p.dimensions || {},
+          description: stripHtml(p.description || "").slice(0, 1200),
+          strengths: notes.strengths,
+          caveats: notes.caveats,
+          link: p.link,
+        };
+      });
 
       let explain = null;
       let chosenNames = [];
@@ -6298,6 +6303,8 @@ TUGAS:
 Pilih maksimal 3 produk terbaik dari DATA berdasarkan kebutuhan user.
 Gunakan HANYA data yang ada.
 Jangan mengarang.
+- Jelaskan kelebihan dan pertimbangan dari strengths dan caveats untuk setiap produk yang dipilih.
+- Jangan menyembunyikan caveats. Jika kosong, jangan mengarang kekurangan.
 - Boleh gunakan simbol sederhana seperti: • ✅ ⚠️ 💰 📦
 
 PERTANYAAN USER:
@@ -6365,7 +6372,10 @@ Kembalikan JSON valid:
 
       const semanticRecommendationReasoning =
         explain ||
-        "Aku pilih produk ini karena paling relevan dengan kebutuhan yang kamu sebutkan dan stoknya juga lebih aman.";
+        buildRecommendationReasoning(
+          finalProducts,
+          extractRecommendationNeeds(rawQuestion, semantic),
+        );
 
       return await send(
         {
@@ -6947,6 +6957,7 @@ Kembalikan JSON valid:
           const fullDesc = rawDesc
             ? rawDesc.slice(0, 4000)
             : "(tidak tercantum)";
+          const notes = extractProductComparisonNotes(p);
 
           return {
             name: p.name,
@@ -6957,6 +6968,8 @@ Kembalikan JSON valid:
             weight: p.weight || "(tidak tercantum)",
             dimensions: p.dimensions || {},
             description: fullDesc,
+            strengths: notes.strengths,
+            caveats: notes.caveats,
             link: p.link,
           };
         });
@@ -6971,6 +6984,8 @@ Kembalikan JSON valid:
 Kamu CS Robot Jadul.
 Pilih 1 produk terbaik dari DATA dan jelaskan alasannya.
 Gunakan hanya data yang ada. Jangan mengarang.
+Gunakan strengths dan caveats untuk menjelaskan kelebihan dan pertimbangan setiap pilihan.
+Jangan menyembunyikan caveats. Jika kosong, jangan mengarang kekurangan.
 
 Format:
 1) Produk terbaik

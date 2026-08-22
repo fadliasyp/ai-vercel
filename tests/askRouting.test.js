@@ -212,6 +212,8 @@ test("routes real customer turns without stale products or fallback collisions",
     assert.equal(recommendation.type, "products");
     assert.ok(productNames(recommendation).length > 0);
     assert.match(recommendation.intro, /rekomendasi|pilih/i);
+    assert.match(recommendation.intro, /bukan JUNK/i);
+    assert.match(recommendation.intro, /tidak ada part yang hilang/i);
 
     const internationalQuestion =
       "Ini Voltes V Legacy ukurannya berapa cm ya tingginya? Kalau kirim ke Malaysia ongkirnya berapa dan total harganya jadi berapa USD?";

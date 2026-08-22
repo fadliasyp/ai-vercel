@@ -169,13 +169,15 @@ test("does not invent flaws when the catalog explicitly negates them", () => {
 
 test("extracts explicit comparison strengths and caveats from WooCommerce descriptions", () => {
   const notes = extractProductComparisonNotes({
-    condition: "New in Original Packaging",
+    condition: "BIB, bukan JUNK",
     shortDescription: "Kelebihan: fungsi normal dan aksesori lengkap.",
     description:
-      "<ul><li>Kekurangan: sudut box sedikit penyok</li><li>Tidak ada part hilang</li></ul>",
+      "<ul><li>Kekurangan: sudut box sedikit penyok</li><li>Tidak ada part yang hilang</li></ul>",
   });
 
   assert.equal(notes.strengths.some((line) => /aksesori lengkap/i.test(line)), true);
-  assert.equal(notes.strengths.some((line) => /tidak ada part hilang/i.test(line)), true);
+  assert.equal(notes.strengths.some((line) => /bukan junk/i.test(line)), true);
+  assert.equal(notes.strengths.some((line) => /tidak ada part yang hilang/i.test(line)), true);
   assert.equal(notes.caveats.some((line) => /box sedikit penyok/i.test(line)), true);
+  assert.equal(notes.caveats.some((line) => /bukan junk|tidak ada part/i.test(line)), false);
 });
