@@ -16,6 +16,7 @@ import {
 import {
   GEMINI_MODE,
   GEMINI_MODELS,
+  classifyCommerceWithGemini,
   classifyCommerceScopeWithGemini,
   genai,
   geminiText,
@@ -814,40 +815,72 @@ export default async function handler(req, res) {
     privacySafeQuestion(),
     {
       mode: llmAssistantConfig.mode,
-      routerEnabled: groqConfig.enabled,
+      routerEnabled: groqConfig.enabled || Boolean(genai),
     },
   );
   let groqRouteError = null;
+  let geminiRouteError = null;
+  const semanticRouterEnabled = groqConfig.enabled || Boolean(genai);
   const groqRouteTask =
     (useLlmLedUnderstanding ||
     shouldUseSemanticRouter({
-      enabled: groqConfig.enabled,
+      enabled: semanticRouterEnabled,
       localScope: localScopeDecision,
       question: privacySafeQuestion(),
     }))
-    ? classifyCommerceWithGroqFallback({
-        question: privacySafeQuestion(),
-        context: groqContext,
-        config: groqConfig,
-      }).catch((error) => {
-        groqRouteError = {
-          code: error?.code || "UNKNOWN",
-          status: Number(error?.status || 0),
-          retryAfter: error?.retryAfter || null,
-        };
-        console.error("GROQ SEMANTIC ROUTER ERROR:", {
-          code: error?.code || "UNKNOWN",
-          status: error?.status || 0,
-          message: error?.message || String(error),
-        });
+    ? (async () => {
+        if (groqConfig.enabled) {
+          try {
+            return await classifyCommerceWithGroqFallback({
+              question: privacySafeQuestion(),
+              context: groqContext,
+              config: groqConfig,
+            });
+          } catch (error) {
+            groqRouteError = {
+              code: error?.code || "UNKNOWN",
+              status: Number(error?.status || 0),
+              retryAfter: error?.retryAfter || null,
+            };
+            console.error("GROQ SEMANTIC ROUTER ERROR:", {
+              code: error?.code || "UNKNOWN",
+              status: error?.status || 0,
+              message: error?.message || String(error),
+            });
+          }
+        }
+
+        if (genai) {
+          try {
+            return await classifyCommerceWithGemini({
+              question: privacySafeQuestion(),
+              context: groqContext,
+            });
+          } catch (error) {
+            geminiRouteError = {
+              code: error?.code || "UNKNOWN",
+              status: Number(error?.status || 0),
+              retryAfter: error?.retryAfter || null,
+            };
+            console.error("GEMINI SEMANTIC ROUTER ERROR:", {
+              code: error?.code || "UNKNOWN",
+              status: error?.status || 0,
+              message: error?.message || String(error),
+            });
+          }
+        }
+
         return null;
-      })
+      })()
     : Promise.resolve(null);
 
   const [localIntentResult, groqRoute] = await Promise.all([
     localIntentTask,
     groqRouteTask,
   ]);
+  const understandingRateLimited =
+    !groqRoute &&
+    (groqRouteError?.status === 429 || geminiRouteError?.status === 429);
   const configuredSemanticConfidence = Number(
     process.env.GROQ_ROUTER_MIN_CONFIDENCE,
   );
@@ -881,7 +914,7 @@ export default async function handler(req, res) {
   const semanticDecisionIsPrimary =
     groqRoute?.scope === "in_scope" &&
     Number(groqRoute.confidence || 0) >= minSemanticConfidence &&
-    String(intentResult.method || "").startsWith("groq_semantic:");
+    String(intentResult.method || "").includes("_semantic:");
 
   if (semanticDecisionIsPrimary) {
     const semanticFacets = Array.isArray(groqRoute.goals)
@@ -1869,7 +1902,7 @@ export default async function handler(req, res) {
           naturalized: false,
           reason: "sensitive_intent",
         };
-      } else if (groqRouteError?.status === 429) {
+      } else if (understandingRateLimited) {
         assistantMeta = {
           provider: "template",
           naturalized: false,
@@ -1998,7 +2031,7 @@ export default async function handler(req, res) {
         status:
           llmAssistantConfig.mode === "legacy"
             ? "disabled"
-            : groqRouteError?.status === 429
+            : understandingRateLimited
               ? "understanding_rate_limited"
               : assistantMeta.reason === "error_429"
                 ? "error_429"
@@ -2027,7 +2060,7 @@ export default async function handler(req, res) {
           repaired_fields: assistantMeta.repaired_fields || [],
         };
       } else if (
-        groqRouteError?.status !== 429 &&
+        !understandingRateLimited &&
         llmAssistantConfig.mode !== "legacy" &&
         finalIntent !== "transaction_status"
       ) {
@@ -2037,7 +2070,11 @@ export default async function handler(req, res) {
           intent: finalIntent,
           conversationContext: groqContext,
           actionCandidates,
-          config: llmAssistantConfig,
+          config: {
+            ...llmAssistantConfig,
+            preferGemini:
+              groqRoute?.provider === "gemini" && Boolean(groqRouteError),
+          },
         });
         finalPayload = composed.payload;
         llmComposerMeta = composed.meta;
@@ -2088,9 +2125,9 @@ export default async function handler(req, res) {
           coverage: coverageRepair.after.coverage,
         },
         router:
-          groqRoute?.provider === "groq"
+          groqRoute?.provider
             ? {
-                provider: "groq",
+                provider: groqRoute.provider,
                 model: groqRoute.model || naturalizerConfig.model,
               }
             : {
@@ -2100,9 +2137,10 @@ export default async function handler(req, res) {
           mode: llmAssistantConfig.mode,
           understanding_provider: groqRoute?.provider || "local_rules_ml",
           understanding_status:
-            groqRoute?.provider === "groq"
+            groqRoute?.provider
               ? "success"
-              : groqRouteError?.code ||
+              : geminiRouteError?.code ||
+                groqRouteError?.code ||
                 (useLlmLedUnderstanding ? "fallback" : "not_run"),
           understanding_intent: llmLedIntentResult.intent,
           understanding_confidence: llmLedIntentResult.score,

@@ -55,6 +55,21 @@ test("high-confidence semantic intent wins over a weak local fallback", () => {
   assert.match(result.method, /^groq_semantic:/);
 });
 
+test("keeps the fallback provider visible in semantic routing metadata", () => {
+  const result = chooseSemanticIntent({
+    question: "Getter Robo lagi promo?",
+    localScope: "ambiguous",
+    local,
+    semantic: semantic("price_promo", {
+      provider: "gemini",
+      model: "gemini-test",
+    }),
+  });
+
+  assert.equal(result.intent, "price_promo");
+  assert.equal(result.method, "gemini_semantic:gemini-test");
+});
+
 test("explicit rules resolve recommendation, compare, store, and insurance boundaries", () => {
   assert.equal(
     detectExplicitIntentOverride("Ada alternatif yang lebih worth it?").intent,

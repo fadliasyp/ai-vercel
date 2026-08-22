@@ -36,6 +36,18 @@ function mockFetch(content) {
   });
 }
 
+function safeGeminiComposer(nextMessage) {
+  return async (original, _question, { onStatus } = {}) => {
+    onStatus?.({
+      provider: "gemini",
+      model: "gemini-test",
+      naturalized: true,
+      reason: "success",
+    });
+    return { ...original, message: nextMessage };
+  };
+}
+
 const payload = {
   type: "products",
   message:
@@ -180,6 +192,74 @@ test("active mode serves only a fact-preserving composition", async () => {
   });
   assert.deepEqual(unsafe.payload, payload);
   assert.equal(unsafe.meta.accepted, false);
+});
+
+test("falls back to Gemini when all Groq composer models are rate limited", async () => {
+  const result = await runLlmAnswerComposer({
+    payload,
+    question: "harga dan stok Getter Robo G?",
+    intent: "price_promo",
+    config: { ...config("active"), geminiFallbackEnabled: true },
+    fetchImpl: async () => ({
+      ok: false,
+      status: 429,
+      headers: { get: () => null },
+      json: async () => ({ error: { message: "rate limited" } }),
+    }),
+    geminiNaturalizeImpl: safeGeminiComposer(
+      "**Getter Robo G** masih tersedia **12 pcs** dengan harga **Rp 5.500.000**.",
+    ),
+  });
+
+  assert.equal(result.meta.provider, "gemini");
+  assert.equal(result.meta.status, "active_accepted");
+  assert.equal(result.meta.accepted, true);
+  assert.match(result.payload.message, /masih tersedia/);
+});
+
+test("uses Gemini directly after understanding already failed over from Groq", async () => {
+  let groqCalls = 0;
+  const result = await runLlmAnswerComposer({
+    payload,
+    question: "harga dan stok Getter Robo G?",
+    intent: "price_promo",
+    config: {
+      ...config("active"),
+      geminiFallbackEnabled: true,
+      preferGemini: true,
+    },
+    fetchImpl: async () => {
+      groqCalls += 1;
+      throw new Error("Groq should not be called");
+    },
+    geminiNaturalizeImpl: safeGeminiComposer(
+      "Harga **Getter Robo G** adalah **Rp 5.500.000**, dengan stok **12 pcs**.",
+    ),
+  });
+
+  assert.equal(groqCalls, 0);
+  assert.equal(result.meta.provider, "gemini");
+  assert.equal(result.meta.accepted, true);
+});
+
+test("supports a Gemini-only LLM deployment", async () => {
+  const geminiOnly = resolveLlmAssistantConfig({
+    LLM_LED_ASSISTANT_MODE: "active",
+    GEMINI_API_KEY: "gemini-key",
+  });
+  const result = await runLlmAnswerComposer({
+    payload,
+    question: "harga dan stok Getter Robo G?",
+    intent: "price_promo",
+    config: geminiOnly,
+    geminiNaturalizeImpl: safeGeminiComposer(
+      "Harga **Getter Robo G** adalah **Rp 5.500.000**, dengan stok **12 pcs**.",
+    ),
+  });
+
+  assert.equal(geminiOnly.enabled, true);
+  assert.equal(result.meta.provider, "gemini");
+  assert.equal(result.meta.accepted, true);
 });
 
 test("validator rejects lost coverage even when response structure is unchanged", () => {
