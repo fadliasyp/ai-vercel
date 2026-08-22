@@ -34,6 +34,16 @@ test("extracts only the destination from a compound shipping question", () => {
     extractShippingDestination("ongkir ke kulonprogo dari jakarta berapa?"),
     "kulonprogo",
   );
+  assert.equal(
+    extractShippingDestination(
+      "Kalau ongkir dari jakarta ke palembang kena berapa ya",
+    ),
+    "palembang",
+  );
+  assert.equal(
+    extractShippingDestination("Dari Jakarta ke Palembang ongkirnya berapa?"),
+    "Palembang",
+  );
 });
 
 test("splits a city and district answer from one message", () => {
