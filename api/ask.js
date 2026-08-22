@@ -37,6 +37,11 @@ import {
 } from "../lib/chatbot/groq.js";
 
 import {
+  classifyCommerceWithMistral,
+  resolveMistralConfig,
+} from "../lib/chatbot/mistral.js";
+
+import {
   chooseSemanticIntent,
   detectExplicitIntentOverride,
   semanticRouteToLegacy,
@@ -784,6 +789,7 @@ export default async function handler(req, res) {
   });
 
   const groqConfig = resolveGroqRouterConfig();
+  const mistralConfig = resolveMistralConfig();
   const llmAssistantConfig = resolveLlmAssistantConfig();
   const groqContext = {
     lastIntent: previousCommerceContext.lastIntent,
@@ -815,12 +821,15 @@ export default async function handler(req, res) {
     privacySafeQuestion(),
     {
       mode: llmAssistantConfig.mode,
-      routerEnabled: groqConfig.enabled || Boolean(genai),
+      routerEnabled:
+        groqConfig.enabled || Boolean(genai) || mistralConfig.enabled,
     },
   );
   let groqRouteError = null;
   let geminiRouteError = null;
-  const semanticRouterEnabled = groqConfig.enabled || Boolean(genai);
+  let mistralRouteError = null;
+  const semanticRouterEnabled =
+    groqConfig.enabled || Boolean(genai) || mistralConfig.enabled;
   const groqRouteTask =
     (useLlmLedUnderstanding ||
     shouldUseSemanticRouter({
@@ -870,6 +879,27 @@ export default async function handler(req, res) {
           }
         }
 
+        if (mistralConfig.enabled) {
+          try {
+            return await classifyCommerceWithMistral({
+              question: privacySafeQuestion(),
+              context: groqContext,
+              config: mistralConfig,
+            });
+          } catch (error) {
+            mistralRouteError = {
+              code: error?.code || "UNKNOWN",
+              status: Number(error?.status || 0),
+              retryAfter: error?.retryAfter || null,
+            };
+            console.error("MISTRAL SEMANTIC ROUTER ERROR:", {
+              code: error?.code || "UNKNOWN",
+              status: error?.status || 0,
+              message: error?.message || String(error),
+            });
+          }
+        }
+
         return null;
       })()
     : Promise.resolve(null);
@@ -880,7 +910,9 @@ export default async function handler(req, res) {
   ]);
   const understandingRateLimited =
     !groqRoute &&
-    (groqRouteError?.status === 429 || geminiRouteError?.status === 429);
+    (groqRouteError?.status === 429 ||
+      geminiRouteError?.status === 429 ||
+      mistralRouteError?.status === 429);
   const configuredSemanticConfidence = Number(
     process.env.GROQ_ROUTER_MIN_CONFIDENCE,
   );
@@ -2074,6 +2106,9 @@ export default async function handler(req, res) {
             ...llmAssistantConfig,
             preferGemini:
               groqRoute?.provider === "gemini" && Boolean(groqRouteError),
+            preferMistral:
+              groqRoute?.provider === "mistral" &&
+              Boolean(groqRouteError || geminiRouteError),
           },
         });
         finalPayload = composed.payload;
@@ -2139,7 +2174,8 @@ export default async function handler(req, res) {
           understanding_status:
             groqRoute?.provider
               ? "success"
-              : geminiRouteError?.code ||
+              : mistralRouteError?.code ||
+                geminiRouteError?.code ||
                 groqRouteError?.code ||
                 (useLlmLedUnderstanding ? "fallback" : "not_run"),
           understanding_intent: llmLedIntentResult.intent,

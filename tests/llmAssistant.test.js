@@ -262,6 +262,54 @@ test("supports a Gemini-only LLM deployment", async () => {
   assert.equal(result.meta.accepted, true);
 });
 
+test("falls back to Mistral after Groq and Gemini are rate limited", async () => {
+  const result = await runLlmAnswerComposer({
+    payload,
+    question: "harga dan stok Getter Robo G?",
+    intent: "price_promo",
+    config: {
+      ...config("active"),
+      geminiFallbackEnabled: true,
+      mistral: {
+        enabled: true,
+        apiKey: "mistral-key",
+        model: "mistral-small-latest",
+      },
+    },
+    fetchImpl: async () => ({
+      ok: false,
+      status: 429,
+      headers: { get: () => null },
+      json: async () => ({ error: { message: "rate limited" } }),
+    }),
+    geminiNaturalizeImpl: async (original, _question, { onStatus }) => {
+      onStatus({
+        provider: "gemini",
+        naturalized: false,
+        reason: "error_429",
+      });
+      return original;
+    },
+    mistralNaturalizeImpl: async (original, _question, { onStatus }) => {
+      onStatus({
+        provider: "mistral",
+        model: "mistral-small-latest",
+        naturalized: true,
+        reason: "success",
+      });
+      return {
+        ...original,
+        message:
+          "**Getter Robo G** masih tersedia **12 pcs** dengan harga **Rp 5.500.000**.",
+      };
+    },
+  });
+
+  assert.equal(result.meta.provider, "mistral");
+  assert.equal(result.meta.status, "active_accepted");
+  assert.equal(result.meta.accepted, true);
+});
+
 test("validator rejects lost coverage even when response structure is unchanged", () => {
   const original = {
     type: "text",
