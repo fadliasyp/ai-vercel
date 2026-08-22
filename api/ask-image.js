@@ -7,6 +7,7 @@ import {
   geminiResponseText,
 } from "../lib/chatbot/gemini.js";
 import { generateVisionJsonWithMistral } from "../lib/chatbot/mistral.js";
+import { generateVisionJsonWithCloudflare } from "../lib/chatbot/cloudflare.js";
 import {
   loadProductVisualIndex,
   scoreProductVisualIndex,
@@ -776,6 +777,18 @@ async function analyzeImageWithMistral({ image, question, imageName = "" }) {
   };
 }
 
+async function analyzeImageWithCloudflare({ image, question, imageName = "" }) {
+  const result = await generateVisionJsonWithCloudflare({
+    prompt: buildImageAnalysisPrompt({ question, imageName }),
+    image,
+  });
+  return {
+    ...result.json,
+    analysis_provider: "cloudflare_workers_ai",
+    analysis_model: result.model || "unknown",
+  };
+}
+
 async function analyzeImageWithProviderFallback({
   image,
   question,
@@ -798,6 +811,12 @@ async function analyzeImageWithProviderFallback({
     return await analyzeImageWithMistral({ image, question, imageName });
   } catch (error) {
     console.error("MISTRAL IMAGE ANALYZE FALLBACK:", error?.message || error);
+  }
+
+  try {
+    return await analyzeImageWithCloudflare({ image, question, imageName });
+  } catch (error) {
+    console.error("CLOUDFLARE IMAGE ANALYZE FALLBACK:", error?.message || error);
     return fallbackImageAnalysis({
       question,
       reason:
