@@ -6,6 +6,7 @@ import {
   geminiGenerateContentWithFallback,
   geminiResponseText,
 } from "../lib/chatbot/gemini.js";
+import { generateVisionJsonWithMistral } from "../lib/chatbot/mistral.js";
 import {
   loadProductVisualIndex,
   scoreProductVisualIndex,
@@ -81,8 +82,12 @@ function sendJson(res, status, payload) {
 }
 
 function looksLikeGeminiQuotaError(err) {
+  const status = Number(
+    err?.status || err?.statusCode || err?.response?.status || 0,
+  );
   const msg = String(err?.message || err || "").toLowerCase();
   return (
+    status === 429 ||
     msg.includes("resource_exhausted") ||
     msg.includes("quota exceeded") ||
     msg.includes("free_tier_requests") ||
@@ -287,6 +292,49 @@ function uniqueTerms(items = []) {
   return out.slice(0, 40);
 }
 
+const IMAGE_QUERY_STOPWORDS = new Set([
+  "ada",
+  "apakah",
+  "bisa",
+  "cari",
+  "carikan",
+  "cek",
+  "engga",
+  "ngga",
+  "gak",
+  "tidak",
+  "ini",
+  "itu",
+  "saya",
+  "aku",
+  "mau",
+  "tolong",
+  "produk",
+  "product",
+  "barang",
+  "robot",
+  "foto",
+  "gambar",
+  "yang",
+  "dan",
+  "atau",
+  "dengan",
+]);
+
+export function extractImageQueryKeywords(question = "") {
+  return [
+    ...new Set(
+      String(question || "")
+        .toLowerCase()
+        .split(/[^\p{L}\p{N}-]+/u)
+        .map((word) => word.trim())
+        .filter(
+          (word) => word.length >= 3 && !IMAGE_QUERY_STOPWORDS.has(word),
+        ),
+    ),
+  ].slice(0, 12);
+}
+
 function expandSearchTerms(terms = []) {
   const stop = new Set([
     "robot",
@@ -465,95 +513,6 @@ function candidateFacts(candidates = []) {
   });
 }
 
-function compactProductFacts(products = []) {
-  return products.map((p) => ({
-    id: p.id,
-    name: p.name,
-    category: p.category || "",
-    condition: p.condition || "",
-    image_count: Array.isArray(p.images) ? p.images.length : 0,
-    image_text: String(p.imageText || "").slice(0, 320),
-    description: stripHtml(p.description || "").slice(0, 260),
-  }));
-}
-
-async function selectCandidatesWithGemini({
-  analysis,
-  question,
-  products,
-  limit = 30,
-  deadline = null,
-  maxChunks = 2,
-}) {
-  if (!genai || !products.length) return [];
-
-  const facts = compactProductFacts(products);
-  const chunks = [];
-  for (let i = 0; i < facts.length; i += 160) {
-    chunks.push(facts.slice(i, i + 160));
-  }
-
-  const selectedIds = [];
-
-  for (const chunk of chunks.slice(0, maxChunks)) {
-    if (deadline?.expired(MIN_GEMINI_STEP_MS)) break;
-
-    const prompt = `
-Kamu membantu mencari produk Robot Jadul dari foto internet/user.
-Pilih kandidat produk yang PALING mungkin sama atau mirip dengan objek pada foto.
-
-Penting:
-- Jangan hanya mengandalkan warna. Nama karakter/seri/brand lebih penting.
-- Produk dari internet bisa beda angle, beda pose, beda background, atau tanpa box.
-- Gunakan sinonim/alias robot vintage jika tahu, tapi jangan mengarang hasil final.
-- Output JSON valid saja.
-
-Perintah user:
-${question || "(tidak ada teks)"}
-
-Analisis foto user:
-${JSON.stringify(analysis, null, 2)}
-
-Daftar produk kandidat dari toko:
-${JSON.stringify(chunk, null, 2)}
-
-Format JSON:
-{
-  "candidate_ids": [123, 456],
-  "reason": "alasan singkat kenapa kandidat dipilih"
-}
-`;
-
-    const result = await geminiGenerateContentWithFallback({
-      models: GEMINI_MODEL_FALLBACKS.TEXT,
-      taskName: "image_candidate_select",
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-    });
-
-    const txt = geminiResponseText(result?.response);
-
-    try {
-      const parsed = parseJsonLoose(txt);
-      const ids = Array.isArray(parsed.candidate_ids)
-        ? parsed.candidate_ids
-        : [];
-      ids.forEach((id) => {
-        const s = String(id || "").trim();
-        if (s && !selectedIds.includes(s)) selectedIds.push(s);
-      });
-    } catch (e) {
-      console.error("GEMINI CANDIDATE SELECT PARSE ERROR:", e?.message || e);
-    }
-
-    if (selectedIds.length >= limit) break;
-  }
-
-  const byId = new Map(products.map((p) => [String(p.id || ""), p]));
-  const selected = selectedIds.map((id) => byId.get(String(id))).filter(Boolean);
-
-  return selected.slice(0, limit);
-}
-
 async function attachCandidateImages(
   candidates = [],
   {
@@ -690,33 +649,6 @@ Kembalikan JSON valid saja:
   };
 }
 
-function mergeVisualProducts(products = []) {
-  const byId = new Map();
-
-  for (const product of products) {
-    const key = String(product?.id || "");
-    if (!key) continue;
-
-    const prev = byId.get(key);
-    if (
-      !prev ||
-      Number(product.visualScore || 0) > Number(prev.visualScore || 0)
-    ) {
-      byId.set(key, {
-        ...product,
-        image: product.visualImageUrl || product.image,
-      });
-    }
-  }
-
-  return [...byId.values()].sort((a, b) => {
-    if (Number(b.visualScore || 0) !== Number(a.visualScore || 0)) {
-      return Number(b.visualScore || 0) - Number(a.visualScore || 0);
-    }
-    return Number(b.imageMatchScore || 0) - Number(a.imageMatchScore || 0);
-  });
-}
-
 async function rerankProductsVisually({
   userImage,
   question,
@@ -728,51 +660,22 @@ async function rerankProductsVisually({
   if (deadline?.expired(14000)) return null;
 
   const visualCandidates = await attachCandidateImages(candidates, {
-    maxProducts: 12,
-    maxImagesPerProduct: 2,
-    maxTotalImages: 18,
+    maxProducts: 6,
+    maxImagesPerProduct: 1,
+    maxTotalImages: 6,
     deadline,
   });
   if (!visualCandidates.length) return null;
-
-  const batches = [];
-  for (let i = 0; i < visualCandidates.length; i += 6) {
-    batches.push(visualCandidates.slice(i, i + 6));
-  }
-
-  const results = [];
-  for (const batch of batches) {
-    if (deadline?.expired(MIN_GEMINI_STEP_MS)) break;
-
-    const result = await rerankVisualBatch({
-      userImage,
-      question,
-      analysis,
-      candidates: batch,
-    }).catch((e) => {
-      console.error("VISUAL BATCH ERROR:", e?.message || e);
-      return null;
-    });
-
-    if (result?.products?.length) {
-      results.push(result);
-    }
-  }
-
-  const products = mergeVisualProducts(results.flatMap((r) => r.products || []));
-
-  return {
-    summary: results.map((r) => r.summary).filter(Boolean).join(" "),
-    products,
-  };
+  return rerankVisualBatch({
+    userImage,
+    question,
+    analysis,
+    candidates: visualCandidates,
+  });
 }
 
-async function analyzeImageWithGemini({ image, question, imageName = "" }) {
-  if (!genai) {
-    throw new Error("GEMINI_API_KEY is not configured");
-  }
-
-  const prompt = `
+function buildImageAnalysisPrompt({ question = "", imageName = "" } = {}) {
+  return `
 Kamu adalah asisten visual search untuk toko koleksi robot vintage bernama Robot Jadul.
 Analisis foto user, lalu kembalikan JSON valid saja.
 
@@ -795,7 +698,7 @@ dan search_queries.
 Teks/perintah user:
 ${question || "(tidak ada teks)"}
 
-Nama file foto user:
+Nama file foto user (bukan bukti identitas produk):
 ${imageName || "(tidak ada nama file)"}
 
 Format JSON:
@@ -812,6 +715,14 @@ Format JSON:
   "user_intent": "find_similar_product | ask_strengths | ask_price | recommendation"
 }
 `;
+}
+
+async function analyzeImageWithGemini({ image, question, imageName = "" }) {
+  if (!genai) {
+    throw new Error("GEMINI_API_KEY is not configured");
+  }
+
+  const prompt = buildImageAnalysisPrompt({ question, imageName });
 
   const result = await geminiGenerateContentWithFallback({
     models: GEMINI_MODEL_FALLBACKS.VISION,
@@ -829,7 +740,11 @@ Format JSON:
 
   const txt = geminiResponseText(result?.response);
   try {
-    return parseJsonLoose(txt);
+    return {
+      ...parseJsonLoose(txt),
+      analysis_provider: "gemini",
+      analysis_model: result?.model || "unknown",
+    };
   } catch {
     return {
       short_description: txt.slice(0, 300) || "objek pada foto",
@@ -849,12 +764,52 @@ Format JSON:
   }
 }
 
-function fallbackImageAnalysis({ question = "", imageName = "", reason = "" } = {}) {
-  const keywords = `${question || ""} ${imageName || ""}`
-    .split(/\s+/)
-    .map((w) => w.trim())
-    .filter((w) => w.length >= 3)
-    .slice(0, 20);
+async function analyzeImageWithMistral({ image, question, imageName = "" }) {
+  const result = await generateVisionJsonWithMistral({
+    prompt: buildImageAnalysisPrompt({ question, imageName }),
+    images: [{ ...image, label: "USER_IMAGE" }],
+  });
+  return {
+    ...result.json,
+    analysis_provider: "mistral",
+    analysis_model: result.model || "unknown",
+  };
+}
+
+async function analyzeImageWithProviderFallback({
+  image,
+  question,
+  imageName = "",
+  skipGemini = false,
+}) {
+  let geminiError = null;
+
+  if (!skipGemini) {
+    try {
+      return await analyzeImageWithGemini({ image, question, imageName });
+    } catch (error) {
+      geminiError = error;
+      setImageAnalyzeCooldown(error);
+      console.error("GEMINI IMAGE ANALYZE FALLBACK:", error?.message || error);
+    }
+  }
+
+  try {
+    return await analyzeImageWithMistral({ image, question, imageName });
+  } catch (error) {
+    console.error("MISTRAL IMAGE ANALYZE FALLBACK:", error?.message || error);
+    return fallbackImageAnalysis({
+      question,
+      reason:
+        error?.message ||
+        geminiError?.message ||
+        "Vision providers unavailable",
+    });
+  }
+}
+
+function fallbackImageAnalysis({ question = "", reason = "" } = {}) {
+  const keywords = extractImageQueryKeywords(question);
 
   return {
     short_description:
@@ -870,6 +825,8 @@ function fallbackImageAnalysis({ question = "", imageName = "", reason = "" } = 
     user_intent: "find_similar_product",
     analysis_fallback: true,
     analysis_fallback_reason: reason,
+    analysis_provider: "local_visual_index",
+    analysis_model: "none",
   };
 }
 
@@ -1057,7 +1014,7 @@ export default async function handler(req, res) {
         ? "none"
         : analysisFallback
           ? "local_visual_index"
-          : "gemini",
+          : payload?.image_analysis?.analysis_provider || "gemini",
       latencyMs: Date.now() - requestStartedAt,
       productCount: payload?.products?.length,
       actionCount: payload?.actions?.length,
@@ -1141,17 +1098,13 @@ export default async function handler(req, res) {
       }, "invalid_image");
     }
 
-    const skipImageAnalyze = isImageAnalyzeCoolingDown();
     const [analysisResult, productsResult] = await Promise.allSettled([
-      skipImageAnalyze
-        ? Promise.resolve(
-            fallbackImageAnalysis({
-              question,
-              imageName,
-              reason: "Gemini image analysis is cooling down after quota error",
-            }),
-          )
-        : analyzeImageWithGemini({ image, question, imageName }),
+      analyzeImageWithProviderFallback({
+        image,
+        question,
+        imageName,
+        skipGemini: isImageAnalyzeCoolingDown(),
+      }),
       fetchProductsCached({ deadline }),
     ]);
 
@@ -1160,12 +1113,11 @@ export default async function handler(req, res) {
         ? analysisResult.value
         : fallbackImageAnalysis({
             question,
-            imageName,
-            reason: analysisResult.reason?.message || "Gemini image analysis failed",
+            reason:
+              analysisResult.reason?.message || "Image analysis providers failed",
           });
 
     if (analysisResult.status === "rejected") {
-      setImageAnalyzeCooldown(analysisResult.reason);
       console.error(
         "IMAGE ANALYZE FALLBACK:",
         analysisResult.reason?.message || analysisResult.reason,
@@ -1188,6 +1140,25 @@ export default async function handler(req, res) {
 
     if (imageName) analysis.user_image_name = imageName;
 
+    const questionKeywords = extractImageQueryKeywords(question);
+
+    if (analysis.analysis_fallback && !questionKeywords.length) {
+      const unavailablePayload = {
+        type: "text",
+        intent: "image_product_search",
+        message:
+          "Maaf, pembacaan visual AI sedang tidak tersedia, jadi aku belum bisa memastikan produk dari foto ini. Aku tidak akan menampilkan produk katalog secara acak. Coba kirim ulang nanti atau sertakan nama, seri, logo, atau tulisan yang terlihat pada produknya.",
+        image_analysis: analysis,
+        match_confidence: {
+          level: "none",
+          top_score: null,
+          score_gap: null,
+          visually_reranked: false,
+        },
+      };
+      return sendObserved(200, unavailablePayload);
+    }
+
     const terms = uniqueTerms([
       analysis.possible_names || [],
       analysis.brand_or_series || [],
@@ -1196,8 +1167,7 @@ export default async function handler(req, res) {
       analysis.keywords || [],
       analysis.search_queries || [],
       analysis.object_type || "",
-      question || "",
-      imageName || "",
+      questionKeywords,
     ]);
 
     let ranked = products
@@ -1207,8 +1177,8 @@ export default async function handler(req, res) {
 
     const visualIndexCandidates = scoreProductVisualIndex({
       analysis,
-      question,
-      imageName,
+      question: questionKeywords.join(" "),
+      imageName: "",
       limit: 24,
     });
 
@@ -1219,23 +1189,10 @@ export default async function handler(req, res) {
         .slice(0, 20);
     }
 
-    const canUseGeminiFollowup =
-      !analysis.analysis_fallback && !deadline.expired(MIN_GEMINI_STEP_MS);
-
-    const semanticInput = mergeUniqueProducts([ranked.slice(0, 100), products]);
-    const semanticCandidates = canUseGeminiFollowup
-      ? await selectCandidatesWithGemini({
-          analysis,
-          question,
-          products: semanticInput,
-          limit: 24,
-          deadline,
-          maxChunks: ranked.length ? 2 : 1,
-        }).catch((e) => {
-          console.error("GEMINI CANDIDATE SELECT ERROR:", e?.message || e);
-          return [];
-        })
-      : [];
+    const canUseGeminiRerank =
+      analysis.analysis_provider === "gemini" &&
+      !analysis.analysis_fallback &&
+      !deadline.expired(MIN_GEMINI_STEP_MS);
 
     const liveProductById = new Map(
       products.map((p) => [String(p.id || ""), p]),
@@ -1255,27 +1212,18 @@ export default async function handler(req, res) {
         visualIndexScore: p.visualIndexScore,
         visualIndexCandidate: true,
       }));
-    const scoredSemanticCandidates = semanticCandidates.map((p) => ({
-        ...scoreProduct(p, terms, analysis),
-        semanticCandidate: true,
-      }));
     const lexicalCandidates = ranked.slice(0, 24);
 
     const candidatePool = mergeUniqueProducts([
       scoredVisualIndexCandidates,
-      scoredSemanticCandidates,
       lexicalCandidates,
     ]);
     const visualCandidatePool = interleaveUniqueProducts(
-      [
-        scoredVisualIndexCandidates,
-        scoredSemanticCandidates,
-        lexicalCandidates,
-      ],
-      18,
+      [scoredVisualIndexCandidates, lexicalCandidates],
+      6,
     );
 
-    const visualResult = canUseGeminiFollowup
+    const visualResult = canUseGeminiRerank
       ? await rerankProductsVisually({
           userImage: image,
           question,
@@ -1283,6 +1231,7 @@ export default async function handler(req, res) {
           candidates: visualCandidatePool,
           deadline,
         }).catch((e) => {
+          setImageAnalyzeCooldown(e);
           console.error("VISUAL RERANK ERROR:", e?.message || e);
           return null;
         })
@@ -1381,7 +1330,7 @@ export default async function handler(req, res) {
       intro: budgetMismatchNotice
         ? `${budgetMismatchNotice}\n\nBerikut alternatif paling mirip yang masih sesuai budget kamu:`
         : analysis.analysis_fallback
-          ? "Gemini sedang kena limit, jadi aku pakai visual index katalog Robot Jadul sebagai cadangan. Ini kandidat paling dekat yang bisa aku temukan:"
+          ? "Pembacaan visual AI sedang tidak tersedia, jadi aku memakai visual index katalog Robot Jadul sebagai cadangan. Ini kandidat paling dekat yang bisa aku temukan:"
         : isLowConfidence
           ? "Aku sudah membandingkan foto itu dengan katalog, tetapi bukti visualnya belum cukup untuk memastikan satu produk. Berikut kandidat terdekat, bukan hasil pasti:"
           : "Aku sudah membandingkan foto itu dengan foto produk katalog. Kandidat pertama memiliki kecocokan visual yang kuat:",
@@ -1404,7 +1353,7 @@ export default async function handler(req, res) {
       },
       closing:
         analysis.analysis_fallback
-          ? "Karena kuota Gemini sedang habis, hasil ini belum memakai pembacaan visual langsung. Coba lagi nanti saat quota sudah reset untuk hasil yang lebih presisi."
+          ? "Hasil ini belum memakai pembacaan visual langsung. Coba lagi nanti atau kirim foto yang menampilkan logo, wajah, dada, atau tulisan seri dengan lebih jelas."
           : isLowConfidence
           ? "Agar lebih akurat, kirim satu foto tambahan dari sudut lain atau foto yang memperlihatkan logo, wajah, dada, aksesori, atau tulisan seri."
           : "Kalau mau, aku bisa bantu jelaskan kenapa produk pertama paling mirip atau carikan alternatif yang ready stock.",

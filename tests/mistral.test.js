@@ -3,8 +3,10 @@ import assert from "node:assert/strict";
 
 import {
   classifyCommerceWithMistral,
+  generateVisionJsonWithMistral,
   naturalizeWithMistral,
   resolveMistralConfig,
+  resolveMistralVisionConfig,
 } from "../lib/chatbot/mistral.js";
 
 function response(content, model = "mistral-small-latest") {
@@ -96,4 +98,38 @@ test("Mistral composer changes only editable text fields", async () => {
   assert.match(result.message, /tersedia 12 pcs/);
   assert.equal(status.provider, "mistral");
   assert.equal(status.naturalized, true);
+});
+
+test("Mistral vision sends the image as a data URL and parses JSON", async () => {
+  let requestBody = null;
+  const config = resolveMistralVisionConfig({
+    MISTRAL_API_KEY: "test-key",
+    MISTRAL_MODEL: "mistral-small-latest",
+  });
+
+  assert.equal(config.enabled, true);
+  assert.equal(config.timeoutMs, 15000);
+
+  const result = await generateVisionJsonWithMistral({
+    prompt: "Identify this product",
+    images: [
+      {
+        mimeType: "image/webp",
+        data: "YWJj",
+        label: "USER_IMAGE",
+      },
+    ],
+    config,
+    fetchImpl: async (_url, options) => {
+      requestBody = JSON.parse(options.body);
+      return response({ possible_names: ["Getter Robo"] });
+    },
+  });
+
+  assert.equal(requestBody.messages[0].content[2].type, "image_url");
+  assert.equal(
+    requestBody.messages[0].content[2].image_url,
+    "data:image/webp;base64,YWJj",
+  );
+  assert.deepEqual(result.json.possible_names, ["Getter Robo"]);
 });
