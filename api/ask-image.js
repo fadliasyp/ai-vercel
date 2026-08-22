@@ -39,7 +39,7 @@ let imageAnalyzeCooldownUntil = 0;
 const IMAGE_SEARCH_BUDGET_MS = Number(
   process.env.IMAGE_SEARCH_BUDGET_MS || 55000,
 );
-const MIN_GEMINI_STEP_MS = 9000;
+const MIN_VISUAL_RERANK_STEP_MS = 9000;
 const GEMINI_QUOTA_COOLDOWN_MS = Number(
   process.env.GEMINI_QUOTA_COOLDOWN_MS || 10 * 60 * 1000,
 );
@@ -498,18 +498,25 @@ function candidateFacts(candidates = []) {
   return candidates.map((item, index) => {
     const p = item.product || item;
     const image = item.image || {};
+    const visualIndexImage = (p.visualIndexImages || []).find(
+      (entry) => String(entry?.url || "") === String(image?.url || ""),
+    ) || (p.visualIndexImages || [])[Number(image.index || 0)] || {};
     return {
-    candidate_index: index + 1,
-    id: p.id,
-    name: p.name,
-    category: p.category || "",
-    condition: p.condition || "",
-    lexical_score: p.imageMatchScore || 0,
-    lexical_hits: p.imageMatchTerms || [],
+      candidate_index: index + 1,
+      id: p.id,
+      name: p.name,
+      category: p.category || "",
+      condition: p.condition || "",
+      lexical_score: p.imageMatchScore || 0,
+      lexical_hits: p.imageMatchTerms || [],
       image_index: Number(image.index || 0) + 1,
       image_file: image.fileName || "",
       image_alt: image.alt || "",
       image_name: image.name || "",
+      indexed_caption: visualIndexImage.caption || "",
+      indexed_visible_text: visualIndexImage.visibleText || [],
+      indexed_features: visualIndexImage.features || [],
+      indexed_colors: visualIndexImage.colors || [],
     };
   });
 }
@@ -552,15 +559,8 @@ async function attachCandidateImages(
     .filter((x) => x?.imagePart);
 }
 
-async function rerankVisualBatch({
-  userImage,
-  question,
-  analysis,
-  candidates,
-}) {
-  if (!genai || !candidates.length) return { summary: "", products: [] };
-
-  const prompt = `
+function buildVisualRerankPrompt({ question, analysis, candidates }) {
+  return `
 Kamu adalah visual matcher untuk katalog Robot Jadul.
 Bandingkan USER_IMAGE dengan setiap CANDIDATE_IMAGE.
 
@@ -595,6 +595,63 @@ Kembalikan JSON valid saja:
   ]
 }
 `;
+}
+
+export function applyVisualMatches(
+  parsed,
+  candidates,
+  { provider, scoreCap = 100 } = {},
+) {
+  const matches = Array.isArray(parsed?.matches) ? parsed.matches : [];
+  const byIndex = new Map();
+  matches.forEach((match) => {
+    const index = Number(match.candidate_index);
+    if (Number.isFinite(index)) byIndex.set(index, match);
+  });
+
+  const bestByProduct = new Map();
+  candidates.forEach((item, index) => {
+    const match = byIndex.get(index + 1) || {};
+    const visualScore = Math.max(
+      0,
+      Math.min(scoreCap, Number(match.visual_score || 0)),
+    );
+    const product = {
+      ...item.product,
+      visualScore,
+      visualConfidence: match.confidence || "low",
+      visualReason: match.reason || "",
+      visualImageIndex: Number(item.image?.index || 0),
+      visualImageUrl: item.image?.url || item.product.image,
+      visualRerankProvider: provider || "unknown",
+    };
+    const key = String(product.id || product.name || index);
+    const previous = bestByProduct.get(key);
+    if (!previous || visualScore > Number(previous.visualScore || 0)) {
+      bestByProduct.set(key, product);
+    }
+  });
+
+  return {
+    summary: parsed?.summary || "",
+    provider: provider || "unknown",
+    products: [...bestByProduct.values()].sort((a, b) => {
+      if (Number(b.visualScore || 0) !== Number(a.visualScore || 0)) {
+        return Number(b.visualScore || 0) - Number(a.visualScore || 0);
+      }
+      return Number(b.imageMatchScore || 0) - Number(a.imageMatchScore || 0);
+    }),
+  };
+}
+
+async function rerankVisualBatchWithGemini({
+  userImage,
+  question,
+  analysis,
+  candidates,
+}) {
+  if (!genai) throw new Error("Gemini vision tidak dikonfigurasi");
+  const prompt = buildVisualRerankPrompt({ question, analysis, candidates });
 
   const parts = [
     { text: prompt },
@@ -617,37 +674,121 @@ Kembalikan JSON valid saja:
 
   const txt = geminiResponseText(result?.response);
   const parsed = parseJsonLoose(txt);
-  const matches = Array.isArray(parsed.matches) ? parsed.matches : [];
+  return applyVisualMatches(parsed, candidates, { provider: "gemini" });
+}
 
-  const byIndex = new Map();
-  matches.forEach((m) => {
-    const idx = Number(m.candidate_index);
-    if (Number.isFinite(idx)) byIndex.set(idx, m);
+async function rerankVisualBatchWithMistral({
+  userImage,
+  question,
+  analysis,
+  candidates,
+}) {
+  // Keep one slot for USER_IMAGE and bound payload size across Mistral models.
+  const directCandidates = candidates.slice(0, 7);
+  const prompt = buildVisualRerankPrompt({
+    question,
+    analysis,
+    candidates: directCandidates,
   });
+  const result = await generateVisionJsonWithMistral({
+    prompt,
+    images: [
+      { ...userImage, label: "USER_IMAGE" },
+      ...directCandidates.map((item, index) => ({
+        ...item.imagePart,
+        label: `CANDIDATE_IMAGE ${index + 1}: ${item.product.name}`,
+      })),
+    ],
+    maxTokens: 1200,
+  });
+  return applyVisualMatches(result.json, directCandidates, {
+    provider: "mistral",
+  });
+}
 
-  const reranked = candidates
-    .map((item, index) => {
-      const m = byIndex.get(index + 1) || {};
-      return {
-        ...item.product,
-        visualScore: Number(m.visual_score || 0),
-        visualConfidence: m.confidence || "low",
-        visualReason: m.reason || "",
-        visualImageIndex: Number(item.image?.index || 0),
-        visualImageUrl: item.image?.url || item.product.image,
-      };
-    })
-    .sort((a, b) => {
-      if (Number(b.visualScore || 0) !== Number(a.visualScore || 0)) {
-        return Number(b.visualScore || 0) - Number(a.visualScore || 0);
-      }
-      return Number(b.imageMatchScore || 0) - Number(a.imageMatchScore || 0);
-    });
+async function rerankVisualBatchWithCloudflare({
+  userImage,
+  question,
+  analysis,
+  candidates,
+}) {
+  const prompt = `${buildVisualRerankPrompt({
+    question,
+    analysis,
+    candidates,
+  })}
 
-  return {
-    summary: parsed.summary || "",
-    products: reranked,
-  };
+Catatan: hanya USER_IMAGE yang dilampirkan langsung. Gunakan indexed_caption,
+indexed_visible_text, indexed_features, dan indexed_colors sebagai representasi
+terverifikasi dari foto kandidat. Karena kandidat tidak dilampirkan langsung,
+jangan beri visual_score di atas 75.`;
+  const result = await generateVisionJsonWithCloudflare({
+    prompt,
+    image: userImage,
+    maxTokens: 1200,
+  });
+  return applyVisualMatches(result.json, candidates, {
+    provider: "cloudflare_visual_index",
+    scoreCap: 75,
+  });
+}
+
+async function rerankVisualBatch({
+  userImage,
+  question,
+  analysis,
+  candidates,
+  deadline = null,
+}) {
+  let lastError = null;
+
+  if (genai && !isImageAnalyzeCoolingDown()) {
+    try {
+      return await rerankVisualBatchWithGemini({
+        userImage,
+        question,
+        analysis,
+        candidates,
+      });
+    } catch (error) {
+      lastError = error;
+      setImageAnalyzeCooldown(error);
+      console.error("GEMINI VISUAL RERANK FALLBACK:", error?.message || error);
+    }
+  }
+
+  if (!deadline?.expired(8000)) {
+    try {
+      return await rerankVisualBatchWithMistral({
+        userImage,
+        question,
+        analysis,
+        candidates,
+      });
+    } catch (error) {
+      lastError = error;
+      console.error("MISTRAL VISUAL RERANK FALLBACK:", error?.message || error);
+    }
+  }
+
+  if (!deadline?.expired(8000)) {
+    try {
+      return await rerankVisualBatchWithCloudflare({
+        userImage,
+        question,
+        analysis,
+        candidates,
+      });
+    } catch (error) {
+      lastError = error;
+      console.error(
+        "CLOUDFLARE VISUAL RERANK FALLBACK:",
+        error?.message || error,
+      );
+    }
+  }
+
+  throw lastError || new Error("Visual rerank providers unavailable");
 }
 
 async function rerankProductsVisually({
@@ -657,13 +798,13 @@ async function rerankProductsVisually({
   candidates,
   deadline = null,
 }) {
-  if (!genai || !candidates.length) return null;
+  if (!candidates.length) return null;
   if (deadline?.expired(14000)) return null;
 
   const visualCandidates = await attachCandidateImages(candidates, {
-    maxProducts: 6,
-    maxImagesPerProduct: 1,
-    maxTotalImages: 6,
+    maxProducts: 8,
+    maxImagesPerProduct: 2,
+    maxTotalImages: 12,
     deadline,
   });
   if (!visualCandidates.length) return null;
@@ -672,6 +813,7 @@ async function rerankProductsVisually({
     question,
     analysis,
     candidates: visualCandidates,
+    deadline,
   });
 }
 
@@ -1208,10 +1350,9 @@ export default async function handler(req, res) {
         .slice(0, 20);
     }
 
-    const canUseGeminiRerank =
-      analysis.analysis_provider === "gemini" &&
+    const canUseVisualRerank =
       !analysis.analysis_fallback &&
-      !deadline.expired(MIN_GEMINI_STEP_MS);
+      !deadline.expired(MIN_VISUAL_RERANK_STEP_MS);
 
     const liveProductById = new Map(
       products.map((p) => [String(p.id || ""), p]),
@@ -1224,6 +1365,7 @@ export default async function handler(req, res) {
             visualIndexScore: p.visualIndexScore,
             visualIndexCandidate: true,
             imageMatchTerms: p.imageMatchTerms || [],
+            visualIndexImages: p.images || [],
           },
           terms,
           analysis,
@@ -1239,10 +1381,10 @@ export default async function handler(req, res) {
     ]);
     const visualCandidatePool = interleaveUniqueProducts(
       [scoredVisualIndexCandidates, lexicalCandidates],
-      6,
+      8,
     );
 
-    const visualResult = canUseGeminiRerank
+    const visualResult = canUseVisualRerank
       ? await rerankProductsVisually({
           userImage: image,
           question,
@@ -1369,6 +1511,7 @@ export default async function handler(req, res) {
         top_score: topVisualScore || null,
         score_gap: hasVisualRerank ? visualScoreGap : null,
         visually_reranked: hasVisualRerank,
+        rerank_provider: visualResult?.provider || null,
       },
       closing:
         analysis.analysis_fallback

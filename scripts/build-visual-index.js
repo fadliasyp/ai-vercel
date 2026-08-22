@@ -8,19 +8,36 @@ import {
   geminiGenerateContentWithFallback,
   geminiResponseText,
 } from "../lib/chatbot/gemini.js";
+import {
+  generateVisionJsonWithMistral,
+  resolveMistralVisionConfig,
+} from "../lib/chatbot/mistral.js";
+import {
+  generateVisionJsonWithCloudflare,
+  resolveCloudflareVisionConfig,
+} from "../lib/chatbot/cloudflare.js";
+import { canReuseVisualIndexProduct } from "../lib/chatbot/visualIndex.js";
 import { getWooProductsCached } from "../lib/chatbot/wooCatalog.js";
 
-const OUT_PATH = path.join(process.cwd(), "data", "product-visual-index.json");
+const OUT_PATH = path.resolve(
+  process.env.VISUAL_INDEX_OUTPUT_PATH ||
+    path.join(process.cwd(), "data", "product-visual-index.json"),
+);
 const MAX_PRODUCTS = Number(process.env.VISUAL_INDEX_LIMIT || 0);
 const OFFSET_PRODUCTS = Number(process.env.VISUAL_INDEX_OFFSET || 0);
 const MAX_IMAGES_PER_PRODUCT = Number(
-  process.env.VISUAL_INDEX_IMAGES_PER_PRODUCT || 2,
+  process.env.VISUAL_INDEX_IMAGES_PER_PRODUCT || 3,
 );
 const SCAN_WITH_GEMINI = process.env.VISUAL_INDEX_SCAN_GEMINI !== "false";
+const SCAN_WITH_MISTRAL = process.env.VISUAL_INDEX_SCAN_MISTRAL !== "false";
+const SCAN_WITH_CLOUDFLARE =
+  process.env.VISUAL_INDEX_SCAN_CLOUDFLARE !== "false";
 const RESUME_INDEX = process.env.VISUAL_INDEX_RESUME !== "false";
 const GEMINI_TIMEOUT_MS = Number(
   process.env.VISUAL_INDEX_GEMINI_TIMEOUT_MS || 30000,
 );
+const mistralVisionConfig = resolveMistralVisionConfig();
+const cloudflareVisionConfig = resolveCloudflareVisionConfig();
 
 function stripHtml(html = "") {
   return String(html || "")
@@ -168,9 +185,14 @@ async function saveIndex(products) {
     OUT_PATH,
     JSON.stringify(
       {
-        version: 1,
+        version: 2,
         generatedAt: new Date().toISOString(),
-        scanWithGemini: !!genai && SCAN_WITH_GEMINI,
+        scanProviders: {
+          gemini: !!genai && SCAN_WITH_GEMINI,
+          mistral: mistralVisionConfig.enabled && SCAN_WITH_MISTRAL,
+          cloudflare:
+            cloudflareVisionConfig.enabled && SCAN_WITH_CLOUDFLARE,
+        },
         maxImagesPerProduct: MAX_IMAGES_PER_PRODUCT,
         products,
       },
@@ -187,13 +209,8 @@ async function fetchProducts() {
   return MAX_PRODUCTS > 0 ? sliced.slice(0, MAX_PRODUCTS) : sliced;
 }
 
-async function scanImageWithGemini({ product, image }) {
-  if (!genai || !SCAN_WITH_GEMINI) return null;
-
-  const imagePart = await fetchImageAsBase64(image.url);
-  if (!imagePart) return null;
-
-  const prompt = `
+function buildScanPrompt({ product, image }) {
+  return `
 Kamu membuat visual index untuk katalog toko Robot Jadul.
 Analisis gambar produk ini, lalu kembalikan JSON valid saja.
 
@@ -223,10 +240,48 @@ Format JSON:
   "keywords": ["keyword pencarian visual"]
 }
 `;
+}
+
+function taggedScan(json, provider, model = "unknown") {
+  return {
+    ...(json || {}),
+    scan_provider: provider,
+    scan_model: model || "unknown",
+  };
+}
+
+function reuseIndexedImageScan(image = {}) {
+  const hasMetadata =
+    image.caption ||
+    image.possibleNames?.length ||
+    image.brandOrSeries?.length ||
+    image.visibleText?.length ||
+    image.colors?.length ||
+    image.features?.length ||
+    image.keywords?.length;
+  if (!hasMetadata && (!image.scanProvider || image.scanProvider === "none")) {
+    return null;
+  }
+
+  return {
+    caption: image.caption || "",
+    possible_names: image.possibleNames || [],
+    brand_or_series: image.brandOrSeries || [],
+    visible_text: image.visibleText || [],
+    colors: image.colors || [],
+    features: image.features || [],
+    keywords: image.keywords || [],
+    scan_provider: image.scanProvider || "legacy_gemini",
+    scan_model: image.scanModel || "legacy_index_v1",
+  };
+}
+
+async function scanImageWithGemini({ prompt, imagePart }) {
+  if (!genai || !SCAN_WITH_GEMINI) return null;
 
   const result = await withTimeout(
     geminiGenerateContentWithFallback({
-      models: GEMINI_MODEL_FALLBACKS.VISION,
+      models: [GEMINI_MODEL_FALLBACKS.VISION[0]],
       taskName: "build_visual_index",
       contents: [
         {
@@ -237,25 +292,71 @@ Format JSON:
           ],
         },
       ],
+      config: {
+        responseMimeType: "application/json",
+        maxOutputTokens: 1000,
+        httpOptions: { timeout: 10000 },
+      },
     }),
-    GEMINI_TIMEOUT_MS,
+    Math.min(GEMINI_TIMEOUT_MS, 12000),
     "Gemini visual index timeout",
   );
 
   const txt = geminiResponseText(result?.response);
   try {
-    return parseJsonLoose(txt);
+    return taggedScan(parseJsonLoose(txt), "gemini", result?.model);
   } catch {
-    return {
-      caption: txt.slice(0, 300),
-      possible_names: [],
-      brand_or_series: [],
-      visible_text: [],
-      colors: [],
-      features: [],
-      keywords: [],
-    };
+    throw new Error("Gemini visual index bukan JSON valid");
   }
+}
+
+async function scanImageWithProviders({ product, image }) {
+  const imagePart = await fetchImageAsBase64(image.url);
+  if (!imagePart) return null;
+  const prompt = buildScanPrompt({ product, image });
+
+  try {
+    const result = await scanImageWithGemini({ prompt, imagePart });
+    if (result) return result;
+  } catch (error) {
+    console.error("GEMINI SCAN FALLBACK:", product.id, error?.message || error);
+  }
+
+  if (SCAN_WITH_MISTRAL) {
+    try {
+      const result = await generateVisionJsonWithMistral({
+        prompt,
+        images: [{ ...imagePart, label: "CATALOG_IMAGE" }],
+        config: mistralVisionConfig,
+      });
+      return taggedScan(result.json, "mistral", result.model);
+    } catch (error) {
+      console.error("MISTRAL SCAN FALLBACK:", product.id, error?.message || error);
+    }
+  }
+
+  if (SCAN_WITH_CLOUDFLARE) {
+    try {
+      const result = await generateVisionJsonWithCloudflare({
+        prompt,
+        image: imagePart,
+        config: cloudflareVisionConfig,
+      });
+      return taggedScan(
+        result.json,
+        "cloudflare_workers_ai",
+        result.model,
+      );
+    } catch (error) {
+      console.error(
+        "CLOUDFLARE SCAN FALLBACK:",
+        product.id,
+        error?.message || error,
+      );
+    }
+  }
+
+  return null;
 }
 
 function mapProduct(product, images) {
@@ -275,6 +376,8 @@ function mapProduct(product, images) {
     colors: img.scan?.colors || [],
     features: img.scan?.features || [],
     keywords: img.scan?.keywords || [],
+    scanProvider: img.scan?.scan_provider || "none",
+    scanModel: img.scan?.scan_model || "none",
   }));
 
   const visualTerms = enrichedImages.flatMap((img) => [
@@ -292,6 +395,9 @@ function mapProduct(product, images) {
 
   return {
     id: product.id,
+    visualIndexVersion: 2,
+    catalogModifiedAt:
+      product.date_modified_gmt || product.date_modified || "",
     name: product.name,
     link: product.permalink,
     image: enrichedImages[0]?.url || "",
@@ -331,38 +437,64 @@ async function main() {
     existingProducts.map((product) => [String(product.id), product]),
   );
   const products = await fetchProducts();
-  const indexed = [...existingProducts];
+  const partialBuild = MAX_PRODUCTS > 0 || OFFSET_PRODUCTS > 0;
+  const outputById = new Map(
+    existingProducts.map((product) => [
+      String(product.id),
+      product,
+    ]),
+  );
 
   for (let i = 0; i < products.length; i += 1) {
     const product = products[i];
     const productKey = String(product.id);
-    if (indexedById.has(productKey)) {
-      console.log(`[skip] ${product.name} sudah ada di index`);
+    const images = getProductImages(product).slice(0, MAX_IMAGES_PER_PRODUCT);
+    const existingProduct = indexedById.get(productKey);
+    if (canReuseVisualIndexProduct({
+      existing: existingProduct,
+      product,
+      images,
+    })) {
+      outputById.set(productKey, existingProduct);
+      console.log(`[reuse] ${product.name} belum berubah`);
       continue;
     }
-
-    const images = getProductImages(product).slice(0, MAX_IMAGES_PER_PRODUCT);
 
     console.log(
       `[${i + 1}/${products.length}] ${product.name} (${images.length} image)`,
     );
 
     const scannedImages = [];
+    const existingImagesByUrl = new Map(
+      (existingProduct?.images || []).map((image) => [String(image.url), image]),
+    );
+    const canReuseExistingImages =
+      Number(existingProduct?.visualIndexVersion || 1) < 2 ||
+      !existingProduct?.catalogModifiedAt ||
+      String(existingProduct.catalogModifiedAt) ===
+        String(product.date_modified_gmt || product.date_modified || "");
     for (const image of images) {
-      const scan = await scanImageWithGemini({ product, image }).catch((err) => {
-        console.error("SCAN ERROR:", product.id, image.url, err?.message || err);
-        return null;
-      });
+      const previousScan = canReuseExistingImages
+        ? reuseIndexedImageScan(existingImagesByUrl.get(String(image.url)))
+        : null;
+      const scan = previousScan ||
+        await scanImageWithProviders({ product, image }).catch((err) => {
+          console.error("SCAN ERROR:", product.id, image.url, err?.message || err);
+          return null;
+        });
       scannedImages.push({ ...image, scan });
     }
 
     const mapped = mapProduct(product, scannedImages);
-    indexed.push(mapped);
-    indexedById.set(productKey, mapped);
-    await saveIndex(indexed);
-    console.log(`Saved progress: ${indexed.length} products`);
+    outputById.set(productKey, mapped);
+    await saveIndex([...outputById.values()]);
+    console.log(`Saved progress: ${outputById.size} products`);
   }
 
+  const activeProductIds = new Set(products.map((product) => String(product.id)));
+  const indexed = [...outputById.values()].filter(
+    (product) => partialBuild || activeProductIds.has(String(product.id)),
+  );
   await saveIndex(indexed);
 
   console.log(`Visual index saved: ${OUT_PATH}`);

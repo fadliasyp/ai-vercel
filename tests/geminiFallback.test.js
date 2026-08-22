@@ -54,8 +54,9 @@ test("Gemini fallback skips failed models and caps one call at three attempts", 
   const calls = [];
   const client = {
     models: {
-      async generateContent({ model }) {
+      async generateContent({ model, config }) {
         calls.push(model);
+        assert.ok(config.httpOptions.timeout >= 10000);
         const error = new Error(
           "Quota GenerateRequestsPerDayPerProjectPerModel-FreeTier exceeded",
         );

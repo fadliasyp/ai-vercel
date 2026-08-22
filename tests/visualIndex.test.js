@@ -1,7 +1,44 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { scoreProductVisualIndex } from "../lib/chatbot/visualIndex.js";
+import {
+  canReuseVisualIndexProduct,
+  scoreProductVisualIndex,
+} from "../lib/chatbot/visualIndex.js";
+
+test("reuses only complete v2 entries whose catalog images are unchanged", () => {
+  const product = { date_modified_gmt: "2026-08-22T10:00:00" };
+  const images = [{ url: "https://example.com/front.jpg" }];
+  const existing = {
+    visualIndexVersion: 2,
+    catalogModifiedAt: product.date_modified_gmt,
+    images: [{ ...images[0], scanProvider: "gemini" }],
+  };
+
+  assert.equal(
+    canReuseVisualIndexProduct({ existing, product, images }),
+    true,
+  );
+  assert.equal(
+    canReuseVisualIndexProduct({
+      existing: { ...existing, visualIndexVersion: 1 },
+      product,
+      images,
+    }),
+    false,
+  );
+  assert.equal(
+    canReuseVisualIndexProduct({
+      existing: {
+        ...existing,
+        images: [{ ...images[0], scanProvider: "none" }],
+      },
+      product,
+      images,
+    }),
+    false,
+  );
+});
 
 test("generic Mazinger evidence does not overfit to Energer GX-47T", () => {
   const results = scoreProductVisualIndex({

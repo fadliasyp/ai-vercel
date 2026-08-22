@@ -331,7 +331,7 @@ async function runCase(testCase, options) {
         response.payload?.image_analysis?.analysis_fallback !== true;
       if (!visionEvaluated) {
         const error = new Error(
-          "Vision rerank tidak tersedia. Kemungkinan kuota Gemini habis atau waktu proses tidak cukup.",
+          "Visual rerank tidak tersedia. Kemungkinan seluruh provider vision sedang terbatas atau waktu proses tidak cukup.",
         );
         error.code = "VISION_UNAVAILABLE";
         throw error;
