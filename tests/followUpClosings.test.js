@@ -221,9 +221,28 @@ test("shows more global choices for greetings than regular replies", () => {
 
   assert.equal(greeting.actions.length, 6);
   assert.equal(regular.actions.length, 3);
-  assert.equal(
-    greeting.actions.every((action) => !/sebelumnya|robot [ab]\b/i.test(action)),
-    true,
+  assert.deepEqual(greeting.actions, [
+    "Cari robot yang ready stock",
+    "Minta rekomendasi robot sesuai budget",
+    "Lihat produk yang sedang promo",
+    "Bagaimana cara membeli produk?",
+    "Cari produk kategori Chogokin",
+    "Cari produk kategori Vintage",
+  ]);
+
+  const greetingMetadata = buildSuggestedActionMetadataList(greeting.actions);
+  assert.deepEqual(
+    greetingMetadata.slice(0, 4).map((action) => action.action_key),
+    [
+      "stock_availability",
+      "recommendation_budget",
+      "price_promo",
+      "how_to_buy",
+    ],
+  );
+  assert.deepEqual(
+    greetingMetadata.slice(4).map((action) => action.action_key),
+    ["product_discovery", "product_discovery"],
   );
 });
 

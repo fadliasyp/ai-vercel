@@ -205,6 +205,18 @@ test("routes real customer turns without stale products or fallback collisions",
       return response.payload;
     };
 
+    const greeting = await ask("halo", null, { isBootstrap: true });
+    assert.equal(greeting.intent, "greeting");
+    assert.deepEqual(greeting.actions, [
+      "Cari robot yang ready stock",
+      "Minta rekomendasi robot sesuai budget",
+      "Lihat produk yang sedang promo",
+      "Bagaimana cara membeli produk?",
+      "Cari produk kategori Chogokin",
+      "Cari produk kategori Vintage",
+    ]);
+    assert.equal(greeting.actions_metadata.length, 6);
+
     const recommendation = await ask(
       "Rekomendasikan robot yang paling worth it dan ready stock",
     );

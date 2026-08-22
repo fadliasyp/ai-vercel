@@ -120,7 +120,6 @@ import {
   buildControlledActions,
   buildBudgetOptions,
   buildStandaloneAffirmationResponse,
-  dedupeSuggestedActions,
   filterAnsweredSuggestedActions,
   isOptionalFollowUpType,
   isRequiredClarificationPayload,
@@ -1963,24 +1962,6 @@ export default async function handler(req, res) {
         };
       }
 
-      if (!suppressSuggestedActions && finalIntent === "greeting") {
-        const fallbackActions = buildControlledActions(
-          finalIntent,
-          finalPayload,
-          {
-            recentActions: session.lastSuggestedActions || [],
-            limit: 12,
-            userQuestion: suggestionQuestion,
-          },
-        );
-        finalPayload.actions = dedupeSuggestedActions([
-            ...(Array.isArray(finalPayload.actions)
-              ? finalPayload.actions
-              : []),
-            ...fallbackActions,
-          ]).slice(0, suggestionLimit);
-      }
-
       if (suppressSuggestedActions) {
         delete finalPayload.actions;
         delete finalPayload.suggestions;
@@ -2137,6 +2118,22 @@ export default async function handler(req, res) {
       if (isRequiredClarificationPayload(finalPayload)) {
         delete finalPayload.actions;
         delete finalPayload.suggestions;
+      }
+
+      if (
+        !suppressSuggestedActions &&
+        finalIntent === "greeting" &&
+        !isRequiredClarificationPayload(finalPayload)
+      ) {
+        finalPayload.actions = buildControlledActions(
+          "greeting",
+          finalPayload,
+          {
+            recentActions: [],
+            limit: suggestionLimit,
+            userQuestion: "",
+          },
+        );
       }
 
       finalPayload = serializeSuggestedActions(finalPayload);
