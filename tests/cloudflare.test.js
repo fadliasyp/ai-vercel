@@ -36,7 +36,8 @@ test("Cloudflare vision sends a data URL and parses JSON", async () => {
         json: async () => ({
           success: true,
           result: {
-            response: '```json\n{"possible_names":["Getter Robo"]}\n```',
+            response:
+              'Berikut hasilnya:\n```json\n{"possible_names":["Getter Robo"]}\n```',
           },
         }),
       };

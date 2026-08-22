@@ -61,3 +61,15 @@ Jalankan kembali:
 npm test
 
 npm run benchmark:coverage-replay
+
+
+Alur LLM
+Pertanyaan teks:
+Groq -> Gemini -> Mistral -> fallback aman
+
+Pertanyaan gambar:
+Gemini Vision
+-> Mistral Vision
+-> Cloudflare Llama Vision
+-> visual index katalog
+-> jujur tidak dapat mengenali, tanpa menebak produk
