@@ -48,3 +48,63 @@ test("Cloudflare vision sends a data URL and parses JSON", async () => {
   assert.equal(requestBody.temperature, 0);
   assert.deepEqual(result.json.possible_names, ["Getter Robo"]);
 });
+
+test("Cloudflare vision recovers complete rerank matches from truncated JSON", async () => {
+  const config = resolveCloudflareVisionConfig({
+    CLOUDFLARE_ACCOUNT_ID: "account-123",
+    CLOUDFLARE_AUTH_TOKEN: "token-123",
+  });
+  const result = await generateVisionJsonWithCloudflare({
+    prompt: "Rerank as JSON",
+    image: { mimeType: "image/jpeg", data: "YWJj" },
+    config,
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+        result: {
+          response:
+            '{"summary":"","matches":[{"candidate_index":1,"visual_score":88,"confidence":"high","reason":"same robot",},{"candidate_index":2',
+        },
+      }),
+    }),
+  });
+
+  assert.deepEqual(result.json.matches, [
+    {
+      candidate_index: 1,
+      visual_score: 88,
+      confidence: "high",
+      reason: "same robot",
+    },
+  ]);
+});
+
+test("Cloudflare vision recovers explicit scores from malformed match objects", async () => {
+  const config = resolveCloudflareVisionConfig({
+    CLOUDFLARE_ACCOUNT_ID: "account-123",
+    CLOUDFLARE_AUTH_TOKEN: "token-123",
+  });
+  const result = await generateVisionJsonWithCloudflare({
+    prompt: "Rerank as JSON",
+    image: { mimeType: "image/jpeg", data: "YWJj" },
+    config,
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+        result: {
+          response:
+            '{matches:[{candidate_index: 1, visual_score: 91, reason: "same},{candidate_index: 2, visual_score: 22',
+        },
+      }),
+    }),
+  });
+
+  assert.deepEqual(result.json.matches, [
+    { candidate_index: 1, visual_score: 91 },
+    { candidate_index: 2, visual_score: 22 },
+  ]);
+});

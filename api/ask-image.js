@@ -6,8 +6,14 @@ import {
   geminiGenerateContentWithFallback,
   geminiResponseText,
 } from "../lib/chatbot/gemini.js";
-import { generateVisionJsonWithMistral } from "../lib/chatbot/mistral.js";
-import { generateVisionJsonWithCloudflare } from "../lib/chatbot/cloudflare.js";
+import {
+  generateVisionJsonWithMistral,
+  resolveMistralVisionConfig,
+} from "../lib/chatbot/mistral.js";
+import {
+  generateVisionJsonWithCloudflare,
+  resolveCloudflareVisionConfig,
+} from "../lib/chatbot/cloudflare.js";
 import {
   loadProductVisualIndex,
   scoreProductVisualIndex,
@@ -22,6 +28,7 @@ import {
   plausibleVisualProducts,
 } from "../lib/chatbot/imageCandidatePool.js";
 import { buildChatMetric } from "../lib/chatbot/observability.js";
+import { parseVisionJson } from "../lib/chatbot/visionJson.js";
 import {
   applyControlledFollowUpPolicy,
   buildControlledActions,
@@ -40,6 +47,18 @@ const IMAGE_SEARCH_BUDGET_MS = Number(
   process.env.IMAGE_SEARCH_BUDGET_MS || 55000,
 );
 const MIN_VISUAL_RERANK_STEP_MS = 9000;
+const GEMINI_VISION_ANALYSIS_TIMEOUT_MS = Math.max(
+  10000,
+  Number(process.env.GEMINI_VISION_ANALYSIS_TIMEOUT_MS || 12000),
+);
+const GEMINI_VISION_RERANK_TIMEOUT_MS = Math.max(
+  10000,
+  Number(process.env.GEMINI_VISION_RERANK_TIMEOUT_MS || 18000),
+);
+const GEMINI_VISION_STAGE_MAX_ATTEMPTS = Math.min(
+  2,
+  Math.max(1, Number(process.env.GEMINI_VISION_STAGE_MAX_ATTEMPTS || 2)),
+);
 const GEMINI_QUOTA_COOLDOWN_MS = Number(
   process.env.GEMINI_QUOTA_COOLDOWN_MS || 10 * 60 * 1000,
 );
@@ -76,6 +95,36 @@ function createDeadline(ms = IMAGE_SEARCH_BUDGET_MS) {
       return Date.now() + bufferMs >= endAt;
     },
   };
+}
+
+function boundedProviderConfig(config, deadline, reserveMs = 1500) {
+  if (!deadline) return config;
+  return {
+    ...config,
+    timeoutMs: Math.max(
+      1000,
+      Math.min(
+        Number(config.timeoutMs || 15000),
+        deadline.remaining() - reserveMs,
+      ),
+    ),
+  };
+}
+
+function providerFailureCode(error, fallback = "unknown") {
+  const status = Number(error?.status || error?.statusCode || 0);
+  const code =
+    error?.name === "AbortError"
+      ? "timeout"
+      : typeof error?.code === "string"
+        ? error.code
+        : status
+          ? `http_${status}`
+          : fallback;
+  return String(code)
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "_")
+    .slice(0, 80);
 }
 
 function sendJson(res, status, payload) {
@@ -433,15 +482,6 @@ function mergeUniqueProducts(groups = []) {
   return [...map.values()];
 }
 
-function parseJsonLoose(text = "") {
-  const raw = String(text || "")
-    .replace(/```json/gi, "")
-    .replace(/```/g, "")
-    .trim();
-  const m = raw.match(/\{[\s\S]*\}/);
-  return JSON.parse(m ? m[0] : raw);
-}
-
 function inferImageMimeType(url = "", contentType = "") {
   const ct = String(contentType || "").split(";")[0].toLowerCase();
   if (ct.startsWith("image/")) return ct;
@@ -573,6 +613,8 @@ Tugas:
 - Jika tidak mirip, beri skor di bawah 40.
 - Abaikan permintaan nonvisual seperti budget, harga, stok, promo, dan rekomendasi.
 - Nilai identitas visual dahulu; constraint pelanggan diterapkan terpisah setelah rerank.
+- Keluarkan tepat satu objek match per candidate_index, tanpa teks di luar JSON.
+- Isi reason maksimal 8 kata agar JSON tidak terpotong.
 
 Analisis awal foto user:
 ${JSON.stringify(analysis, null, 2)}
@@ -642,11 +684,38 @@ export function applyVisualMatches(
   };
 }
 
+export function buildVisualIndexRerankResult(candidates = []) {
+  const ranked = candidates.filter(
+    (product) => Number(product?.visualIndexScore || 0) > 0,
+  );
+  const topScore = Number(ranked[0]?.visualIndexScore || 0);
+  if (!ranked.length || !topScore) return null;
+
+  return {
+    summary: "",
+    provider: "visual_index_v2",
+    products: ranked.map((product) => ({
+      ...product,
+      visualScore: Math.max(
+        1,
+        Math.min(
+          74,
+          Math.round((Number(product.visualIndexScore || 0) / topScore) * 74),
+        ),
+      ),
+      visualConfidence: "low",
+      visualReason: "Dicocokkan dari analisis foto dan Visual Index v2.",
+      visualRerankProvider: "visual_index_v2",
+    })),
+  };
+}
+
 async function rerankVisualBatchWithGemini({
   userImage,
   question,
   analysis,
   candidates,
+  deadline,
 }) {
   if (!genai) throw new Error("Gemini vision tidak dikonfigurasi");
   const prompt = buildVisualRerankPrompt({ question, analysis, candidates });
@@ -673,10 +742,29 @@ async function rerankVisualBatchWithGemini({
       responseMimeType: "application/json",
       maxOutputTokens: 1200,
     },
+    maxAttempts: GEMINI_VISION_STAGE_MAX_ATTEMPTS,
+    timeoutMs: Math.min(
+      GEMINI_VISION_RERANK_TIMEOUT_MS,
+      Math.max(
+        10000,
+        deadline?.remaining() || GEMINI_VISION_RERANK_TIMEOUT_MS,
+      ),
+    ),
   });
 
   const txt = geminiResponseText(result?.response);
-  const parsed = parseJsonLoose(txt);
+  let parsed;
+  try {
+    parsed = parseVisionJson(txt);
+  } catch (error) {
+    if (process.env.IMAGE_PIPELINE_DEBUG === "true") {
+      console.error(
+        "GEMINI VISUAL RERANK RAW:",
+        JSON.stringify({ length: txt.length, preview: txt.slice(0, 1200) }),
+      );
+    }
+    throw error;
+  }
   return applyVisualMatches(parsed, candidates, { provider: "gemini" });
 }
 
@@ -685,6 +773,7 @@ async function rerankVisualBatchWithMistral({
   question,
   analysis,
   candidates,
+  deadline,
 }) {
   // Keep one slot for USER_IMAGE and bound payload size across Mistral models.
   const directCandidates = candidates.slice(0, 7);
@@ -703,6 +792,11 @@ async function rerankVisualBatchWithMistral({
       })),
     ],
     maxTokens: 1200,
+    config: boundedProviderConfig(
+      resolveMistralVisionConfig(),
+      deadline,
+      7000,
+    ),
   });
   return applyVisualMatches(result.json, directCandidates, {
     provider: "mistral",
@@ -714,11 +808,13 @@ async function rerankVisualBatchWithCloudflare({
   question,
   analysis,
   candidates,
+  deadline,
 }) {
+  const indexedCandidates = candidates.slice(0, 8);
   const prompt = `${buildVisualRerankPrompt({
     question,
     analysis,
-    candidates,
+    candidates: indexedCandidates,
   })}
 
 Catatan: hanya USER_IMAGE yang dilampirkan langsung. Gunakan indexed_caption,
@@ -729,8 +825,12 @@ jangan beri visual_score di atas 75.`;
     prompt,
     image: userImage,
     maxTokens: 1200,
+    config: boundedProviderConfig(
+      resolveCloudflareVisionConfig(),
+      deadline,
+    ),
   });
-  return applyVisualMatches(result.json, candidates, {
+  return applyVisualMatches(result.json, indexedCandidates, {
     provider: "cloudflare_visual_index",
     scoreCap: 75,
   });
@@ -744,6 +844,7 @@ async function rerankVisualBatch({
   deadline = null,
 }) {
   let lastError = null;
+  const failures = [];
 
   if (genai && !isImageAnalyzeCoolingDown()) {
     try {
@@ -752,46 +853,65 @@ async function rerankVisualBatch({
         question,
         analysis,
         candidates,
+        deadline,
       });
     } catch (error) {
       lastError = error;
+      failures.push(
+        `gemini:${providerFailureCode(error, "gemini_failed")}`,
+      );
       setImageAnalyzeCooldown(error);
       console.error("GEMINI VISUAL RERANK FALLBACK:", error?.message || error);
     }
   }
 
-  if (!deadline?.expired(8000)) {
+  if (!deadline?.expired(12000)) {
     try {
       return await rerankVisualBatchWithMistral({
         userImage,
         question,
         analysis,
         candidates,
+        deadline,
       });
     } catch (error) {
       lastError = error;
+      failures.push(
+        `mistral:${providerFailureCode(error, "mistral_failed")}`,
+      );
       console.error("MISTRAL VISUAL RERANK FALLBACK:", error?.message || error);
     }
+  } else {
+    failures.push("mistral:skipped_deadline");
   }
 
-  if (!deadline?.expired(8000)) {
+  if (!deadline?.expired(3000)) {
     try {
       return await rerankVisualBatchWithCloudflare({
         userImage,
         question,
         analysis,
         candidates,
+        deadline,
       });
     } catch (error) {
       lastError = error;
+      failures.push(
+        `cloudflare:${providerFailureCode(error, "cloudflare_failed")}`,
+      );
       console.error(
         "CLOUDFLARE VISUAL RERANK FALLBACK:",
         error?.message || error,
       );
     }
+  } else {
+    failures.push("cloudflare:skipped_deadline");
   }
 
-  throw lastError || new Error("Visual rerank providers unavailable");
+  const finalError =
+    lastError || new Error("Visual rerank providers unavailable");
+  finalError.pipelineFailureCodes = failures;
+  throw finalError;
 }
 
 async function rerankProductsVisually({
@@ -805,9 +925,9 @@ async function rerankProductsVisually({
   if (deadline?.expired(14000)) return null;
 
   const visualCandidates = await attachCandidateImages(candidates, {
-    maxProducts: 12,
-    maxImagesPerProduct: 2,
-    maxTotalImages: 12,
+    maxProducts: 8,
+    maxImagesPerProduct: 1,
+    maxTotalImages: 8,
     deadline,
   });
   if (!visualCandidates.length) return null;
@@ -861,7 +981,12 @@ Format JSON:
 `;
 }
 
-async function analyzeImageWithGemini({ image, question, imageName = "" }) {
+async function analyzeImageWithGemini({
+  image,
+  question,
+  imageName = "",
+  deadline,
+}) {
   if (!genai) {
     throw new Error("GEMINI_API_KEY is not configured");
   }
@@ -885,12 +1010,20 @@ async function analyzeImageWithGemini({ image, question, imageName = "" }) {
       responseMimeType: "application/json",
       maxOutputTokens: 1200,
     },
+    maxAttempts: GEMINI_VISION_STAGE_MAX_ATTEMPTS,
+    timeoutMs: Math.min(
+      GEMINI_VISION_ANALYSIS_TIMEOUT_MS,
+      Math.max(
+        10000,
+        deadline?.remaining() || GEMINI_VISION_ANALYSIS_TIMEOUT_MS,
+      ),
+    ),
   });
 
   const txt = geminiResponseText(result?.response);
   try {
     return {
-      ...parseJsonLoose(txt),
+      ...parseVisionJson(txt),
       analysis_provider: "gemini",
       analysis_model: result?.model || "unknown",
     };
@@ -913,10 +1046,20 @@ async function analyzeImageWithGemini({ image, question, imageName = "" }) {
   }
 }
 
-async function analyzeImageWithMistral({ image, question, imageName = "" }) {
+async function analyzeImageWithMistral({
+  image,
+  question,
+  imageName = "",
+  deadline,
+}) {
   const result = await generateVisionJsonWithMistral({
     prompt: buildImageAnalysisPrompt({ imageName }),
     images: [{ ...image, label: "USER_IMAGE" }],
+    config: boundedProviderConfig(
+      resolveMistralVisionConfig(),
+      deadline,
+      7000,
+    ),
   });
   return {
     ...result.json,
@@ -925,10 +1068,19 @@ async function analyzeImageWithMistral({ image, question, imageName = "" }) {
   };
 }
 
-async function analyzeImageWithCloudflare({ image, question, imageName = "" }) {
+async function analyzeImageWithCloudflare({
+  image,
+  question,
+  imageName = "",
+  deadline,
+}) {
   const result = await generateVisionJsonWithCloudflare({
     prompt: buildImageAnalysisPrompt({ imageName }),
     image,
+    config: boundedProviderConfig(
+      resolveCloudflareVisionConfig(),
+      deadline,
+    ),
   });
   return {
     ...result.json,
@@ -942,34 +1094,60 @@ async function analyzeImageWithProviderFallback({
   question,
   imageName = "",
   skipGemini = false,
+  deadline = null,
 }) {
   let geminiError = null;
+  const failures = [];
 
   if (!skipGemini) {
     try {
-      return await analyzeImageWithGemini({ image, question, imageName });
+      return await analyzeImageWithGemini({
+        image,
+        question,
+        imageName,
+        deadline,
+      });
     } catch (error) {
       geminiError = error;
+      failures.push(
+        `gemini:${providerFailureCode(error, "gemini_failed")}`,
+      );
       setImageAnalyzeCooldown(error);
       console.error("GEMINI IMAGE ANALYZE FALLBACK:", error?.message || error);
     }
   }
 
   try {
-    return await analyzeImageWithMistral({ image, question, imageName });
+    return await analyzeImageWithMistral({
+      image,
+      question,
+      imageName,
+      deadline,
+    });
   } catch (error) {
+    failures.push(
+      `mistral:${providerFailureCode(error, "mistral_failed")}`,
+    );
     console.error("MISTRAL IMAGE ANALYZE FALLBACK:", error?.message || error);
   }
 
   try {
-    return await analyzeImageWithCloudflare({ image, question, imageName });
+    return await analyzeImageWithCloudflare({
+      image,
+      question,
+      imageName,
+      deadline,
+    });
   } catch (error) {
+    failures.push(
+      `cloudflare:${providerFailureCode(error, "cloudflare_failed")}`,
+    );
     console.error("CLOUDFLARE IMAGE ANALYZE FALLBACK:", error?.message || error);
     return fallbackImageAnalysis({
       question,
       reason:
-        error?.message ||
-        geminiError?.message ||
+        failures.join(",") ||
+        providerFailureCode(error || geminiError) ||
         "Vision providers unavailable",
     });
   }
@@ -1158,6 +1336,7 @@ export default async function handler(req, res) {
     const hasAnalysis = Boolean(payload?.image_analysis);
     const analysisFallback = payload?.image_analysis?.analysis_fallback;
     const visuallyReranked = payload?.match_confidence?.visually_reranked;
+    const rerankProvider = payload?.match_confidence?.rerank_provider;
 
     await logImageMetric({
       sessionId,
@@ -1171,7 +1350,7 @@ export default async function handler(req, res) {
           : analysisFallback
             ? "visual_index_fallback"
             : visuallyReranked
-              ? "gemini_visual_rerank"
+              ? `${rerankProvider || "vision"}_visual_rerank`
               : "image_candidate_pipeline",
       responseType: payload?.type,
       assistantProvider: responseEditorMeta.provider,
@@ -1271,6 +1450,7 @@ export default async function handler(req, res) {
         question,
         imageName,
         skipGemini: isImageAnalyzeCoolingDown(),
+        deadline,
       }),
       fetchProductsCached({ deadline }),
     ]);
@@ -1321,6 +1501,8 @@ export default async function handler(req, res) {
           top_score: null,
           score_gap: null,
           visually_reranked: false,
+          rerank_reason: "analysis_fallback",
+          remaining_ms: deadline.remaining(),
         },
       };
       return sendObserved(200, unavailablePayload);
@@ -1390,19 +1572,44 @@ export default async function handler(req, res) {
       12,
     );
 
-    const visualResult = canUseVisualRerank
+    let rerankReason = analysis.analysis_fallback
+      ? "analysis_fallback"
+      : canUseVisualRerank
+        ? "not_completed"
+        : "deadline_before_rerank";
+    const directVisualResult = canUseVisualRerank
       ? await rerankProductsVisually({
           userImage: image,
           question,
           analysis,
           candidates: visualCandidatePool,
           deadline,
-        }).catch((e) => {
-          setImageAnalyzeCooldown(e);
-          console.error("VISUAL RERANK ERROR:", e?.message || e);
-          return null;
         })
+          .then((result) => {
+            rerankReason = result?.products?.length
+              ? null
+              : deadline.expired(3000)
+                ? "deadline_during_candidate_fetch"
+                : "no_candidate_images";
+            return result;
+          })
+          .catch((e) => {
+            setImageAnalyzeCooldown(e);
+            rerankReason = e?.pipelineFailureCodes?.length
+              ? `provider_chain_failed:${e.pipelineFailureCodes.join(",")}`
+              : `provider_chain_failed:${providerFailureCode(e)}`;
+            console.error("VISUAL RERANK ERROR:", e?.message || e);
+            return null;
+          })
       : null;
+    const visualResult =
+      directVisualResult ||
+      (!analysis.analysis_fallback
+        ? buildVisualIndexRerankResult(scoredVisualIndexCandidates)
+        : null);
+    if (!directVisualResult && visualResult) {
+      rerankReason = "visual_index_v2_fallback";
+    }
 
     const visualProducts = visualResult?.products || [];
     const hasVisualRerank = visualProducts.length > 0;
@@ -1453,6 +1660,13 @@ export default async function handler(req, res) {
           : `Aku menemukan kandidat yang mirip dengan foto, tetapi belum ada yang sekaligus memenuhi ${summary || "semua kriteria yang kamu minta"}. Aku tidak akan menampilkan produk yang berada di luar kriteria tersebut.`,
         image_analysis: analysis,
         search_constraints: constraints,
+        match_confidence: {
+          level: "none",
+          visually_reranked: hasVisualRerank,
+          rerank_provider: visualResult?.provider || null,
+          rerank_reason: rerankReason,
+          remaining_ms: deadline.remaining(),
+        },
       };
       const finalNoConstraintMatchPayload = await naturalizeImagePayload(
         noConstraintMatchPayload,
@@ -1473,6 +1687,9 @@ export default async function handler(req, res) {
           top_score: matchedTopVisualScore || null,
           score_gap: matchedVisualScoreGap,
           visually_reranked: true,
+          rerank_provider: visualResult?.provider || null,
+          rerank_reason: null,
+          remaining_ms: deadline.remaining(),
         },
       };
       const finalNoMatchPayload = await naturalizeImagePayload(
@@ -1518,6 +1735,8 @@ export default async function handler(req, res) {
         score_gap: hasVisualRerank ? visualScoreGap : null,
         visually_reranked: hasVisualRerank,
         rerank_provider: visualResult?.provider || null,
+        rerank_reason: rerankReason,
+        remaining_ms: deadline.remaining(),
       },
       closing:
         analysis.analysis_fallback

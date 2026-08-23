@@ -105,3 +105,35 @@ test("Gemini fallback skips failed models and caps one call at three attempts", 
   assert.equal(recovered.model, "test-gemini-d");
   assert.deepEqual(calls, ["test-gemini-d"]);
 });
+
+test("Gemini vision call can reserve time for another provider", async () => {
+  const calls = [];
+  const client = {
+    models: {
+      async generateContent({ model, config }) {
+        calls.push(model);
+        assert.ok(config.httpOptions.timeout <= 12000);
+        const error = new Error(
+          "Quota GenerateRequestsPerDayPerProjectPerModel-FreeTier exceeded",
+        );
+        error.status = 429;
+        throw error;
+      },
+    },
+  };
+
+  await assert.rejects(
+    geminiGenerateContentWithFallback({
+      models: ["vision-a", "vision-b", "vision-c"],
+      contents: [{ role: "user", parts: [{ text: "test" }] }],
+      client,
+      maxAttempts: 2,
+      timeoutMs: 12000,
+    }),
+    (error) => {
+      assert.deepEqual(error.attemptedModels, ["vision-a", "vision-b"]);
+      return true;
+    },
+  );
+  assert.deepEqual(calls, ["vision-a", "vision-b"]);
+});

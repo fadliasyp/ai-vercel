@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   applyVisualMatches,
   buildImageAnalysisPrompt,
+  buildVisualIndexRerankResult,
   buildVisualRerankPrompt,
 } from "../api/ask-image.js";
 
@@ -43,6 +44,18 @@ test("caps description-only Cloudflare rerank confidence", () => {
   );
 
   assert.equal(result.products[0].visualScore, 75);
+});
+
+test("keeps Visual Index v2 fallback below high confidence", () => {
+  const result = buildVisualIndexRerankResult([
+    { id: 1, name: "Getter Robo", visualIndexScore: 100 },
+    { id: 2, name: "Mazinger Z", visualIndexScore: 50 },
+  ]);
+
+  assert.equal(result.provider, "visual_index_v2");
+  assert.equal(result.products[0].visualScore, 74);
+  assert.equal(result.products[0].visualConfidence, "low");
+  assert.equal(result.products[1].visualScore, 37);
 });
 
 test("keeps nonvisual customer constraints out of visual prompts", () => {

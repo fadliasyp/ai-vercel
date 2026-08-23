@@ -330,10 +330,22 @@ async function runCase(testCase, options) {
         response.payload?.match_confidence?.visually_reranked === true &&
         response.payload?.image_analysis?.analysis_fallback !== true;
       if (!visionEvaluated) {
+        const analysisReason =
+          response.payload?.image_analysis?.analysis_fallback_reason;
+        const rerankReason =
+          response.payload?.match_confidence?.rerank_reason;
+        const remainingMs =
+          response.payload?.match_confidence?.remaining_ms;
+        const details = [
+          analysisReason ? `analysis=${analysisReason}` : "",
+          rerankReason ? `rerank=${rerankReason}` : "",
+          Number.isFinite(remainingMs) ? `remaining_ms=${remainingMs}` : "",
+        ].filter(Boolean);
         const error = new Error(
-          "Visual rerank tidak tersedia. Kemungkinan seluruh provider vision sedang terbatas atau waktu proses tidak cukup.",
+          `Visual rerank tidak tersedia${details.length ? ` (${details.join("; ")})` : ""}.`,
         );
         error.code = "VISION_UNAVAILABLE";
+        error.retryable = true;
         throw error;
       }
 
