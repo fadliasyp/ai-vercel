@@ -100,6 +100,23 @@ test("treats a low-confidence negative result as a correct abstention", () => {
   assert.equal(result.false_confident, false);
 });
 
+test("records an explicit no-match response as an abstention", () => {
+  const result = evaluateImageBenchmarkCase({
+    testCase: positiveCase(),
+    statusCode: 200,
+    payload: {
+      image_analysis: { analysis_provider: "gemini" },
+      match_confidence: { level: "none", visually_reranked: true },
+      products: [],
+    },
+  });
+
+  assert.equal(result.abstained, true);
+  assert.equal(result.analysis_provider, "gemini");
+  assert.equal(result.correct, false);
+  assert.equal(result.false_confident, false);
+});
+
 test("fails a visually correct result when any displayed product exceeds budget", () => {
   const result = evaluateImageBenchmarkCase({
     testCase: positiveCase({

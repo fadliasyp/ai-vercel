@@ -1042,6 +1042,8 @@ async function analyzeImageWithGemini({
         .slice(0, 12),
       search_queries: [],
       user_intent: "find_similar_product",
+      analysis_provider: "gemini",
+      analysis_model: result?.model || "unknown",
     };
   }
 }

@@ -73,3 +73,6 @@ Gemini Vision
 -> Cloudflare Llama Vision
 -> visual index katalog
 -> jujur tidak dapat mengenali, tanpa menebak produk
+
+latih dataset bencmark kyknya ini syntak nya
+npm.cmd run benchmark:images -- --endpoint https://ai-vercel-ten-sigma.vercel.app/api/ask-image --fresh
