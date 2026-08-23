@@ -684,6 +684,126 @@
         "no_match": true
       },
       "notes": "Sekelompok karakter Ultraman yang tidak ditemukan sebagai produk di katalog."
+    },
+    {
+      "id": "internet-crop-4965-crop-kamen-rider-black-rx-8105df4e",
+      "enabled": true,
+      "image": "images/internet-crop-4965-crop-kamen-rider-black-rx-8105df4e.jpg",
+      "source_type": "internet",
+      "view_type": "crop",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 4965,
+        "product_name": "SHF Kamen Rider Black RX",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Crop badan atas Kamen Rider Black RX dari foto internet"
+    },
+    {
+      "id": "internet-crop-4965-crop-kamen-rider-black-rx-head-24b0ac4b",
+      "enabled": true,
+      "image": "images/internet-crop-4965-crop-kamen-rider-black-rx-head-24b0ac4b.jpg",
+      "source_type": "internet",
+      "view_type": "crop",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 4965,
+        "product_name": "SHF Kamen Rider Black RX",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Crop kepala dan dada Kamen Rider Black RX dari foto internet"
+    },
+    {
+      "id": "internet-crop-4401-crop-lionmaru-3b26eba2",
+      "enabled": true,
+      "image": "images/internet-crop-4401-crop-lionmaru-3b26eba2.jpg",
+      "source_type": "internet",
+      "view_type": "crop",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 4401,
+        "product_name": "Custom Action Figure Lionmaru",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Crop Lionmaru dari foto internet resolusi rendah"
+    },
+    {
+      "id": "internet-crop-4502-crop-turbo-lager-45347a9f",
+      "enabled": true,
+      "image": "images/internet-crop-4502-crop-turbo-lager-45347a9f.jpg",
+      "source_type": "internet",
+      "view_type": "crop",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 4502,
+        "product_name": "DX Turbo Lager / Turboranger",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Crop badan atas DX Turbo Lager dari foto internet"
+    },
+    {
+      "id": "internet-crop-4341-crop-bearbrick-gavan-7adbea89",
+      "enabled": true,
+      "image": "images/internet-crop-4341-crop-bearbrick-gavan-7adbea89.jpg",
+      "source_type": "internet",
+      "view_type": "crop",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 4341,
+        "product_name": "Bearbrick Metal Heroes Space Sheriff Gavan 400%",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Crop Bearbrick Space Sheriff Gavan dari foto internet"
+    },
+    {
+      "id": "internet-crop-4649-crop-goshogun-48f36582",
+      "enabled": true,
+      "image": "images/internet-crop-4649-crop-goshogun-48f36582.jpg",
+      "source_type": "internet",
+      "view_type": "crop",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 4649,
+        "product_name": "Mecha Labo Sengoku Majin Goshogun",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Crop ketat Mecha Labo Sengoku Majin Goshogun dari foto internet"
+    },
+    {
+      "id": "internet-crop-4375-crop-megaloman-ba6dbc6c",
+      "enabled": true,
+      "image": "images/internet-crop-4375-crop-megaloman-ba6dbc6c.jpg",
+      "source_type": "internet",
+      "view_type": "crop",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 4375,
+        "product_name": "Custom Action Figure Megaloman",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Crop Custom Action Figure Megaloman dari foto internet resolusi rendah"
+    },
+    {
+      "id": "internet-crop-4368-crop-tiger-joe-c08a851c",
+      "enabled": true,
+      "image": "images/internet-crop-4368-crop-tiger-joe-c08a851c.jpg",
+      "source_type": "internet",
+      "view_type": "crop",
+      "question": "Tolong carikan produk yang sama atau paling mirip dengan foto ini.",
+      "expected": {
+        "product_id": 4368,
+        "product_name": "Custom Action Figure Tiger Joe",
+        "acceptable_product_ids": [],
+        "acceptable_product_names": []
+      },
+      "notes": "Crop badan atas Custom Action Figure Tiger Joe dari foto internet"
     }
   ]
 }
