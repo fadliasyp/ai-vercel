@@ -154,6 +154,7 @@ function productNames(payload = {}) {
 test("routes real customer turns without stale products or fallback collisions", async () => {
   const originalFetch = global.fetch;
   const originalEnv = { ...process.env };
+  let semanticRoute = null;
 
   process.env.WC_KEY = "test-key";
   process.env.WC_SECRET = "test-secret";
@@ -168,6 +169,22 @@ test("routes real customer turns without stale products or fallback collisions",
 
   global.fetch = async (url) => {
     const requestUrl = new URL(String(url));
+    if (requestUrl.hostname === "api.groq.com") {
+      assert.ok(semanticRoute, "Unexpected Groq request");
+      return new Response(
+        JSON.stringify({
+          model: "test-semantic-model",
+          choices: [
+            {
+              message: {
+                content: JSON.stringify(semanticRoute),
+              },
+            },
+          ],
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    }
     if (requestUrl.hostname === "catalog.test") {
       return new Response(JSON.stringify(PRODUCTS), {
         status: 200,
@@ -197,13 +214,14 @@ test("routes real customer turns without stale products or fallback collisions",
     const { default: handler } = await import("../api/ask.js");
     const sessionId = `routing_test_${Date.now()}`;
     const ask = async (question, pageContext = null, request = {}) => {
+      const { sessionId: requestSessionId, ...body } = request;
       const response = createResponse();
       await handler(
         {
           method: "POST",
           url: "/api/ask",
-          headers: { "x-session-id": sessionId },
-          body: { question, history: [], pageContext, ...request },
+          headers: { "x-session-id": requestSessionId || sessionId },
+          body: { question, history: [], pageContext, ...body },
         },
         response,
       );
@@ -465,6 +483,45 @@ test("routes real customer turns without stale products or fallback collisions",
     assert.match(comparison.reasoning_text, /tidak ada part hilang/i);
     assert.match(comparison.reasoning_text, /artikulasi terbatas/i);
     assert.match(comparison.reasoning_text, /tidak ada pemenang mutlak/i);
+
+    process.env.LLM_LED_ASSISTANT_MODE = "active";
+    process.env.GROQ_ROUTER_ENABLED = "true";
+    process.env.GROQ_API_KEY = "test-groq-key";
+    semanticRoute = {
+      scope: "in_scope",
+      intent: "stock_availability",
+      intents: ["stock_availability"],
+      goals: ["stock"],
+      confidence: 0.96,
+      entities: {
+        product_names: ["Fewture Getter Set 1,2,3 Black Version"],
+        budget_min: null,
+        budget_max: null,
+      },
+      requires_product: true,
+      customer_state: "neutral",
+      interpretation: "Pelanggan meminta jumlah stok produk Fewture Getter.",
+      topic_relation: "new_topic",
+      needs_clarification: false,
+      clarification_question: null,
+    };
+
+    const llmLockedStock = await ask(
+      "Fewture Getter Set 1,2,3 Black Version sisa berapa pcs, bukan status pesanan saya?",
+      null,
+      { sessionId: `semantic_lock_${Date.now()}` },
+    );
+    assert.equal(llmLockedStock.intent, "stock_availability");
+    assert.deepEqual(productNames(llmLockedStock), [
+      "Fewture Getter Set 1,2,3 Black Version",
+    ]);
+    assert.equal(llmLockedStock.products[0].stockQuantity, 6);
+    assert.equal(llmLockedStock.assistant_meta.llm_led.intent_source, "llm");
+    assert.equal(llmLockedStock.assistant_meta.llm_led.intent_locked, true);
+    assert.equal(
+      llmLockedStock.assistant_meta.llm_led.served_intent,
+      "stock_availability",
+    );
   } finally {
     global.fetch = originalFetch;
     process.env = originalEnv;

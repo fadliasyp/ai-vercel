@@ -949,18 +949,41 @@ export default async function handler(req, res) {
     groqRoute?.scope === "in_scope" &&
     Number(groqRoute.confidence || 0) >= minSemanticConfidence &&
     String(intentResult.method || "").includes("_semantic:");
+  const semanticIntentLock =
+    llmAssistantConfig.mode === "active" && semanticDecisionIsPrimary
+      ? Object.freeze({
+          intent: intentResult.intent,
+          method: intentResult.method,
+          score: intentResult.score,
+          scope: intentResult.scope,
+        })
+      : null;
+  let explicitIntentSource = "";
+
+  const restoreSemanticIntentLock = () => {
+    if (!semanticIntentLock || explicitIntentSource) return;
+    intentResult = {
+      ...intentResult,
+      ...semanticIntentLock,
+      semantic: groqRoute,
+    };
+  };
 
   if (semanticDecisionIsPrimary) {
     const semanticFacets = Array.isArray(groqRoute.goals)
       ? groqRoute.goals
       : [];
+    const semanticOwnsUnderstanding = Boolean(semanticIntentLock);
     compoundAnalysis = {
       ...compoundAnalysis,
-      isCompound:
-        compoundAnalysis.isCompound ||
-        semanticFacets.length > 1 ||
-        (groqRoute.intents || []).length > 1,
-      facets: [...new Set([...compoundAnalysis.facets, ...semanticFacets])],
+      isCompound: semanticOwnsUnderstanding
+        ? semanticFacets.length > 1 || (groqRoute.intents || []).length > 1
+        : compoundAnalysis.isCompound ||
+          semanticFacets.length > 1 ||
+          (groqRoute.intents || []).length > 1,
+      facets: semanticOwnsUnderstanding
+        ? [...new Set(semanticFacets)]
+        : [...new Set([...compoundAnalysis.facets, ...semanticFacets])],
       primaryIntent: intentResult.intent,
       confidence: Number(groqRoute.confidence || 0),
     };
@@ -1193,7 +1216,10 @@ export default async function handler(req, res) {
     };
   }
 
-  if (looksLikeTransactionStatusQuestion(rawQuestion)) {
+  if (
+    !semanticDecisionIsPrimary &&
+    looksLikeTransactionStatusQuestion(rawQuestion)
+  ) {
     clearPending(session);
     intentResult = {
       intent: "transaction_status",
@@ -1223,8 +1249,9 @@ export default async function handler(req, res) {
   const trackingQuestion = looksLikeTrackingQuestion(rawQuestion);
 
   if (
-    trackingQuestion ||
-    (extractedResi && /\b(resi|lacak|tracking|paket)\b/i.test(rawQuestion))
+    !semanticDecisionIsPrimary &&
+    (trackingQuestion ||
+      (extractedResi && /\b(resi|lacak|tracking|paket)\b/i.test(rawQuestion)))
   ) {
     intentResult = {
       intent: "shipment_tracking",
@@ -1234,6 +1261,8 @@ export default async function handler(req, res) {
       score: 0.99,
     };
   }
+
+  restoreSemanticIntentLock();
 
   const selectedSuggestionIntent =
     selectedSuggestion && !resumedProductClarification
@@ -1268,6 +1297,7 @@ export default async function handler(req, res) {
 
   if (isShippingQuotePending(activePendingAfterOverrides)) {
     pending = activePendingAfterOverrides;
+    explicitIntentSource = "pending_state";
     intentResult = {
       intent: "shipping_transaction",
       method: "shipping_pending_state_rule",
@@ -1279,6 +1309,7 @@ export default async function handler(req, res) {
   }
 
   if (selectedSuggestionIntent) {
+    explicitIntentSource = "suggested_action";
     intentResult = {
       ...intentResult,
       intent: selectedSuggestionIntent,
@@ -1357,6 +1388,8 @@ export default async function handler(req, res) {
         semantic,
       };
     }
+
+    restoreSemanticIntentLock();
 
     session.lastIntent = intentResult.intent || session.lastIntent;
     session.lastIntentMethod = intentResult.method || session.lastIntentMethod;
@@ -2170,6 +2203,13 @@ export default async function handler(req, res) {
               },
         llm_led: {
           mode: llmAssistantConfig.mode,
+          intent_source:
+            explicitIntentSource ||
+            (semanticIntentLock ? "llm" : "local_fallback"),
+          intent_locked: Boolean(
+            semanticIntentLock && !explicitIntentSource,
+          ),
+          served_intent: finalIntent,
           understanding_provider: groqRoute?.provider || "local_rules_ml",
           understanding_status:
             groqRoute?.provider
@@ -3809,6 +3849,7 @@ export default async function handler(req, res) {
     // Fitur COD
     // =====================
     if (
+      intentResult.intent === "shipping_transaction" &&
       isCODQuestion(rawQuestion) &&
       !looksLikeProductTransactionCompoundQuestion(rawQuestion)
     ) {
@@ -3831,7 +3872,10 @@ export default async function handler(req, res) {
     // =====================
     // Estimasi barang
     // =====================
-    if (looksLikeAssistantCapabilitiesQuestion(rawQuestion)) {
+    if (
+      intentResult.intent === "general" &&
+      looksLikeAssistantCapabilitiesQuestion(rawQuestion)
+    ) {
       return await send(
         {
           type: "text",
@@ -3843,7 +3887,10 @@ export default async function handler(req, res) {
       );
     }
 
-    if (looksLikeStoreLocationQuestion(rawQuestion)) {
+    if (
+      ["general", "shipping_origin"].includes(intentResult.intent) &&
+      looksLikeStoreLocationQuestion(rawQuestion)
+    ) {
       return await send(
         {
           type: "text",
@@ -3858,7 +3905,10 @@ export default async function handler(req, res) {
       );
     }
 
-    if (looksLikeStoreHoursQuestion(rawQuestion)) {
+    if (
+      intentResult.intent === "general" &&
+      looksLikeStoreHoursQuestion(rawQuestion)
+    ) {
       return await send(
         {
           type: "text",
@@ -3874,6 +3924,7 @@ export default async function handler(req, res) {
     }
 
     if (
+      intentResult.intent === "shipping_transaction" &&
       looksLikeShippingEstimateQuestion(rawQuestion) &&
       !looksLikeProductTransactionCompoundQuestion(rawQuestion)
     ) {
@@ -3899,7 +3950,10 @@ export default async function handler(req, res) {
           (s.includes("jakarta") || s.includes("luar kota")))
       );
     }
-    if (isStoreBranchQuestion(rawQuestion)) {
+    if (
+      intentResult.intent === "general" &&
+      isStoreBranchQuestion(rawQuestion)
+    ) {
       const storeText =
         process.env.STORE_ADDRESS_TEXT ||
         "Robot Jadul, Blok M Square lt 3A blok A no 36-37, Jl. Melawai 5, Jakarta Selatan 12160. Buka setiap hari pukul 11.00-20.00.";
@@ -3981,7 +4035,8 @@ export default async function handler(req, res) {
       !SAFE_LOW_CONFIDENCE_INTENTS.has(intentResult.intent);
     const shouldUseGeneralFallback =
       intentResult.intent === "general" ||
-      looksLikeAdminContactQuestion(rawQuestion) ||
+      (!semanticDecisionIsPrimary &&
+        looksLikeAdminContactQuestion(rawQuestion)) ||
       !ROUTABLE_INTENTS.has(intentResult.intent) ||
       isNonsense ||
       isLowConfidence;
@@ -4276,6 +4331,7 @@ export default async function handler(req, res) {
     }
 
     if (
+      intentResult.intent === "recommendation" &&
       needsRecommendationBudgetClarification(
         rawQuestion,
         extractBudgetRange(rawQuestion).detected,
@@ -5218,7 +5274,10 @@ export default async function handler(req, res) {
         q.includes("next") ||
         q.includes("selanjutnya"));
 
-    if (isHowToBuy || isHowToBuyFollowup) {
+    if (
+      intentResult.intent === "shipping_transaction" &&
+      (isHowToBuy || isHowToBuyFollowup)
+    ) {
       const steps = await getHowToBuy();
 
       if (!steps) {
@@ -5304,7 +5363,10 @@ export default async function handler(req, res) {
     // ===============================
 
     // Store-policy questions do not refer to one catalog product.
-    if (looksLikeNegotiationPolicyQuestion(rawQuestion)) {
+    if (
+      intentResult.intent === "price_promo" &&
+      looksLikeNegotiationPolicyQuestion(rawQuestion)
+    ) {
       return await send(
         {
           type: "text",
@@ -5314,7 +5376,10 @@ export default async function handler(req, res) {
       );
     }
 
-    if (looksLikeGeneralStockPolicyQuestion(rawQuestion)) {
+    if (
+      intentResult.intent === "stock_availability" &&
+      looksLikeGeneralStockPolicyQuestion(rawQuestion)
+    ) {
       let policyProducts = [];
       try {
         policyProducts = await getCleanProducts();
@@ -6504,11 +6569,14 @@ Kembalikan JSON valid:
     // =============================
     // Price recommendation
     // ============================
-    const handledPriceRecommendation = await handlePriceRecommendationMode({
-      rawQuestion,
-      cleanProducts,
-      send,
-    });
+    const handledPriceRecommendation =
+      intentResult.intent === "price_promo"
+        ? await handlePriceRecommendationMode({
+            rawQuestion,
+            cleanProducts,
+            send,
+          })
+        : false;
 
     if (handledPriceRecommendation) return;
 
@@ -6839,7 +6907,7 @@ Kembalikan JSON valid:
       );
     }
 
-    if (isCheapest) {
+    if (intentResult.intent === "price_promo" && isCheapest) {
       let candidates = cleanProducts.filter((p) => p.numericPrice > 0);
 
       if (!candidates.length) {
