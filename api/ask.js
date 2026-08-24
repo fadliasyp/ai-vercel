@@ -44,6 +44,7 @@ import {
 import {
   chooseSemanticIntent,
   detectExplicitIntentOverride,
+  looksLikeSingleProductSuitabilityQuestion,
   semanticRouteToLegacy,
   shouldUseSemanticRouter,
 } from "../lib/chatbot/intentFusion.js";
@@ -5999,6 +6000,26 @@ export default async function handler(req, res) {
       );
     }
 
+    const protectsNamedProductSuitability =
+      looksLikeSingleProductSuitabilityQuestion(rawQuestion) &&
+      (hasSpecificProductSearchTerms(rawQuestion) ||
+        usesPreviousProductContext ||
+        Boolean(selectedSuggestion?.product_name) ||
+        Boolean(pageContext?.productId || pageContext?.productName));
+
+    if (
+      intentResult.intent === "recommendation" &&
+      protectsNamedProductSuitability
+    ) {
+      explicitIntentSource = "specific_product_suitability_guard";
+      intentResult = {
+        ...intentResult,
+        intent: "product_detail",
+        method: "specific_product_suitability_guard",
+        score: 1,
+      };
+    }
+
     // ===============================
     // Rekomendasi Hybird dengan Gemini dan Ruled based
     // ==============================
@@ -6303,7 +6324,10 @@ export default async function handler(req, res) {
     }
 
     // semantic gemini untuk rekomendasi
-    if (semantic?.intent === "recommendation") {
+    if (
+      intentResult.intent === "recommendation" &&
+      semantic?.intent === "recommendation"
+    ) {
       const allProducts = await getCleanProducts();
 
       let candidates = [...allProducts];

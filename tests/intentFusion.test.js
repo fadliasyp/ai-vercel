@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   chooseSemanticIntent,
   detectExplicitIntentOverride,
+  looksLikeSingleProductSuitabilityQuestion,
   semanticRouteToLegacy,
   shouldUseSemanticRouter,
 } from "../lib/chatbot/intentFusion.js";
@@ -143,6 +144,38 @@ test("explicit rules resolve recommendation, compare, store, and insurance bound
   assert.equal(
     detectExplicitIntentOverride("produknya ada berapa macam?").intent,
     "product_discovery",
+  );
+});
+
+test("distinguishes evaluating one named product from requesting recommendations", () => {
+  const namedProduct =
+    "Apakah Fewture Getter Set 1,2,3 Black Version cocok untuk pajangan?";
+
+  assert.equal(looksLikeSingleProductSuitabilityQuestion(namedProduct), true);
+  assert.equal(
+    looksLikeSingleProductSuitabilityQuestion(
+      "Fewture Getter ini cocok buat pajangan nggak?",
+    ),
+    true,
+  );
+  assert.equal(detectExplicitIntentOverride(namedProduct).intent, "product_detail");
+  assert.equal(
+    looksLikeSingleProductSuitabilityQuestion(
+      "Rekomendasikan produk yang cocok untuk pajangan",
+    ),
+    false,
+  );
+  assert.equal(
+    looksLikeSingleProductSuitabilityQuestion(
+      "Ada yang cocok untuk pajangan dengan budget 3 juta?",
+    ),
+    false,
+  );
+  assert.equal(
+    detectExplicitIntentOverride(
+      "Rekomendasikan produk yang cocok untuk pajangan",
+    ).intent,
+    "recommendation",
   );
 });
 

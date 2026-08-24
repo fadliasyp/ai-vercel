@@ -522,6 +522,41 @@ test("routes real customer turns without stale products or fallback collisions",
       llmLockedStock.assistant_meta.llm_led.served_intent,
       "stock_availability",
     );
+
+    semanticRoute = {
+      ...semanticRoute,
+      intent: "recommendation",
+      intents: ["recommendation"],
+      goals: ["recommendation"],
+      entities: {
+        ...semanticRoute.entities,
+        product_names: ["Fewture Getter Set 1,2,3 Black Version"],
+      },
+      interpretation:
+        "Pelanggan meminta penilaian kecocokan Fewture untuk pajangan.",
+    };
+
+    const namedProductSuitability = await ask(
+      "Apakah Fewture Getter Set 1,2,3 Black Version cocok untuk pajangan?",
+      null,
+      { sessionId: `named_suitability_${Date.now()}` },
+    );
+    assert.equal(namedProductSuitability.intent, "product_detail");
+    assert.deepEqual(productNames(namedProductSuitability), [
+      "Fewture Getter Set 1,2,3 Black Version",
+    ]);
+    assert.match(
+      namedProductSuitability.reasoning_text,
+      /Fewture Getter Set 1,2,3 Black Version/i,
+    );
+    assert.equal(
+      namedProductSuitability.assistant_meta.llm_led.intent_source,
+      "specific_product_suitability_guard",
+    );
+    assert.equal(
+      namedProductSuitability.assistant_meta.llm_led.served_intent,
+      "product_detail",
+    );
   } finally {
     global.fetch = originalFetch;
     process.env = originalEnv;
