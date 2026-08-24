@@ -221,28 +221,41 @@ test("shows more global choices for greetings than regular replies", () => {
 
   assert.equal(greeting.actions.length, 6);
   assert.equal(regular.actions.length, 3);
-  assert.deepEqual(greeting.actions, [
-    "Cari robot yang ready stock",
-    "Minta rekomendasi robot sesuai budget",
-    "Lihat produk yang sedang promo",
-    "Bagaimana cara membeli produk?",
-    "Cari produk kategori Chogokin",
-    "Cari produk kategori Vintage",
-  ]);
 
   const greetingMetadata = buildSuggestedActionMetadataList(greeting.actions);
-  assert.deepEqual(
-    greetingMetadata.slice(0, 4).map((action) => action.action_key),
-    [
-      "stock_availability",
-      "recommendation_budget",
-      "price_promo",
-      "how_to_buy",
-    ],
+  assert.equal(
+    new Set(
+      greetingMetadata.slice(0, 4).map((action) => action.action_key),
+    ).size,
+    4,
   );
   assert.deepEqual(
     greetingMetadata.slice(4).map((action) => action.action_key),
     ["product_discovery", "product_discovery"],
+  );
+
+  const nextGreeting = buildControlledActions(
+    "greeting",
+    { type: "text" },
+    { recentActions: greeting.actions, limit: 6 },
+  );
+  assert.equal(nextGreeting.length, 6);
+  assert.equal(
+    nextGreeting.some((action) => greeting.actions.includes(action)),
+    false,
+  );
+});
+
+test("offers useful alternatives when the catalog has no active promo", () => {
+  assert.deepEqual(
+    buildControlledActions("price_promo", {
+      _actionContext: "no_active_promo",
+    }),
+    [
+      "Tampilkan semua produk yang ready stock",
+      "Tampilkan robot dari harga termurah",
+      "Minta rekomendasi robot sesuai budget",
+    ],
   );
 });
 

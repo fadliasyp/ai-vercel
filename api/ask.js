@@ -454,7 +454,7 @@ function hasProductManufacturingOriginInfo(product = {}) {
 }
 
 function isGlobalStockQuestion(q = "") {
-  q = q.toLowerCase();
+  q = q.toLowerCase().replace(/\s+/g, " ").trim();
 
   return (
     q.includes("ready apa aja") ||
@@ -467,7 +467,10 @@ function isGlobalStockQuestion(q = "") {
     q.includes("barang apa aja") ||
     q.includes("yang tersedia apa aja") ||
     q.includes("produk tersedia") ||
-    q.includes("stok tersedia")
+    q.includes("stok tersedia") ||
+    /^(?:cari|lihat|tampilkan)(?:kan)? (?:semua |daftar )?(?:robot|produk|barang)(?: apa saja)? yang (?:ready(?: stock)?|stoknya tersedia)$/.test(
+      q,
+    )
   );
 }
 
@@ -2129,7 +2132,7 @@ export default async function handler(req, res) {
           "greeting",
           finalPayload,
           {
-            recentActions: [],
+            recentActions: session.lastSuggestedActions || [],
             limit: suggestionLimit,
             userQuestion: "",
           },
@@ -5851,7 +5854,10 @@ export default async function handler(req, res) {
     // ===============================
     // KETIKA BERTANYA PRODUK YG READY BANYAK BARANG
     // ===============================
-    if (isGlobalStockQuestion(rawQuestion)) {
+    if (
+      selectedSuggestion?.action_key === "catalog_ready_stock" ||
+      isGlobalStockQuestion(rawQuestion)
+    ) {
       const products = await getCleanProducts();
       const readyProducts = products
         .filter((p) => p.stock === "instock")
@@ -6415,12 +6421,16 @@ Kembalikan JSON valid:
     // ===============================
     if (
       intentResult.intent === "price_promo" &&
-      (q.includes("promo") ||
+      (selectedSuggestion?.action_key === "catalog_promo" ||
+        q.includes("promo") ||
         q.includes("diskon") ||
         q.includes("sale") ||
         q.includes("cashback"))
     ) {
-      const promoKeywords = extractPromoSubjectKeywords(q);
+      const promoKeywords =
+        selectedSuggestion?.action_key === "catalog_promo"
+          ? []
+          : extractPromoSubjectKeywords(q);
       const hasSpecificPromoKeyword = promoKeywords.length > 0;
       const subjectProducts = hasSpecificPromoKeyword
         ? searchProductsForDiscovery(
@@ -6456,6 +6466,9 @@ Kembalikan JSON valid:
             message: hasSpecificPromoKeyword
               ? "Saat ini aku belum menemukan produk promo untuk kata kunci itu 🙏"
               : "Saat ini belum ada produk yang sedang promo 🙏",
+            ...(!hasSpecificPromoKeyword
+              ? { _actionContext: "no_active_promo" }
+              : {}),
           },
           "price_promo",
         );

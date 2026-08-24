@@ -59,6 +59,10 @@ test("separates generic promo questions from product-specific promo searches", (
     [],
   );
   assert.deepEqual(
+    extractPromoSubjectKeywords("Lihat semua produk yang sedang promo"),
+    [],
+  );
+  assert.deepEqual(
     extractPromoSubjectKeywords("ada promo engga sih disini"),
     [],
   );

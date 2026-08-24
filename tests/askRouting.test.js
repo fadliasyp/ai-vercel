@@ -207,15 +207,54 @@ test("routes real customer turns without stale products or fallback collisions",
 
     const greeting = await ask("halo", null, { isBootstrap: true });
     assert.equal(greeting.intent, "greeting");
-    assert.deepEqual(greeting.actions, [
-      "Cari robot yang ready stock",
-      "Minta rekomendasi robot sesuai budget",
-      "Lihat produk yang sedang promo",
-      "Bagaimana cara membeli produk?",
-      "Cari produk kategori Chogokin",
-      "Cari produk kategori Vintage",
-    ]);
+    assert.equal(greeting.actions.length, 6);
     assert.equal(greeting.actions_metadata.length, 6);
+    assert.equal(
+      new Set(
+        greeting.actions_metadata
+          .slice(0, 4)
+          .map((action) => action.action_key),
+      ).size,
+      4,
+    );
+    assert.deepEqual(
+      greeting.actions_metadata
+        .slice(4)
+        .map((action) => action.action_key),
+      ["product_discovery", "product_discovery"],
+    );
+
+    const readyAction = {
+      label: "Tampilkan semua produk yang ready stock",
+      value: "Tampilkan semua produk yang ready stock",
+      action_key: "catalog_ready_stock",
+      required_fields: [],
+    };
+    const readyCatalog = await ask(readyAction.value, null, {
+      isSuggestionClick: true,
+      suggestedAction: readyAction,
+    });
+    assert.equal(readyCatalog.intent, "stock_availability");
+    assert.equal(readyCatalog.type, "products");
+    assert.ok(productNames(readyCatalog).length > 1);
+    assert.doesNotMatch(readyCatalog.intro, /mau cek stok produk apa/i);
+
+    const promoAction = {
+      label: "Lihat semua produk yang sedang promo",
+      value: "Lihat semua produk yang sedang promo",
+      action_key: "catalog_promo",
+      required_fields: [],
+    };
+    const promoCatalog = await ask(promoAction.value, null, {
+      isSuggestionClick: true,
+      suggestedAction: promoAction,
+    });
+    assert.equal(promoCatalog.intent, "price_promo");
+    assert.equal(promoCatalog.type, "products");
+    assert.deepEqual(productNames(promoCatalog), [
+      "Fewture Models EX Gokin Getter Robo Black Version",
+      "Action Toys Ideon",
+    ]);
 
     const recommendation = await ask(
       "Rekomendasikan robot yang paling worth it dan ready stock",
