@@ -3916,7 +3916,10 @@ export default async function handler(req, res) {
 
     // 1) lokasi toko offline
     // 2) asal pengiriman
-    if (looksLikeShippingOriginQuestion(rawQuestion)) {
+    if (
+      intentResult.intent === "shipping_origin" &&
+      looksLikeShippingOriginQuestion(rawQuestion)
+    ) {
       const originText =
         process.env.SHIP_ORIGIN_TEXT ||
         "Pengiriman diproses dari TOKO ROBOT JADUL di **JAKARTA SELATAN**.";
@@ -4158,7 +4161,10 @@ export default async function handler(req, res) {
     // ALAMAT TOKO (SHIPPING ORIGIN) HANDLER
     // ==============================
     // ---- ROUTE ORIGIN (GLOBAL) ----
-    if (looksLikeShippingOriginQuestion(rawQuestion)) {
+    if (
+      intentResult.intent === "shipping_origin" &&
+      looksLikeShippingOriginQuestion(rawQuestion)
+    ) {
       const originText =
         process.env.SHIP_ORIGIN_TEXT ||
         "Pengiriman kami diproses dari TOKO Robot Jadul di **JAKARTA SELATAN**.";

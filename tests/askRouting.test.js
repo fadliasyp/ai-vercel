@@ -85,6 +85,12 @@ const PRODUCTS = [
     description:
       "Kelebihan: kondisi mulus dan tidak ada part hilang. Kekurangan: artikulasi terbatas.",
   }),
+  product({
+    id: 12,
+    name: "Fewture Getter Set 1,2,3 Black Version",
+    price: "6250000",
+    stockQuantity: 6,
+  }),
 ];
 
 function product({
@@ -255,6 +261,21 @@ test("routes real customer turns without stale products or fallback collisions",
       "Fewture Models EX Gokin Getter Robo Black Version",
       "Action Toys Ideon",
     ]);
+
+    const warehouseStock = await ask(
+      "Lagi nyari Fewture Getter Set 1,2,3 Black Version nih, sisa berapa pcs di gudang?",
+    );
+    assert.equal(warehouseStock.intent, "stock_availability");
+    assert.deepEqual(productNames(warehouseStock), [
+      "Fewture Getter Set 1,2,3 Black Version",
+    ]);
+    assert.equal(warehouseStock.products[0].stockQuantity, 6);
+    assert.doesNotMatch(
+      [warehouseStock.message, warehouseStock.intro]
+        .filter(Boolean)
+        .join(" "),
+      /pengiriman diproses|jakarta selatan/i,
+    );
 
     const recommendation = await ask(
       "Rekomendasikan robot yang paling worth it dan ready stock",

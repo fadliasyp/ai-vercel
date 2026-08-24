@@ -93,6 +93,13 @@ test("keeps an ambiguous transaction prompt optional", () => {
 
 test("keeps explicit shipping origin questions separate", () => {
   assert.equal(looksLikeShippingOriginQuestion("Barang dikirim dari mana?"), true);
+  assert.equal(looksLikeShippingOriginQuestion("Gudangnya ada di mana?"), true);
+  assert.equal(
+    looksLikeShippingOriginQuestion(
+      "Fewture Getter Set 1,2,3 Black Version sisa berapa pcs di gudang?",
+    ),
+    false,
+  );
   assert.equal(looksLikeShippingCoverageQuestion("Barang dikirim dari mana?"), false);
   assert.equal(
     looksLikeShippingOriginQuestion(

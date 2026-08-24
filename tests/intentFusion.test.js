@@ -131,6 +131,16 @@ test("explicit rules resolve recommendation, compare, store, and insurance bound
     "stock_availability",
   );
   assert.equal(
+    detectExplicitIntentOverride(
+      "Lagi nyari Fewture Getter Set 1,2,3 Black Version nih, sisa berapa pcs di gudang?",
+    ).intent,
+    "stock_availability",
+  );
+  assert.equal(
+    detectExplicitIntentOverride("Cari robot ini, tersisa berapa unit?").intent,
+    "stock_availability",
+  );
+  assert.equal(
     detectExplicitIntentOverride("produknya ada berapa macam?").intent,
     "product_discovery",
   );
