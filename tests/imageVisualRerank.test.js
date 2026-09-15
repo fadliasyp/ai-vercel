@@ -71,6 +71,7 @@ test("keeps nonvisual customer constraints out of visual prompts", () => {
   });
 
   assert.equal(analysisPrompt.includes(customerQuestion), false);
+  assert.match(analysisPrompt, /setiap array maksimal 5 item/i);
   assert.equal(rerankPrompt.includes(customerQuestion), false);
   assert.match(rerankPrompt, /constraint pelanggan diterapkan terpisah/i);
 });

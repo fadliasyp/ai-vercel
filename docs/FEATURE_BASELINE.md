@@ -181,7 +181,7 @@ Mempertahankan layanan ketika model/provider tertentu timeout, rate limited, ata
 
 - `npm test`
 - Provider-specific smoke/benchmark dengan credential test dan quota tersedia.
-- Bukti lokal 2026-09-15: 364/364 test lulus; smoke Groq Qwen 3.8, Gemini 3.5 Flash-Lite, dan Cloudflare vision lulus. Mistral masih HTTP 429.
+- Bukti lokal 2026-09-15: 365/365 test lulus; smoke Groq Qwen 3.8, Gemini 3.5 Flash-Lite, Cloudflare vision, serta Mistral 8B text/vision lulus.
 
 ## Statuses Not Yet Baseline-Stable
 

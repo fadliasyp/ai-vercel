@@ -12,8 +12,10 @@ Aktif: perbaikan bertahap integrasi model LLM berdasarkan audit provider 2026-09
 - Tahap 2 selesai secara lokal: seluruh fallback `gemini-2.5-flash-lite` diganti dengan `gemini-3.5-flash-lite`; wrapper Gemini aktual berhasil.
 - Tahap 3 selesai secara lokal: parser Cloudflare menerima `result.response` berbentuk object; smoke test dengan prompt image chatbot aktual berhasil.
 - Gemini `gemini-3-flash-preview` sudah dikeluarkan dari default pool karena versi stable `gemini-3.5-flash` telah tersedia dan aktif.
-- Tahap 4 didiagnosis: `mistral-small-latest` valid, tetapi request tetap HTTP 429 `rate_limited` code `1300` tanpa header reset.
-- Seluruh regression suite lulus 364/364 dan coverage replay lulus 9/9 turn.
+- Tahap 4 selesai secara lokal: Mistral memakai `ministral-8b-2512` dengan fallback `ministral-3b-2512` untuk text dan vision.
+- Live structured-text smoke berhasil pada 8B; live vision smoke menghasilkan JSON lengkap dalam 238 completion token.
+- Prompt analisis gambar membatasi setiap array maksimal 5 item agar output tidak terpotong dan konsumsi token lebih terkendali.
+- Seluruh regression suite lulus 365/365 dan coverage replay terakhir lulus 9/9 turn.
 - Environment Vercel production belum diubah atau di-deploy; deployment masih dapat memakai Qwen 3.6 sampai tahap deployment dilakukan.
 
 ## Last Completed Task
@@ -47,13 +49,13 @@ Aktif: perbaikan bertahap integrasi model LLM berdasarkan audit provider 2026-09
 
 ## Next Steps
 
-1. Periksa Admin Panel Mistral pada API > Limits dan Subscriptions > Billing; standard API key tidak dapat membaca Admin API.
-2. Sinkronkan environment Vercel, deploy perubahan yang sudah lulus lokal, lalu lakukan smoke test production text dan image.
+1. Sinkronkan environment Vercel, deploy perubahan yang sudah lulus lokal, lalu lakukan smoke test production text dan image.
+2. Jalankan image production gate lengkap setelah deployment dan quota provider mencukupi.
 
 ## Blockers
 
 - Deployment membutuhkan sinkronisasi environment Vercel dan rilis production.
-- Mistral mengembalikan HTTP 429 untuk text dan vision; limit/billing akun harus diperiksa oleh pemilik akun atau dengan Admin API key.
+- `mistral-small-latest` tetap HTTP 429 pada akun ini, tetapi tidak lagi menjadi model aktif lokal karena diganti dengan Ministral 8B dan 3B yang sudah lulus live smoke.
 - Reproduksi model training ketiga belum mungkin hanya dari file aktif repository.
 
 ## Notes For Next Session

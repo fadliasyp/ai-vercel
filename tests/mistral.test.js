@@ -23,6 +23,14 @@ function response(content, model = "mistral-small-latest") {
 
 test("keeps Mistral disabled until its API key is configured", () => {
   assert.equal(resolveMistralConfig({}).enabled, false);
+  assert.deepEqual(resolveMistralConfig({ MISTRAL_API_KEY: "test-key" }), {
+    enabled: true,
+    apiKey: "test-key",
+    endpoint: "https://api.mistral.ai/v1/chat/completions",
+    model: "ministral-8b-2512",
+    fallbackModels: ["ministral-3b-2512"],
+    timeoutMs: 4500,
+  });
   assert.deepEqual(
     resolveMistralConfig({
       MISTRAL_API_KEY: "test-key",
@@ -38,6 +46,42 @@ test("keeps Mistral disabled until its API key is configured", () => {
       timeoutMs: 4500,
     },
   );
+});
+
+test("Mistral retries a rate-limited primary model with its fallback", async () => {
+  const models = [];
+  const route = await classifyCommerceWithMistral({
+    question: "Ada produk yang sedang promo?",
+    config: resolveMistralConfig({ MISTRAL_API_KEY: "test-key" }),
+    fetchImpl: async (_url, options) => {
+      const { model } = JSON.parse(options.body);
+      models.push(model);
+      if (model === "ministral-8b-2512") {
+        return {
+          ok: false,
+          status: 429,
+          headers: { get: () => null },
+          json: async () => ({ message: "Rate limit exceeded" }),
+        };
+      }
+      return response(
+        {
+          scope: "in_scope",
+          intent: "price_promo",
+          goals: ["promo"],
+          confidence: 0.96,
+          entities: {},
+          requires_product: false,
+          topic_relation: "new_topic",
+          needs_clarification: false,
+        },
+        model,
+      );
+    },
+  });
+
+  assert.deepEqual(models, ["ministral-8b-2512", "ministral-3b-2512"]);
+  assert.equal(route.model, "ministral-3b-2512");
 });
 
 test("Mistral returns the shared semantic router contract", async () => {
@@ -108,6 +152,7 @@ test("Mistral vision sends the image as a data URL and parses JSON", async () =>
   });
 
   assert.equal(config.enabled, true);
+  assert.deepEqual(config.fallbackModels, ["ministral-3b-2512"]);
   assert.equal(config.timeoutMs, 15000);
 
   const result = await generateVisionJsonWithMistral({

@@ -957,8 +957,10 @@ Fokus:
 Jangan menebak produk utuh hanya dari warna umum. Untuk foto parsial, jelaskan bagian
 yang benar-benar terlihat dan cari ciri identitas lokal seperti bentuk kepala, emblem,
 pola dada, senjata, sambungan, atau potongan teks.
-Jangan mengarang kepastian. Jika tidak yakin, isi banyak kemungkinan di possible_names
-dan search_queries.
+Jangan mengarang kepastian. Jika tidak yakin, isi maksimal 5 kemungkinan terbaik di
+possible_names dan maksimal 5 query paling relevan di search_queries.
+Batasi setiap array maksimal 5 item, setiap item harus singkat, dan short_description
+maksimal 1 kalimat agar JSON selalu selesai sebelum batas output.
 Permintaan nonvisual pelanggan seperti budget, harga, stok, promo, dan rekomendasi
 diproses terpisah. Jangan biarkan permintaan tersebut mengubah fakta visual foto.
 
