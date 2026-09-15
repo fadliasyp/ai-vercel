@@ -6,7 +6,9 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Documentation
 
-- Belum ada perubahan setelah bootstrap dokumentasi.
+- Added `docs/PANDUAN_TEKNIS_INTENT_ML_DAN_ALUR_CHATBOT.md` sebagai panduan komprehensif untuk skripsi dan live coding.
+- Documented frontend request, Indonesian preprocessing, TF-IDF, Logistic Regression, Intent ML API, hybrid/semantic intent fusion, commerce grounding, answer coverage, response rendering, dan batas reproducibility.
+- Added direct source excerpts, evaluation interpretation, demonstration commands, examiner Q&A, dan pre-defense checklist.
 
 ## 2026-09-01
 

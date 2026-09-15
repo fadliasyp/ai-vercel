@@ -118,6 +118,7 @@ Status project: **aktif dikembangkan**.
 
 ## Important Files
 
+- `docs/PANDUAN_TEKNIS_INTENT_ML_DAN_ALUR_CHATBOT.md`: panduan end-to-end TF-IDF, Logistic Regression, intent fusion, fakta commerce, response, dan persiapan live coding.
 - `api/ask.js`: orchestration utama.
 - `api/ask-image.js`: image search pipeline.
 - `lib/chatbot/llmAssistant.js`: LLM-led tool plan dan composer orchestration.

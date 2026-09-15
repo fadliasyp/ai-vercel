@@ -101,6 +101,7 @@ Backend ditujukan untuk Vercel. Environment variables production harus dipasang 
 
 ## Documentation
 
+- [Panduan teknis Intent ML dan alur chatbot](docs/PANDUAN_TEKNIS_INTENT_ML_DAN_ALUR_CHATBOT.md)
 - [Project context](docs/PROJECT_CONTEXT.md)
 - [Current task](docs/CURRENT_TASK.md)
 - [Feature baseline](docs/FEATURE_BASELINE.md)

@@ -6,54 +6,45 @@ Belum ada task aktif.
 
 ## Last Completed Task
 
-- Task: bootstrap dokumentasi dan persistent project memory sesuai `CODEX_PROJECT_SETUP.md`.
-- Tanggal selesai: 2026-09-01.
-- Goal: mendokumentasikan kondisi aktual project tanpa mengubah source code, database, dependency, atau deployment.
+- Task: menyusun panduan teknis skripsi untuk Intent ML dan alur chatbot end-to-end.
+- Tanggal selesai: 2026-09-15.
+- Goal: menyediakan referensi sidang/live coding yang menghubungkan frontend, TF-IDF, Logistic Regression, hybrid intent routing, fakta commerce, dan response dengan kutipan source.
 
 ## Completed
 
-- Audit struktur, dependency, API, integrasi, database, tests, benchmark, dan Git history.
-- Membuat `AGENTS.md` dan `README.md`.
-- Membuat seluruh memory project di `docs/`.
-- Menetapkan baseline yang harus dilindungi beserta batas verifikasinya.
-- Menjalankan 362 unit/regression tests dan coverage replay 9/9.
+- Membuat `docs/PANDUAN_TEKNIS_INTENT_ML_DAN_ALUR_CHATBOT.md`.
+- Mendokumentasikan pipeline training historis TF-IDF + Logistic Regression dan inference model aktif.
+- Mendokumentasikan request frontend, normalisasi, hybrid decision, semantic fusion, commerce grounding, coverage, response, dan renderer.
+- Menambahkan panduan live coding, pertanyaan penguji, limitation, dan checklist reproducibility.
+- Memverifikasi 362 unit/regression tests tetap lulus tanpa perubahan source produksi.
 
 ## Findings
 
-- Core text pipeline memiliki regression coverage yang kuat, tetapi akurasi live tetap bergantung provider dan data eksternal.
-- Image pipeline tersedia dan canggih, namun kesiapan production harus dinilai dengan production gate lengkap.
-- Source memakai tabel `chat_sessions`, tetapi schema SQL-nya belum tersimpan di repository.
-- Tidak ditemukan CI/CD atau browser E2E test.
+- Runtime aktif memakai `intent_model_tfidf_logreg_training_3.joblib`.
+- Source training yang tersedia hanya dapat dibuktikan dari Git commit `181d6a8`; script/dataset persis training ketiga tidak tersedia di HEAD.
+- Laporan evaluasi tersimpan mencakup 8 kelas, sedangkan kontrak chatbot saat ini memiliki 13 intent.
+- Intent ML adalah classifier/routing signal; fakta commerce tetap berasal dari WooCommerce dan API terverifikasi.
 
 ## Files Modified
 
-- `AGENTS.md`
 - `README.md`
+- `docs/PANDUAN_TEKNIS_INTENT_ML_DAN_ALUR_CHATBOT.md`
 - `docs/PROJECT_CONTEXT.md`
 - `docs/CURRENT_TASK.md`
-- `docs/FEATURE_BASELINE.md`
-- `docs/ARCHITECTURE.md`
-- `docs/DATABASE.md`
-- `docs/DECISIONS.md`
 - `docs/CHANGELOG.md`
 
 ## Next Steps
 
-Menunggu instruksi pengguna. Kandidat task berikutnya yang sudah tercatat, tetapi belum otomatis menjadi prioritas:
-
-- Manual test deployment untuk percakapan dinamis.
-- Menjalankan image-search production gate dengan dataset lengkap.
-- Menambahkan schema `chat_sessions` setelah schema production dikonfirmasi.
-- Security review CORS, logging, dan abuse protection.
+Menunggu instruksi pengguna. Peningkatan akademik yang disarankan, tetapi belum dikerjakan, adalah memulihkan source/dataset training ketiga, mem-pin dependency Python, dan mengevaluasi seluruh 13 intent.
 
 ## Blockers
 
-- Tidak ada blocker untuk dokumentasi.
-- Verifikasi live memerlukan endpoint deployment, konfigurasi, quota, dan layanan eksternal yang aktif.
+- Tidak ada blocker untuk panduan.
+- Reproduksi model training ketiga belum mungkin hanya dari file aktif repository.
 
 ## Notes For Next Session
 
-- Jangan langsung memperbaiki daftar technical debt tanpa task eksplisit.
-- Mulai dari bug/repro yang diminta, tambahkan regression test, lalu update memory project.
-- Selalu pertahankan prinsip `rule.txt`: progress tanpa mengulang masalah lama.
+- Panduan membedakan bukti source aktif, riwayat Git, dan penjelasan konsep; pertahankan perbedaan tersebut saat model diperbarui.
+- Jangan menyatakan report 8 kelas sebagai evaluasi lengkap kontrak 13 intent.
+- Tidak ada source produksi, schema, dependency, atau deployment yang diubah dalam task dokumentasi ini.
 
