@@ -21,6 +21,7 @@ Aktif: sinkronisasi pool fallback Gemini sudah lulus lokal dan menunggu deployme
 - Smoke production image berhasil: Gemini `gemini-2.5-flash` memproses gambar tanpa provider fallback atau error.
 - Audit `models.list` akun mengonfirmasi enam ID text-output yang dipakai pool: `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-3-flash-preview`, `gemini-3.1-flash-lite`, `gemini-3.5-flash`, dan `gemini-3.5-flash-lite`.
 - Regression suite setelah sinkronisasi fallback Gemini lulus 365/365.
+- Panduan teknis tahap 8 diperluas untuk menjelaskan tujuan `INTENT_API_URL`, batas proses Node/Python, lokasi inference TF-IDF + Logistic Regression, kontrak request/response, fallback, dan demo lokal.
 
 ## Last Completed Task
 

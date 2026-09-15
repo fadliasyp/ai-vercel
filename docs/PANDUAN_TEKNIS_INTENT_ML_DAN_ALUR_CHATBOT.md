@@ -489,6 +489,83 @@ Contoh response, dengan angka hanya sebagai ilustrasi format:
 
 ## 8. Pemanggilan ML dari Node.js
 
+Bagian ini menjawab tiga pertanyaan yang sering tertukar:
+
+1. Apa sebenarnya `INTENT_API_URL`?
+2. Ke mana request tersebut dikirim?
+3. Di proses mana TF-IDF dan Logistic Regression dijalankan?
+
+### 8.1 `INTENT_API_URL` bukan model ML
+
+`INTENT_API_URL` adalah environment variable pada aplikasi `ai-vercel` yang menyimpan **alamat HTTP lengkap endpoint prediksi** milik aplikasi Python `intent-ml-api`. Variabel ini hanya menjadi penunjuk lokasi service; variabel tersebut tidak berisi TF-IDF, Logistic Regression, dataset, atau file model.
+
+Pemetaan komponennya:
+
+| Komponen | Lokasi proses | Tugas |
+| --- | --- | --- |
+| `api/ask.js` | Node.js/Vercel Function | Menerima pertanyaan chatbot dan memulai klasifikasi hybrid. |
+| `lib/classifyIntentML.js` | Node.js/Vercel Function | Membaca `INTENT_API_URL` dan mengirim pertanyaan melalui HTTP POST. |
+| `intent-ml-api/app.py` | Proses Python/FastAPI terpisah | Menerima JSON, menjalankan inference scikit-learn, dan mengembalikan prediksi. |
+| `intent_model_tfidf_logreg_training_3.joblib` | File di server Python | Menyimpan pipeline TF-IDF dan Logistic Regression yang sudah dilatih. |
+
+Saat development lokal, nilainya dapat berupa:
+
+```text
+http://127.0.0.1:8000/predict_intent
+```
+
+Artinya Node.js mengirim request ke FastAPI yang berjalan pada komputer yang sama di port `8000`.
+
+Saat production, bentuknya harus berupa URL deployment project `intent-ml-api`, misalnya:
+
+```text
+https://<host-intent-ml-api>/predict_intent
+```
+
+Nama host production aktual **tidak ditetapkan di source code**. Host ditentukan oleh nilai environment variable `INTENT_API_URL` pada deployment `ai-vercel`. Karena repository `intent-ml-api` tidak memiliki manifest deployment yang membuktikan provider hosting tertentu, jangan menyatakan service ini pasti berjalan di Vercel, Render, Railway, atau provider lain tanpa memeriksa konfigurasi deployment yang sebenarnya.
+
+Yang wajib adalah bagian akhir URL:
+
+```text
+/predict_intent
+```
+
+Client Node tidak menambahkan path tersebut secara otomatis.
+
+### 8.2 Gambaran alur lintas dua project
+
+```mermaid
+sequenceDiagram
+    participant User as Pelanggan
+    participant Ask as ai-vercel/api/ask.js
+    participant Hybrid as classifyIntentHybrid()
+    participant Client as classifyIntentML.js
+    participant API as intent-ml-api/app.py
+    participant Model as Pipeline .joblib
+
+    User->>Ask: pertanyaan pelanggan
+    Ask->>Hybrid: classifyIntentHybrid(effectiveQuestion)
+    Hybrid->>Client: classifyIntentML(question)
+    Client->>API: POST INTENT_API_URL<br/>{ question: "..." }
+    API->>API: validasi Pydantic + normalize_text()
+    API->>Model: predict([question])
+    Model->>Model: TF-IDF transform -> Logistic Regression
+    API->>Model: predict_proba([question])
+    Model-->>API: label + probabilitas setiap kelas
+    API-->>Client: intent, confidence, top3, low confidence
+    Client-->>Hybrid: object JSON hasil ML
+    Hybrid->>Hybrid: bandingkan dengan rule + validasi threshold
+    Hybrid-->>Ask: intent hybrid
+```
+
+Poin terpenting untuk sidang:
+
+> JavaScript tidak menjalankan TF-IDF atau Logistic Regression secara langsung. JavaScript hanya menjadi HTTP client. Inference ML yang sebenarnya berlangsung di proses Python ketika `model.predict()` dan `model.predict_proba()` dipanggil.
+
+Pemisahan service ini diperlukan karena artefak `.joblib` dibuat oleh scikit-learn/Python dan tidak dapat dimuat langsung sebagai model scikit-learn oleh runtime Node.js.
+
+### 8.3 Sisi pengirim: `ai-vercel/lib/classifyIntentML.js`
+
 **Source aktif:** `ai-vercel/lib/classifyIntentML.js`, baris 1-29.
 
 ```javascript
@@ -524,6 +601,233 @@ export async function classifyIntentML(question) {
 }
 ```
 
+Kode tersebut melakukan langkah berikut:
+
+1. Membaca alamat endpoint dari `process.env.INTENT_API_URL`.
+2. Menghentikan proses lebih awal jika URL belum dikonfigurasi.
+3. Membuat `AbortController` dengan timeout 12 detik.
+4. Mengirim request HTTP `POST` dengan content type JSON.
+5. Mengirim hanya satu field request, yaitu `question`.
+6. Menolak response HTTP non-2xx sebagai error.
+7. Mengubah response JSON FastAPI menjadi object JavaScript.
+8. Membersihkan timer pada blok `finally`, baik request berhasil maupun gagal.
+
+Contoh data yang keluar dari Node.js:
+
+```http
+POST /predict_intent HTTP/1.1
+Content-Type: application/json
+
+{
+  "question": "stok getter masih ada"
+}
+```
+
+Tidak ada proses `fit`, `transform`, `predict`, atau `predict_proba` di file JavaScript ini. Karena itu, jika penguji bertanya "di mana ML diproses?", jawabannya bukan `classifyIntentML.js`, melainkan fungsi route Python yang dipanggil oleh URL tersebut.
+
+### 8.4 Sisi penerima: `intent-ml-api/app.py`
+
+**Source aktif:** `intent-ml-api/app.py`, baris 7-48.
+
+Ketika process FastAPI dimulai, file model dimuat:
+
+```python
+app = FastAPI()
+
+model = joblib.load("intent_model_tfidf_logreg_training_3.joblib")
+```
+
+`joblib.load(...)` menghasilkan object pipeline scikit-learn yang sudah terlatih. Model dimuat sekali saat startup process, bukan dilatih ulang dan bukan dibaca ulang pada setiap pertanyaan.
+
+Path file `.joblib` bersifat relatif terhadap working directory process Python. Untuk development lokal, perintah `uvicorn` sebaiknya dijalankan dari root folder `intent-ml-api`, tempat file berikut berada:
+
+```text
+intent-ml-api/
+|-- app.py
+|-- intent_model_tfidf_logreg_training_3.joblib
+|-- requirements.txt
+```
+
+Jika file `.joblib` tidak ikut deployment atau process dimulai dari working directory yang salah, `joblib.load(...)` gagal saat startup dan endpoint tidak dapat melakukan prediksi.
+
+Kontrak request ditentukan oleh Pydantic:
+
+```python
+class PredictRequest(BaseModel):
+    question: str
+```
+
+Route yang harus dituju `INTENT_API_URL` adalah:
+
+```python
+@app.post("/predict_intent")
+def predict_intent(payload: PredictRequest):
+```
+
+Karena schema mewajibkan `question` bertipe string, JSON tanpa field tersebut atau dengan tipe yang tidak sesuai akan ditolak FastAPI sebelum inference, biasanya dengan HTTP `422`.
+
+Di dalam route, teks dinormalisasi terlebih dahulu:
+
+```python
+question = normalize_text(payload.question)
+
+if not question:
+    raise HTTPException(status_code=400, detail="Question is empty")
+```
+
+Setelah itu barulah inference ML benar-benar terjadi:
+
+```python
+pred = model.predict([question])[0]
+probs = model.predict_proba([question])[0]
+```
+
+Karena `model` adalah pipeline, pemanggilan tersebut secara internal menjalankan:
+
+```text
+string pertanyaan
+  --> tahap TF-IDF di dalam pipeline
+  --> sparse vector berisi bobot fitur
+  --> Logistic Regression
+  --> label intent dan probabilitas kelas
+```
+
+Tidak ada training pada tahap ini. Training sudah selesai sebelumnya dan hasilnya disimpan di dalam `.joblib`.
+
+### 8.5 Response kembali ke Node.js
+
+FastAPI mengembalikan object berikut:
+
+```python
+return {
+    "intent": str(pred),
+    "confidence": confidence,
+    "top3": top3,
+    "method": "tfidf_logreg",
+    "is_low_confidence": confidence < threshold,
+    "model_name": "TF-IDF + Logistic Regression"
+}
+```
+
+Contoh perjalanan data lengkap:
+
+```text
+Node mengirim:
+{ "question": "stok getter masih ada" }
+
+Python memproses:
+normalize_text
+  --> pipeline TF-IDF
+  --> Logistic Regression
+  --> predict + predict_proba
+
+Python mengembalikan:
+{
+  "intent": "stock_availability",
+  "confidence": 0.87,
+  "top3": [...],
+  "method": "tfidf_logreg",
+  "is_low_confidence": false,
+  "model_name": "TF-IDF + Logistic Regression"
+}
+
+Node menerima:
+return await resp.json()
+```
+
+Angka `0.87` hanya contoh format, bukan hasil pengukuran untuk kalimat tersebut.
+
+### 8.6 Setelah response ML diterima: hasil belum otomatis menjadi intent akhir
+
+**Source aktif:** `ai-vercel/lib/chatbot/askLanguage.js`, baris 335-357.
+
+```javascript
+const ml = await classifyIntentML(rawQuestion);
+const rule = classifyIntentFromDataset(rawQuestion);
+
+return chooseHybridIntent({
+  ml,
+  rule,
+  minConfidence: resolveIntentMlMinConfidence(
+    process.env.INTENT_ML_MIN_CONFIDENCE,
+  ),
+});
+```
+
+Jadi response Python hanya menjadi **kandidat intent dari ML**. Node masih:
+
+1. menghitung rule lokal sebagai pembanding;
+2. memastikan label termasuk kontrak intent chatbot;
+3. memeriksa `is_low_confidence` dari Python;
+4. membandingkan `confidence` dengan `INTENT_ML_MIN_CONFIDENCE`;
+5. menggunakan rule lokal jika hasil ML tidak aman diterima.
+
+Threshold Python saat ini tetap `0.6`. Node juga mempunyai default `0.6`, tetapi dapat diberi nilai lebih tinggi melalui `INTENT_ML_MIN_CONFIDENCE`. Karena Node menolak hasil yang sudah ditandai `is_low_confidence=true` oleh Python, menurunkan threshold Node ke bawah `0.6` tidak membuat prediksi di bawah threshold Python otomatis diterima.
+
+### 8.7 Apa yang terjadi jika API ML mati?
+
+**Source aktif:** `ai-vercel/lib/chatbot/askLanguage.js`, baris 348-356.
+
+```javascript
+} catch (err) {
+  console.error("ML INTENT ERROR:", err?.message || err);
+
+  const rule = classifyIntentFromDataset(rawQuestion);
+  return {
+    intent: rule.intent,
+    method: "fallback_rule_low_confidence",
+    score: rule.score ?? 0,
+  };
+}
+```
+
+Fallback tersebut aktif ketika:
+
+- `INTENT_API_URL` belum diset;
+- DNS atau koneksi ke server Python gagal;
+- request melewati timeout 12 detik;
+- FastAPI mengembalikan HTTP 400, 422, 500, atau error lain;
+- model gagal dimuat sehingga service tidak dapat berjalan;
+- response tidak dapat diproses sebagai JSON.
+
+Akibatnya chatbot tidak langsung berhenti. Klasifikasi kembali ke rule/dataset lokal. Sesudah itu sistem masih memiliki lapisan semantic LLM dan intent fusion yang dijelaskan pada bagian berikutnya.
+
+### 8.8 Cara membuktikan arah URL saat live coding
+
+Jalankan FastAPI dari folder `intent-ml-api`:
+
+```powershell
+python -m uvicorn app:app --reload --port 8000
+```
+
+Set URL pada terminal aplikasi Node.js:
+
+```powershell
+$env:INTENT_API_URL = "http://127.0.0.1:8000/predict_intent"
+$env:INTENT_ML_MIN_CONFIDENCE = "0.6"
+```
+
+Kemudian request ke endpoint Python dapat diuji langsung:
+
+```powershell
+$body = @{ question = "stok getter masih ada" } | ConvertTo-Json
+
+Invoke-RestMethod `
+  -Method Post `
+  -Uri $env:INTENT_API_URL `
+  -ContentType "application/json" `
+  -Body $body
+```
+
+Urutan penjelasan kepada penguji:
+
+1. Tunjukkan `INTENT_API_URL` mengarah ke `/predict_intent`.
+2. Tunjukkan decorator `@app.post("/predict_intent")` pada `app.py`.
+3. Tunjukkan `joblib.load(...)` sebagai proses memuat artefak.
+4. Tunjukkan `model.predict(...)` dan `model.predict_proba(...)` sebagai lokasi inference.
+5. Tunjukkan response JSON kembali ke Node.
+6. Tunjukkan `chooseHybridIntent(...)` untuk membuktikan bahwa prediksi masih divalidasi.
+
 Hal penting saat konfigurasi:
 
 - `INTENT_API_URL` harus berisi endpoint prediction lengkap, misalnya `http://127.0.0.1:8000/predict_intent`.
@@ -531,6 +835,7 @@ Hal penting saat konfigurasi:
 - Timeout adalah 12.000 ms.
 - Error HTTP dan timeout dilempar ke pemanggil agar fallback lokal dapat aktif.
 - Nilai URL dan credential tidak perlu dicetak atau dimasukkan ke dokumentasi.
+- `intent-ml-api/app.py` saat ini tidak memvalidasi API key atau token. Jika endpoint dibuka ke internet, access control, rate limiting, dan monitoring perlu disediakan oleh deployment/platform atau ditambahkan sebagai hardening terpisah.
 
 ## 9. Rule lokal yang mendampingi ML
 
