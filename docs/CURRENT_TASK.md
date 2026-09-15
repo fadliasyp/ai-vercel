@@ -2,21 +2,25 @@
 
 ## Status
 
-Aktif: perbaikan bertahap integrasi model LLM berdasarkan audit provider 2026-09-15.
+Aktif: sinkronisasi pool fallback Gemini sudah lulus lokal dan menunggu deployment terbaru.
 
 ## Current Progress
 
 - Tahap 1 selesai secara lokal: migrasi Groq Qwen dari `qwen/qwen3.6-27b` ke `qwen/qwen3.8-27b`.
 - Default fallback source, konfigurasi `.env` lokal, dan regression fixture sudah diperbarui.
 - Smoke test naturalizer aktual berhasil memakai `qwen/qwen3.8-27b` dengan status `success`.
-- Tahap 2 selesai secara lokal: seluruh fallback `gemini-2.5-flash-lite` diganti dengan `gemini-3.5-flash-lite`; wrapper Gemini aktual berhasil.
+- Tahap 2 dikoreksi setelah audit ulang API akun: `gemini-2.5-flash-lite` masih valid dan dikembalikan ke fallback bersama `gemini-3.5-flash-lite`; wrapper Gemini aktual berhasil.
 - Tahap 3 selesai secara lokal: parser Cloudflare menerima `result.response` berbentuk object; smoke test dengan prompt image chatbot aktual berhasil.
-- Gemini `gemini-3-flash-preview` sudah dikeluarkan dari default pool karena versi stable `gemini-3.5-flash` telah tersedia dan aktif.
+- Label dashboard "Gemini 3 Flash" terdaftar oleh API dengan ID `gemini-3-flash-preview`; ID tersebut dikembalikan ke fallback bersama `gemini-3.5-flash`.
 - Tahap 4 selesai secara lokal: Mistral memakai `ministral-8b-2512` dengan fallback `ministral-3b-2512` untuk text dan vision.
 - Live structured-text smoke berhasil pada 8B; live vision smoke menghasilkan JSON lengkap dalam 238 completion token.
 - Prompt analisis gambar membatasi setiap array maksimal 5 item agar output tidak terpotong dan konsumsi token lebih terkendali.
 - Seluruh regression suite lulus 365/365 dan coverage replay terakhir lulus 9/9 turn.
-- Environment Vercel production belum diubah atau di-deploy; deployment masih dapat memakai Qwen 3.6 sampai tahap deployment dilakukan.
+- Environment Vercel sudah disesuaikan dan deployment production sudah dilakukan oleh pengguna.
+- Smoke production text berhasil: router `openai/gpt-oss-20b`, composer `qwen/qwen3.8-27b`, `active_accepted`, dan validasi fakta/struktur lulus.
+- Smoke production image berhasil: Gemini `gemini-2.5-flash` memproses gambar tanpa provider fallback atau error.
+- Audit `models.list` akun mengonfirmasi enam ID text-output yang dipakai pool: `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-3-flash-preview`, `gemini-3.1-flash-lite`, `gemini-3.5-flash`, dan `gemini-3.5-flash-lite`.
+- Regression suite setelah sinkronisasi fallback Gemini lulus 365/365.
 
 ## Last Completed Task
 
@@ -43,18 +47,21 @@ Aktif: perbaikan bertahap integrasi model LLM berdasarkan audit provider 2026-09
 
 - `README.md`
 - `docs/PANDUAN_TEKNIS_INTENT_ML_DAN_ALUR_CHATBOT.md`
+- `lib/chatbot/gemini.js`
+- `tests/geminiFallback.test.js`
 - `docs/PROJECT_CONTEXT.md`
 - `docs/CURRENT_TASK.md`
 - `docs/CHANGELOG.md`
 
 ## Next Steps
 
-1. Sinkronkan environment Vercel, deploy perubahan yang sudah lulus lokal, lalu lakukan smoke test production text dan image.
-2. Jalankan image production gate lengkap setelah deployment dan quota provider mencukupi.
+1. Deploy sinkronisasi pool Gemini terbaru ke Vercel; deployment sebelumnya belum memuat dua fallback yang dipulihkan ini.
+2. Jalankan smoke production dan image production gate lengkap ketika quota provider mencukupi.
+3. Siapkan rate limiting, batas upload gambar, dan monitoring quota sebelum uji pengguna ramai.
+4. Tambahkan replay dari temuan pengujian pengguna nyata.
 
 ## Blockers
 
-- Deployment membutuhkan sinkronisasi environment Vercel dan rilis production.
 - `mistral-small-latest` tetap HTTP 429 pada akun ini, tetapi tidak lagi menjadi model aktif lokal karena diganti dengan Ministral 8B dan 3B yang sudah lulus live smoke.
 - Reproduksi model training ketiga belum mungkin hanya dari file aktif repository.
 
@@ -62,5 +69,5 @@ Aktif: perbaikan bertahap integrasi model LLM berdasarkan audit provider 2026-09
 
 - Panduan membedakan bukti source aktif, riwayat Git, dan penjelasan konsep; pertahankan perbedaan tersebut saat model diperbarui.
 - Jangan menyatakan report 8 kelas sebagai evaluasi lengkap kontrak 13 intent.
-- Tidak ada source produksi, schema, dependency, atau deployment yang diubah dalam task dokumentasi ini.
+- Deployment 2026-09-15 telah diverifikasi melalui satu smoke text dan satu smoke image, tetapi dibuat sebelum sinkronisasi pool Gemini terbaru; fallback production Mistral/Cloudflare belum dipaksa karena primary provider berhasil.
 

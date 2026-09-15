@@ -81,7 +81,7 @@ Status project: **aktif dikembangkan**.
 
 - Vercel request duration dan provider timeout membatasi jumlah call LLM/API per turn.
 - Provider quota/rate limit dapat membuat jalur fallback aktif dan mengubah latency.
-- Audit dan perbaikan 2026-09-15 memigrasikan Groq Qwen, Gemini Flash-Lite, dan Mistral ke model yang lulus live smoke serta memperbaiki parser Cloudflare; seluruh perubahan masih lokal dan belum di-deploy.
+- Audit dan perbaikan 2026-09-15 memigrasikan Groq Qwen, Gemini Flash-Lite, dan Mistral ke model yang lulus live smoke serta memperbaiki parser Cloudflare; perubahan sudah di-deploy dan primary text/image paths terverifikasi di production.
 - Cache/session memory serverless tidak dijamin bertahan antar-instance; Supabase dibutuhkan untuk persistensi lintas instance.
 - Live catalog dan shipping quality bergantung data WordPress serta endpoint custom.
 - Visual accuracy tidak boleh disimpulkan hanya dari gambar katalog yang sama dengan visual index.
@@ -100,7 +100,8 @@ Status project: **aktif dikembangkan**.
 
 ## Pending Work
 
-- Pengujian manual percakapan dinamis setelah deployment aktif.
+- Deploy sinkronisasi pool Gemini terbaru yang sudah lulus regression suite lokal.
+- Pengujian manual percakapan dinamis lanjutan pada deployment aktif.
 - Menambah dan menjaga dataset replay dari bug pelanggan nyata.
 - Menjalankan image production gate dengan minimal 30 positif, 5 negatif, 10 internet, dan 10 crop.
 - Mengonfirmasi/mendokumentasikan schema `chat_sessions` yang benar.
@@ -139,6 +140,9 @@ Pada 2026-09-15:
 - `npm run benchmark:coverage-replay`: 9/9 turn lulus; coverage 59,4% menjadi 88,9%; 1 facet unresolved.
 - Live provider smoke berhasil untuk Groq `qwen/qwen3.8-27b`, Gemini `gemini-3.5-flash-lite`, dan Cloudflare vision dengan prompt image chatbot.
 - Live structured-text dan vision smoke berhasil pada Mistral `ministral-8b-2512`; `ministral-3b-2512` juga terverifikasi aktif sebagai fallback.
+- Production text smoke: HTTP 200, Groq router `openai/gpt-oss-20b`, composer `qwen/qwen3.8-27b`, status `active_accepted`.
+- Production image smoke: HTTP 200, analisis Gemini `gemini-2.5-flash`, tanpa fallback provider.
+- Live Gemini `models.list` audit mengonfirmasi enam ID pool text-output: `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-3-flash-preview`, `gemini-3.1-flash-lite`, `gemini-3.5-flash`, dan `gemini-3.5-flash-lite`; regression suite sesudah sinkronisasi lulus 365/365.
 - Image production gate lengkap belum dijalankan.
 
 ## Session Handoff

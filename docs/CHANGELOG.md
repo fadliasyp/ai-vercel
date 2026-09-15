@@ -8,8 +8,8 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 - Migrated the Groq router fallback and local naturalizer model from unavailable `qwen/qwen3.6-27b` to account-verified `qwen/qwen3.8-27b`.
 - Added regression coverage for the current default Groq fallback model.
-- Replaced unavailable Gemini `gemini-2.5-flash-lite` fallback entries with verified `gemini-3.5-flash-lite`.
-- Removed `gemini-3-flash-preview` from default pools in favor of the existing stable `gemini-3.5-flash` fallback.
+- Revalidated Gemini model IDs against the account's live `models.list` response: restored valid `gemini-2.5-flash-lite` and `gemini-3-flash-preview` fallbacks while retaining `gemini-3.5-flash-lite` and `gemini-3.5-flash`.
+- Documented that the dashboard label "Gemini 3 Flash" maps to the API ID `gemini-3-flash-preview`; `gemini-3-flash` is not the listed API ID.
 - Updated Cloudflare Workers AI response parsing to accept structured `result.response` objects as well as text.
 - Replaced rate-limited `mistral-small-latest` with live-verified `ministral-8b-2512` and `ministral-3b-2512` fallback defaults for text and vision.
 - Bounded image-analysis JSON arrays to five short items so vision output completes within the configured token limit.
@@ -22,6 +22,9 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Confirmed Mistral `mistral-small-latest` is valid but currently returns HTTP 429 rate limit code `1300` for this account.
 - Verified structured text and vision JSON through the active Mistral integration using `ministral-8b-2512`.
 - Verified 365/365 full local tests pass after the Mistral migration.
+- Verified 365/365 full local tests pass after synchronizing the Gemini fallback IDs.
+- Verified the deployed production text path uses Groq GPT-OSS 20B plus Qwen 3.8 with an accepted, fact-preserving composition.
+- Verified the deployed production image endpoint returns HTTP 200 using Gemini 2.5 Flash without provider fallback.
 
 ### Documentation
 
