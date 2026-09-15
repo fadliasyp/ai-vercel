@@ -4,6 +4,21 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ## Unreleased
 
+### Fixed
+
+- Migrated the Groq router fallback and local naturalizer model from unavailable `qwen/qwen3.6-27b` to account-verified `qwen/qwen3.8-27b`.
+- Added regression coverage for the current default Groq fallback model.
+- Replaced unavailable Gemini `gemini-2.5-flash-lite` fallback entries with verified `gemini-3.5-flash-lite`.
+- Removed `gemini-3-flash-preview` from default pools in favor of the existing stable `gemini-3.5-flash` fallback.
+- Updated Cloudflare Workers AI response parsing to accept structured `result.response` objects as well as text.
+
+### Verification
+
+- Verified the Groq naturalizer end-to-end against `qwen/qwen3.8-27b` with a successful live response.
+- Verified Gemini `gemini-3.5-flash-lite` through the chatbot wrapper and Cloudflare vision through the production image-analysis prompt.
+- Verified 364/364 full local tests and 9/9 answer-coverage replay turns pass.
+- Confirmed Mistral `mistral-small-latest` is valid but currently returns HTTP 429 rate limit code `1300` for this account.
+
 ### Documentation
 
 - Added `docs/PANDUAN_TEKNIS_INTENT_ML_DAN_ALUR_CHATBOT.md` sebagai panduan komprehensif untuk skripsi dan live coding.

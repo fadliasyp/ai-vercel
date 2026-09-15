@@ -49,6 +49,28 @@ test("Cloudflare vision sends a data URL and parses JSON", async () => {
   assert.deepEqual(result.json.possible_names, ["Getter Robo"]);
 });
 
+test("Cloudflare vision accepts a structured response object", async () => {
+  const config = resolveCloudflareVisionConfig({
+    CLOUDFLARE_ACCOUNT_ID: "account-123",
+    CLOUDFLARE_AUTH_TOKEN: "token-123",
+  });
+  const result = await generateVisionJsonWithCloudflare({
+    prompt: "Identify this product as JSON",
+    image: { mimeType: "image/png", data: "YWJj" },
+    config,
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+        result: { response: { possible_names: ["Getter Robo"] } },
+      }),
+    }),
+  });
+
+  assert.deepEqual(result.json.possible_names, ["Getter Robo"]);
+});
+
 test("Cloudflare vision recovers complete rerank matches from truncated JSON", async () => {
   const config = resolveCloudflareVisionConfig({
     CLOUDFLARE_ACCOUNT_ID: "account-123",

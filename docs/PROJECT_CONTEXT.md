@@ -81,6 +81,7 @@ Status project: **aktif dikembangkan**.
 
 - Vercel request duration dan provider timeout membatasi jumlah call LLM/API per turn.
 - Provider quota/rate limit dapat membuat jalur fallback aktif dan mengubah latency.
+- Audit 2026-09-15 menemukan Mistral mengembalikan HTTP 429 untuk text/vision; Groq Qwen dan Gemini Flash-Lite migrations serta parser Cloudflare sudah diperbaiki lokal tetapi belum di-deploy.
 - Cache/session memory serverless tidak dijamin bertahan antar-instance; Supabase dibutuhkan untuk persistensi lintas instance.
 - Live catalog dan shipping quality bergantung data WordPress serta endpoint custom.
 - Visual accuracy tidak boleh disimpulkan hanya dari gambar katalog yang sama dengan visual index.
@@ -132,11 +133,13 @@ Status project: **aktif dikembangkan**.
 
 ## Latest Verification
 
-Pada 2026-09-01:
+Pada 2026-09-15:
 
-- `npm test -- --test-reporter=dot`: 362 test lulus.
+- `npm test`: 364 test lulus.
 - `npm run benchmark:coverage-replay`: 9/9 turn lulus; coverage 59,4% menjadi 88,9%; 1 facet unresolved.
-- Benchmark live/provider dan image production gate tidak dijalankan dalam bootstrap dokumentasi ini.
+- Live provider smoke berhasil untuk Groq `qwen/qwen3.8-27b`, Gemini `gemini-3.5-flash-lite`, dan Cloudflare vision dengan prompt image chatbot.
+- Mistral live smoke belum lulus karena HTTP 429 account rate limit.
+- Image production gate lengkap belum dijalankan.
 
 ## Session Handoff
 

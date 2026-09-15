@@ -2,10 +2,19 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  GEMINI_MODEL_FALLBACKS,
   classifyGeminiFailure,
   geminiGenerateContentWithFallback,
   shouldTryAnotherGeminiModel,
 } from "../lib/chatbot/gemini.js";
+
+test("default Gemini pools use only supported stable fallback models", () => {
+  for (const models of Object.values(GEMINI_MODEL_FALLBACKS)) {
+    assert.equal(models.includes("gemini-2.5-flash-lite"), false);
+    assert.equal(models.includes("gemini-3-flash-preview"), false);
+    assert.equal(models.includes("gemini-3.5-flash-lite"), true);
+  }
+});
 
 test("unknown Gemini quota errors get only one alternate model", () => {
   assert.equal(

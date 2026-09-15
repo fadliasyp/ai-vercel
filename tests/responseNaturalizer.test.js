@@ -58,10 +58,10 @@ test("uses one valid naturalizer model when a Vercel env value contains duplicat
   const config = resolveGroqNaturalizerConfig({
     GROQ_API_KEY: "secret",
     GROQ_NATURALIZER_MODEL:
-      "qwen/qwen3.6-27b\nqwen/qwen3.6-27b\nqwen/qwen3.6-27b",
+      "qwen/qwen3.8-27b\nqwen/qwen3.8-27b\nqwen/qwen3.8-27b",
   });
 
-  assert.equal(config.model, "qwen/qwen3.6-27b");
+  assert.equal(config.model, "qwen/qwen3.8-27b");
 });
 
 test("keeps required product choices deterministic", async () => {

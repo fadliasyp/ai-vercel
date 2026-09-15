@@ -59,6 +59,7 @@ test("resolves Groq config without exposing it to production routing", () => {
 
   assert.equal(config.enabled, true);
   assert.equal(config.model, "custom/model");
+  assert.deepEqual(config.fallbackModels, ["qwen/qwen3.8-27b"]);
   assert.equal(config.timeoutMs, 5000);
 });
 
@@ -66,10 +67,10 @@ test("uses one valid router model when a Vercel env value contains duplicate lin
   const config = resolveGroqRouterConfig({
     GROQ_API_KEY: "secret",
     GROQ_ROUTER_MODEL:
-      "qwen/qwen3.6-27b\nqwen/qwen3.6-27b\nqwen/qwen3.6-27b",
+      "qwen/qwen3.8-27b\nqwen/qwen3.8-27b\nqwen/qwen3.8-27b",
   });
 
-  assert.equal(config.model, "qwen/qwen3.6-27b");
+  assert.equal(config.model, "qwen/qwen3.8-27b");
 });
 
 test("returns a validated semantic route from Groq", async () => {
@@ -212,7 +213,7 @@ test("falls back to the next Groq model only for model-level failures", async ()
     config: {
       ...testConfig,
       model: "openai/gpt-oss-20b",
-      fallbackModels: ["qwen/qwen3.6-27b"],
+      fallbackModels: ["qwen/qwen3.8-27b"],
     },
     fetchImpl: async (_url, request) => {
       const body = JSON.parse(request.body);
@@ -248,7 +249,7 @@ test("falls back to the next Groq model only for model-level failures", async ()
 
   assert.deepEqual(requestedModels, [
     "openai/gpt-oss-20b",
-    "qwen/qwen3.6-27b",
+    "qwen/qwen3.8-27b",
   ]);
   assert.deepEqual(route.fallback_from, ["openai/gpt-oss-20b"]);
 });
