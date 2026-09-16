@@ -161,6 +161,8 @@ Mempertahankan layanan ketika model/provider tertentu timeout, rate limited, ata
 - Mistral menjadi fallback text/vision bila aktif.
 - Cloudflare menjadi vision fallback bila aktif.
 - Local deterministic understanding tetap tersedia saat provider gagal.
+- Respons dengan teks editable di atas 2.400 karakter mempertahankan payload faktual asli tanpa memanggil naturalizer, untuk menghindari pemborosan quota dan kegagalan JSON akibat batas output.
+- Groq `failed_generation` hanya mencoba model Groq cadangan yang memang dikonfigurasi; bila tidak ada yang berhasil, payload asli tetap dikirim tanpa retry lintas provider.
 
 ### Do Not Break
 
@@ -184,6 +186,7 @@ Mempertahankan layanan ketika model/provider tertentu timeout, rate limited, ata
 - Bukti lokal 2026-09-15: 365/365 test lulus; smoke Groq Qwen 3.8, Gemini 3.5 Flash-Lite, Cloudflare vision, serta Mistral 8B text/vision lulus.
 - Bukti production 2026-09-15: text path Groq GPT-OSS 20B/Qwen 3.8 dan image path Gemini 2.5 Flash berhasil tanpa error.
 - Bukti API akun 2026-09-15: seluruh enam ID Gemini pada default pool terdaftar untuk `generateContent`; test setelah sinkronisasi lulus 365/365.
+- Bukti lokal 2026-09-16: perbaikan naturalizer lulus 367/367 test dan coverage replay 9/9 turn.
 
 ## Statuses Not Yet Baseline-Stable
 

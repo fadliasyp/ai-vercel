@@ -694,6 +694,260 @@ string pertanyaan
 
 Tidak ada training pada tahap ini. Training sudah selesai sebelumnya dan hasilnya disimpan di dalam `.joblib`.
 
+#### 8.4.1 Di mana bagian TF-IDF dan Logistic Regression?
+
+Di `app.py` tidak ada deklarasi baru seperti berikut:
+
+```python
+TfidfVectorizer(...)
+LogisticRegression(...)
+```
+
+Hal itu bukan berarti kedua algoritma tidak dijalankan. Keduanya sudah dibentuk, dilatih, dan dibungkus menjadi satu `Pipeline` sebelum aplikasi FastAPI dijalankan. Pipeline yang sudah terlatih kemudian disimpan ke file `.joblib`.
+
+Struktur konseptual object yang dimuat adalah:
+
+```text
+model: Pipeline
+|-- named_steps["tfidf"] -> TfidfVectorizer yang sudah di-fit
+`-- named_steps["clf"]   -> LogisticRegression yang sudah di-fit
+```
+
+Kode training historis membentuk pola berikut:
+
+```python
+model = Pipeline([
+    ("tfidf", TfidfVectorizer(
+        lowercase=True,
+        ngram_range=(1, 2)
+    )),
+    ("clf", LogisticRegression(
+        max_iter=500
+    ))
+])
+
+model.fit(X_train, y_train)
+joblib.dump(model, "intent_tfidf_logreg.joblib")
+```
+
+Nama langkah penting:
+
+| Nama step | Object | Tugas |
+| --- | --- | --- |
+| `tfidf` | `TfidfVectorizer` | Mengubah teks pertanyaan menjadi sparse vector numerik. |
+| `clf` | `LogisticRegression` | Mengubah vector TF-IDF menjadi skor, probabilitas, dan label intent. |
+
+Nama file pada contoh historis berbeda dari artefak runtime aktif. Source aktif memuat `intent_model_tfidf_logreg_training_3.joblib`; script dan dataset persis yang menghasilkan artefak training ketiga belum tersedia di HEAD. Karena itu, contoh training menjelaskan struktur pipeline yang dapat dibuktikan dari riwayat, tetapi jangan mengklaim seluruh parameter artefak training ketiga identik tanpa metadata model yang kompatibel.
+
+#### 8.4.2 Bagaimana `joblib.load()` mengaktifkan kedua algoritma?
+
+```python
+model = joblib.load("intent_model_tfidf_logreg_training_3.joblib")
+```
+
+`joblib.load()` melakukan deserialisasi terhadap object pipeline yang sebelumnya disimpan. File tersebut tidak hanya menyimpan nama algoritma, tetapi juga state hasil training, antara lain:
+
+- vocabulary fitur yang sudah dipelajari TF-IDF;
+- nilai IDF untuk fitur yang dikenal;
+- konfigurasi vectorizer yang tersimpan;
+- bobot atau coefficient Logistic Regression;
+- bias atau intercept classifier;
+- urutan kelas pada `classes_`.
+
+Alurnya:
+
+```text
+Fase training, dilakukan sebelumnya
+Pipeline belum terlatih
+  --> model.fit(X_train, y_train)
+  --> TF-IDF mempelajari vocabulary dan IDF
+  --> Logistic Regression mempelajari bobot dan bias
+  --> joblib.dump(...)
+  --> file .joblib
+
+Fase inference, dilakukan oleh app.py
+file .joblib
+  --> joblib.load(...)
+  --> Pipeline terlatih tersedia di memory
+  --> siap menjalankan predict dan predict_proba
+```
+
+Package `scikit-learn` tetap harus tersedia di environment server Python agar Joblib dapat membangun kembali class `Pipeline`, `TfidfVectorizer`, dan `LogisticRegression` ketika file dimuat.
+
+#### 8.4.3 Apa yang sebenarnya terjadi saat `model.predict()`?
+
+Kode production cukup menulis:
+
+```python
+pred = model.predict([question])[0]
+```
+
+Scikit-learn `Pipeline` otomatis menjalankan seluruh transformer sebelum estimator terakhir. Dengan struktur pipeline tersebut, satu baris di atas secara konseptual setara dengan:
+
+```python
+tfidf = model.named_steps["tfidf"]
+classifier = model.named_steps["clf"]
+
+features = tfidf.transform([question])
+pred = classifier.predict(features)[0]
+```
+
+Urutannya:
+
+1. `[question]` diterima sebagai kumpulan berisi satu dokumen.
+2. Step `tfidf` memanggil `transform([question])`.
+3. Hasilnya adalah sparse matrix dengan satu baris dan kolom sebanyak fitur vocabulary.
+4. Sparse matrix diberikan kepada step `clf`.
+5. Logistic Regression menghitung skor setiap kelas.
+6. `predict()` mengembalikan label intent terpilih.
+7. `[0]` mengambil hasil untuk dokumen pertama.
+
+Tanda kurung siku pada `[question]` diperlukan karena API scikit-learn menerima kumpulan dokumen. Perbedaannya:
+
+```python
+# Satu dokumen
+model.predict(["stok getter masih ada"])
+
+# Tiga dokumen dalam satu batch
+model.predict([
+    "stok getter masih ada",
+    "berapa harga mazinger",
+    "barang bisa diretur"
+])
+```
+
+#### 8.4.4 Apa yang sebenarnya terjadi saat `model.predict_proba()`?
+
+Kode berikut menjalankan pipeline yang sama, tetapi meminta probabilitas seluruh kelas:
+
+```python
+probs = model.predict_proba([question])[0]
+```
+
+Secara konseptual setara dengan:
+
+```python
+tfidf = model.named_steps["tfidf"]
+classifier = model.named_steps["clf"]
+
+features = tfidf.transform([question])
+probs = classifier.predict_proba(features)[0]
+```
+
+Perbedaannya:
+
+| Method | Hasil |
+| --- | --- |
+| `predict()` | Satu label intent terbaik, misalnya `stock_availability`. |
+| `predict_proba()` | Probabilitas untuk seluruh kelas sesuai urutan `classes_`. |
+
+Contoh ilustrasi:
+
+```python
+classes = [
+    "price_promo",
+    "product_detail",
+    "stock_availability"
+]
+
+probs = [0.08, 0.12, 0.80]
+```
+
+Pasangannya:
+
+```text
+price_promo        -> 0.08
+product_detail     -> 0.12
+stock_availability -> 0.80
+```
+
+Angka tersebut hanya ilustrasi. Nilai sebenarnya ditentukan oleh fitur pertanyaan dan parameter model hasil training.
+
+#### 8.4.5 Mengapa `classes_` diambil dari step `clf`?
+
+```python
+classes = model.named_steps["clf"].classes_
+```
+
+`predict_proba()` mengembalikan array angka tanpa nama label di dalam setiap posisi. `classes_` memberikan urutan label yang digunakan classifier. Karena urutannya sama, kode dapat memasangkan keduanya:
+
+```python
+zip(classes, probs)
+```
+
+Setelah dipasangkan dan diurutkan, aplikasi memperoleh top-3 intent:
+
+```python
+top3 = sorted(
+    [{"intent": str(c), "prob": float(p)} for c, p in zip(classes, probs)],
+    key=lambda x: x["prob"],
+    reverse=True
+)[:3]
+```
+
+#### 8.4.6 Bagaimana confidence dipilih?
+
+```python
+best_idx = int(np.argmax(probs))
+confidence = float(probs[best_idx])
+```
+
+`np.argmax(probs)` mencari posisi probabilitas terbesar. Misalnya:
+
+```python
+probs = [0.08, 0.12, 0.80]
+best_idx = 2
+confidence = 0.80
+```
+
+Label pada posisi yang sama adalah:
+
+```python
+classes[best_idx] == "stock_availability"
+```
+
+Confidence ini adalah probabilitas keluaran model untuk kelas teratas, bukan jaminan prediksi selalu benar. Karena itu hasil masih diperiksa menggunakan threshold dan validasi hybrid di Node.js.
+
+#### 8.4.7 Ringkasan eksekusi satu pertanyaan
+
+```text
+Input JSON
+{ "question": "stok getter masih ada" }
+
+        |
+        v
+normalize_text()
+
+        |
+        v
+model.predict([question])
+        |
+        +--> named_steps["tfidf"].transform(...)
+        |       menghasilkan sparse TF-IDF vector
+        |
+        `--> named_steps["clf"].predict(...)
+                menghasilkan label intent
+
+model.predict_proba([question])
+        |
+        +--> TF-IDF transform
+        |
+        `--> LogisticRegression.predict_proba(...)
+                menghasilkan probabilitas seluruh kelas
+
+        |
+        v
+classes_ + np.argmax + top3
+
+        |
+        v
+Response JSON untuk ai-vercel
+```
+
+Jawaban ringkas yang dapat digunakan saat sidang:
+
+> TF-IDF dan Logistic Regression tidak dideklarasikan ulang di `app.py` karena keduanya sudah berada di dalam Pipeline scikit-learn yang disimpan sebagai Joblib. `joblib.load()` memuat pipeline beserta vocabulary TF-IDF dan bobot classifier. Saat `model.predict()` atau `model.predict_proba()` dipanggil, Pipeline otomatis menjalankan transformasi TF-IDF terlebih dahulu, lalu memberikan sparse vector kepada Logistic Regression untuk menentukan intent dan confidence.
+
 ### 8.5 Response kembali ke Node.js
 
 FastAPI mengembalikan object berikut:
@@ -1509,6 +1763,142 @@ python -m uvicorn app:app --reload --port 8000
 ```
 
 Catatan: instalasi dependency memerlukan jaringan dan versi library saat ini tidak dipin. Untuk demo sidang, siapkan environment lebih awal dan jangan melakukan instalasi pertama kali di depan penguji.
+
+#### 21.2.1 Self-check TF-IDF dan Logistic Regression tanpa menjalankan server
+
+Repository `ai-vercel` menyediakan script:
+
+```text
+scripts/test-intent-ml-model.py
+```
+
+Script tersebut menguji logic ML secara langsung tanpa membuka port FastAPI. Pemeriksaannya meliputi:
+
+1. object model merupakan scikit-learn `Pipeline`;
+2. pipeline memiliki step `tfidf` dan `clf`;
+3. tipe step adalah `TfidfVectorizer` dan `LogisticRegression`;
+4. TF-IDF menghasilkan sparse matrix yang memiliki fitur aktif;
+5. hasil `Pipeline.predict()` sama dengan pemanggilan eksplisit `tfidf.transform()` lalu `classifier.predict()`;
+6. hasil `Pipeline.predict_proba()` sama dengan pemanggilan eksplisit classifier;
+7. jumlah probabilitas setiap pertanyaan mendekati `1.0`;
+8. label, confidence, dan top-3 dapat ditampilkan.
+
+##### Mode A: demo aman yang membuat model kecil di memory
+
+Mode ini tidak membaca file Joblib. Script membuat dataset mini, melatih TF-IDF + Logistic Regression, lalu membuktikan alur transformasi dan prediksi.
+
+Dari folder `ai-vercel`, jika `uv` tersedia:
+
+```powershell
+$env:UV_CACHE_DIR = Join-Path $env:TEMP "intent-ml-uv-cache"
+
+uv run `
+  --with scikit-learn `
+  --with joblib `
+  --with numpy `
+  python scripts/test-intent-ml-model.py --demo
+```
+
+Jika virtual environment Python sudah aktif dan dependency sudah terpasang:
+
+```powershell
+python scripts/test-intent-ml-model.py --demo
+```
+
+Hasil aktual pengujian lokal pada 2026-09-16:
+
+```text
+Mode        : demo aman
+Model       : Pipeline dibuat di memory
+Pipeline    : Pipeline
+TF-IDF      : TfidfVectorizer
+Classifier  : LogisticRegression
+Vocabulary  : 44 fitur
+Matrix      : shape=(3, 44), nonzero=16
+Classes     : 3
+
+Question    : stok getter masih ada
+Prediction  : stock_availability
+
+Question    : berapa harga mazinger
+Prediction  : price_promo
+
+Question    : barang bisa diretur
+Prediction  : return_product
+
+PASS: TF-IDF dan Logistic Regression berjalan konsisten.
+```
+
+Hasil tersebut membuktikan logic pipeline dan kesetaraan dua jalur berikut:
+
+```text
+model.predict(question)
+
+sama dengan
+
+tfidf.transform(question)
+  --> LogisticRegression.predict(vector)
+```
+
+Mode demo hanya membuktikan mekanisme algoritma dan script pengujian. Mode ini bukan pengukuran akurasi artefak production.
+
+##### Mode B: menguji artefak Joblib aktif
+
+Struktur folder yang diharapkan:
+
+```text
+kumpulan-codingan-fadli/
+|-- ai-vercel/
+|   `-- scripts/test-intent-ml-model.py
+`-- intent-ml-api/
+    `-- intent_model_tfidf_logreg_training_3.joblib
+```
+
+Dari folder `ai-vercel`, jalankan tanpa `--demo`:
+
+```powershell
+python scripts/test-intent-ml-model.py
+```
+
+Script secara default mencari:
+
+```text
+../intent-ml-api/intent_model_tfidf_logreg_training_3.joblib
+```
+
+Path juga dapat diberikan secara eksplisit:
+
+```powershell
+python scripts/test-intent-ml-model.py `
+  "C:\kumpulan-codingan-fadli\intent-ml-api\intent_model_tfidf_logreg_training_3.joblib"
+```
+
+Jika memakai `uv`:
+
+```powershell
+$env:UV_CACHE_DIR = Join-Path $env:TEMP "intent-ml-uv-cache"
+
+uv run `
+  --with scikit-learn `
+  --with joblib `
+  --with numpy `
+  python scripts/test-intent-ml-model.py
+```
+
+Output yang dianggap lulus harus berakhir dengan:
+
+```text
+PASS: TF-IDF dan Logistic Regression berjalan konsisten.
+```
+
+Penting:
+
+- Joblib/Pickle hanya boleh dimuat dari artefak yang dipercaya karena proses deserialisasi dapat menjalankan kode Python.
+- Jangan mengunduh dan mengeksekusi file `.joblib` acak dari internet.
+- Gunakan versi scikit-learn yang kompatibel dengan versi saat model dilatih. Dependency project saat ini belum dipin, sehingga warning atau incompatibility versi harus dicatat, bukan diabaikan.
+- Pengujian artefak aktif belum membuktikan akurasi seluruh intent; script ini memverifikasi struktur dan konsistensi inference. Evaluasi akurasi tetap membutuhkan test set berlabel yang terpisah dari data training.
+
+Pada sesi dokumentasi 2026-09-16, mode demo berhasil dijalankan. Artefak lokal production tidak dapat dijangkau oleh sandbox yang hanya memasang workspace `ai-vercel`, sehingga hasil artefak aktif tidak diklaim lulus sampai perintah Mode B dijalankan pada workspace lokal yang dapat melihat kedua folder.
 
 Health check:
 

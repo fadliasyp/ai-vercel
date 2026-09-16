@@ -95,6 +95,51 @@ test("keeps required product choices deterministic", async () => {
   assert.equal(status.reason, "required_clarification");
 });
 
+test("skips an overlong answer instead of spending a doomed naturalizer call", async () => {
+  const longPayload = { type: "products", message: "x".repeat(2401) };
+  let fetchCalled = false;
+  let status = null;
+
+  const result = await naturalizeResponseWithGroq(longPayload, {
+    config: config(),
+    fetchImpl: async () => {
+      fetchCalled = true;
+      throw new Error("Groq should not be called");
+    },
+    onStatus(value) {
+      status = value;
+    },
+  });
+
+  assert.equal(fetchCalled, false);
+  assert.deepEqual(result, longPayload);
+  assert.equal(status.reason, "input_too_long");
+});
+
+test("reports Groq failed_generation separately from an invalid request", async () => {
+  let status = null;
+  const result = await naturalizeResponseWithGroq(payload, {
+    config: config(),
+    fetchImpl: async () => ({
+      ok: false,
+      status: 400,
+      json: async () => ({
+        error: {
+          message:
+            "Failed to generate JSON. See 'failed_generation' for more details.",
+          failed_generation: "partial output",
+        },
+      }),
+    }),
+    onStatus(value) {
+      status = value;
+    },
+  });
+
+  assert.deepEqual(result, payload);
+  assert.equal(status.reason, "failed_generation");
+});
+
 test("accepts a friendlier rewrite when protected facts stay identical", async () => {
   let status = null;
   const result = await naturalizeResponseWithGroq(payload, {

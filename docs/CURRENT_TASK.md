@@ -2,7 +2,7 @@
 
 ## Status
 
-Aktif: sinkronisasi pool fallback Gemini sudah lulus lokal dan menunggu deployment terbaru.
+Aktif: perbaikan hemat untuk kegagalan JSON Groq naturalizer sudah lulus lokal dan menunggu deployment.
 
 ## Current Progress
 
@@ -22,6 +22,11 @@ Aktif: sinkronisasi pool fallback Gemini sudah lulus lokal dan menunggu deployme
 - Audit `models.list` akun mengonfirmasi enam ID text-output yang dipakai pool: `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-3-flash-preview`, `gemini-3.1-flash-lite`, `gemini-3.5-flash`, dan `gemini-3.5-flash-lite`.
 - Regression suite setelah sinkronisasi fallback Gemini lulus 365/365.
 - Panduan teknis tahap 8 diperluas untuk menjelaskan tujuan `INTENT_API_URL`, batas proses Node/Python, lokasi inference TF-IDF + Logistic Regression, kontrak request/response, fallback, dan demo lokal.
+- Subbagian 8.4 kini menjelaskan bagaimana `joblib.load()`, `named_steps["tfidf"]`, `named_steps["clf"]`, `predict()`, dan `predict_proba()` menjalankan TF-IDF serta Logistic Regression.
+- Script `scripts/test-intent-ml-model.py` ditambahkan; mode demo aman lulus dan panduan menjelaskan cara menguji artefak Joblib lokal yang tepercaya.
+- Log production menunjukkan respons rekomendasi sekitar 3.100 karakter berulang kali memicu Groq `failed_generation`, sementara jawaban faktual asli tetap lengkap dan berhasil dikirim.
+- Naturalizer kini melewati respons di atas 2.400 karakter agar tidak membuang request/token pada output yang berisiko melewati batas 850 completion token; `failed_generation` juga dicatat terpisah dan dapat memakai model Groq cadangan yang memang dikonfigurasi.
+- Regression suite setelah perbaikan naturalizer lulus 367/367 dan coverage replay lulus 9/9 turn.
 
 ## Last Completed Task
 
@@ -50,16 +55,20 @@ Aktif: sinkronisasi pool fallback Gemini sudah lulus lokal dan menunggu deployme
 - `docs/PANDUAN_TEKNIS_INTENT_ML_DAN_ALUR_CHATBOT.md`
 - `lib/chatbot/gemini.js`
 - `tests/geminiFallback.test.js`
+- `lib/chatbot/responseNaturalizer.js`
+- `tests/responseNaturalizer.test.js`
+- `scripts/test-intent-ml-model.py`
 - `docs/PROJECT_CONTEXT.md`
 - `docs/CURRENT_TASK.md`
 - `docs/CHANGELOG.md`
 
 ## Next Steps
 
-1. Deploy sinkronisasi pool Gemini terbaru ke Vercel; deployment sebelumnya belum memuat dua fallback yang dipulihkan ini.
-2. Jalankan smoke production dan image production gate lengkap ketika quota provider mencukupi.
-3. Siapkan rate limiting, batas upload gambar, dan monitoring quota sebelum uji pengguna ramai.
-4. Tambahkan replay dari temuan pengujian pengguna nyata.
+1. Deploy perbaikan naturalizer dan sinkronisasi pool Gemini terbaru ke Vercel.
+2. Ulangi pertanyaan rekomendasi panjang yang sebelumnya menghasilkan `failed_generation`; hasil yang diharapkan adalah jawaban asli tetap terkirim tanpa panggilan Qwen naturalizer.
+3. Jalankan smoke production dan image production gate lengkap ketika quota provider mencukupi.
+4. Siapkan rate limiting, batas upload gambar, dan monitoring quota sebelum uji pengguna ramai.
+5. Tambahkan replay dari temuan pengujian pengguna nyata.
 
 ## Blockers
 

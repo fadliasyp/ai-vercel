@@ -145,6 +145,12 @@ Pada 2026-09-15:
 - Live Gemini `models.list` audit mengonfirmasi enam ID pool text-output: `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-3-flash-preview`, `gemini-3.1-flash-lite`, `gemini-3.5-flash`, dan `gemini-3.5-flash-lite`; regression suite sesudah sinkronisasi lulus 365/365.
 - Image production gate lengkap belum dijalankan.
 
+Pada 2026-09-16:
+
+- Respons naturalizer di atas 2.400 karakter dilewati untuk menghindari Groq `failed_generation` berulang dan menghemat request/token; jawaban faktual asli tetap dikirim.
+- `failed_generation` dikenali terpisah dan hanya memakai fallback Groq yang dikonfigurasi, tanpa retry lintas provider.
+- `npm test`: 367 test lulus; coverage replay: 9/9 turn lulus.
+
 ## Session Handoff
 
 Bootstrap memory project telah selesai. Tidak ada task implementasi aktif. Session berikutnya harus membaca `AGENTS.md`, context ini, `CURRENT_TASK.md`, dan `FEATURE_BASELINE.md` sebelum mengubah source.
