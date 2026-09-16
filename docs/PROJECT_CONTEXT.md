@@ -150,6 +150,8 @@ Pada 2026-09-16:
 - Respons naturalizer di atas 2.400 karakter dilewati untuk menghindari Groq `failed_generation` berulang dan menghemat request/token; jawaban faktual asli tetap dikirim.
 - `failed_generation` dikenali terpisah dan hanya memakai fallback Groq yang dikonfigurasi, tanpa retry lintas provider.
 - `npm test`: 367 test lulus; coverage replay: 9/9 turn lulus.
+- Guard buy-one-get-one mencegah pertanyaan `beli 1 gratis 1` diarahkan ke daftar produk diskon; jawaban menyatakan informasi belum terverifikasi dan menyediakan admin handoff.
+- `npm test`: 368 test lulus; coverage replay tetap 9/9 turn lulus setelah perbaikan promo bersyarat.
 
 ## Session Handoff
 

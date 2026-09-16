@@ -18,12 +18,14 @@ Memisahkan pemahaman/bahasa LLM dari fakta commerce yang harus diambil melalui t
 - Structured payload produk/options/steps dipertahankan oleh composer.
 - Naturalizer ditolak atau field dikembalikan ke legacy bila protected facts berubah.
 - LLM/tool plan memilih sumber data sesuai goal.
+- Promo bersyarat yang tidak tercatat sebagai fakta katalog, seperti beli 1 gratis 1, tidak boleh disimpulkan dari produk yang sekadar memiliki harga diskon; chatbot menyatakan belum memiliki informasi terverifikasi dan menyediakan admin handoff.
 
 ### Do Not Break
 
 - Jangan menjadikan output LLM sebagai sumber fakta commerce.
 - Jangan menghapus safety validator untuk menaikkan composer acceptance.
 - Jangan naturalize array `products`, `options`, `steps`, payment methods, atau admin handoff.
+- Jangan mengganti pertanyaan promo bersyarat dengan daftar produk diskon biasa.
 
 ### Important Files
 

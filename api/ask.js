@@ -176,6 +176,7 @@ import {
   buildNegotiationPolicyMessage,
   buildReturnPolicyMessage,
   getReturnActionContext,
+  looksLikeBuyOneGetOneQuestion,
   looksLikeGeneralStockPolicyQuestion,
   looksLikeNegotiationPolicyQuestion,
   looksLikeReturnPolicyQuestion,
@@ -2559,6 +2560,24 @@ export default async function handler(req, res) {
           message: buildOutOfScopeMessage(rawQuestion),
         },
         "general",
+      );
+    }
+
+    if (looksLikeBuyOneGetOneQuestion(rawQuestion)) {
+      clearPending(session);
+      explicitIntentSource = "buy_one_get_one_policy";
+      session.lastIntent = "price_promo";
+      session.lastIntentMethod = "buy_one_get_one_policy_rule";
+      session.lastIntentScore = 1;
+
+      return await send(
+        buildUnknownAnswerResponse({
+          message:
+            "Untuk promo **beli 1 gratis 1**, aku belum memiliki informasi terverifikasi bahwa program tersebut sedang aktif. Produk yang sedang diskon di katalog tidak otomatis berarti mendapat satu barang gratis. Agar tidak memberikan informasi yang keliru, silakan konfirmasi langsung ke Admin Robot Jadul.",
+          intent: "price_promo",
+          topic: "promo beli 1 gratis 1",
+        }),
+        "price_promo",
       );
     }
 

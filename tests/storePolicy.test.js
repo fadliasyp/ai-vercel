@@ -10,6 +10,7 @@ import {
   detectReturnQuestionType,
   extractBulkPurchaseOfferContext,
   getReturnActionContext,
+  looksLikeBuyOneGetOneQuestion,
   looksLikeGeneralStockPolicyQuestion,
   looksLikeNegotiationPolicyQuestion,
   looksLikePostPurchaseReturnIssue,
@@ -17,6 +18,21 @@ import {
   RETURN_POLICY,
   summarizeCatalogStockModes,
 } from "../lib/chatbot/storePolicy.js";
+
+test("recognizes buy-one-get-one without confusing ordinary discounts", () => {
+  for (const question of [
+    "beli barang1 gratis 1 engga?",
+    "Ada promo buy 1 get 1?",
+    "Kalau beli satu dapat satu gratis tidak?",
+  ]) {
+    assert.equal(looksLikeBuyOneGetOneQuestion(question), true, question);
+  }
+
+  assert.equal(
+    looksLikeBuyOneGetOneQuestion("Barang ini sedang diskon engga?"),
+    false,
+  );
+});
 
 test("extracts the full context of a bulk purchase offer", () => {
   const context = extractBulkPurchaseOfferContext(

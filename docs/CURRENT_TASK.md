@@ -2,7 +2,7 @@
 
 ## Status
 
-Aktif: perbaikan hemat untuk kegagalan JSON Groq naturalizer sudah lulus lokal dan menunggu deployment.
+Aktif: guard promo beli 1 gratis 1 sudah lulus lokal dan menunggu deployment.
 
 ## Current Progress
 
@@ -27,6 +27,9 @@ Aktif: perbaikan hemat untuk kegagalan JSON Groq naturalizer sudah lulus lokal d
 - Log production menunjukkan respons rekomendasi sekitar 3.100 karakter berulang kali memicu Groq `failed_generation`, sementara jawaban faktual asli tetap lengkap dan berhasil dikirim.
 - Naturalizer kini melewati respons di atas 2.400 karakter agar tidak membuang request/token pada output yang berisiko melewati batas 850 completion token; `failed_generation` juga dicatat terpisah dan dapat memakai model Groq cadangan yang memang dikonfigurasi.
 - Regression suite setelah perbaikan naturalizer lulus 367/367 dan coverage replay lulus 9/9 turn.
+- Pertanyaan buy-one-get-one kini dikenali terpisah dari diskon katalog, termasuk variasi `beli barang1 gratis 1`, `buy 1 get 1`, dan `beli satu dapat satu gratis`.
+- Guard berjalan sebelum katalog/pending handler, mengalahkan semantic intent lock `price_promo`, tidak menampilkan produk diskon, dan mengirim jawaban belum terverifikasi beserta `admin_handoff`.
+- Regression suite setelah perbaikan promo bersyarat lulus 368/368 dan coverage replay lulus 9/9 turn.
 
 ## Last Completed Task
 
@@ -57,6 +60,10 @@ Aktif: perbaikan hemat untuk kegagalan JSON Groq naturalizer sudah lulus lokal d
 - `tests/geminiFallback.test.js`
 - `lib/chatbot/responseNaturalizer.js`
 - `tests/responseNaturalizer.test.js`
+- `api/ask.js`
+- `lib/chatbot/storePolicy.js`
+- `tests/askRouting.test.js`
+- `tests/storePolicy.test.js`
 - `scripts/test-intent-ml-model.py`
 - `docs/PROJECT_CONTEXT.md`
 - `docs/CURRENT_TASK.md`
@@ -64,11 +71,12 @@ Aktif: perbaikan hemat untuk kegagalan JSON Groq naturalizer sudah lulus lokal d
 
 ## Next Steps
 
-1. Deploy perbaikan naturalizer dan sinkronisasi pool Gemini terbaru ke Vercel.
-2. Ulangi pertanyaan rekomendasi panjang yang sebelumnya menghasilkan `failed_generation`; hasil yang diharapkan adalah jawaban asli tetap terkirim tanpa panggilan Qwen naturalizer.
-3. Jalankan smoke production dan image production gate lengkap ketika quota provider mencukupi.
-4. Siapkan rate limiting, batas upload gambar, dan monitoring quota sebelum uji pengguna ramai.
-5. Tambahkan replay dari temuan pengujian pengguna nyata.
+1. Deploy guard promo beli 1 gratis 1 bersama perbaikan naturalizer dan sinkronisasi pool Gemini terbaru ke Vercel.
+2. Ulangi pertanyaan `beli barang1 gratis 1 engga?`; hasil yang diharapkan adalah jawaban belum terverifikasi dengan tombol admin dan tanpa kartu produk diskon.
+3. Ulangi pertanyaan rekomendasi panjang yang sebelumnya menghasilkan `failed_generation`; hasil yang diharapkan adalah jawaban asli tetap terkirim tanpa panggilan Qwen naturalizer.
+4. Jalankan smoke production dan image production gate lengkap ketika quota provider mencukupi.
+5. Siapkan rate limiting, batas upload gambar, dan monitoring quota sebelum uji pengguna ramai.
+6. Tambahkan replay dari temuan pengujian pengguna nyata.
 
 ## Blockers
 

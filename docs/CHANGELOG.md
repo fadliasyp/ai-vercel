@@ -15,6 +15,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Bounded image-analysis JSON arrays to five short items so vision output completes within the configured token limit.
 - Skipped Groq naturalization for responses above 2,400 editable characters, preserving the complete deterministic answer while avoiding repeated JSON-generation failures and wasted quota.
 - Classified Groq `failed_generation` separately and allowed only explicitly configured Groq fallback models to retry it; cross-provider retries remain disabled for this nonfatal case.
+- Added a deterministic buy-one-get-one guard so unsupported `beli 1 gratis 1` questions no longer display ordinary discounted products and instead receive an honest admin handoff.
 
 ### Verification
 
@@ -29,6 +30,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Verified the deployed production text path uses Groq GPT-OSS 20B plus Qwen 3.8 with an accepted, fact-preserving composition.
 - Verified the deployed production image endpoint returns HTTP 200 using Gemini 2.5 Flash without provider fallback.
 - Verified 367/367 local tests and 9/9 answer-coverage replay turns pass after the naturalizer efficiency fix.
+- Verified 368/368 local tests and 9/9 answer-coverage replay turns pass after the buy-one-get-one routing fix, including active LLM semantic-lock coverage.
 
 ### Documentation
 

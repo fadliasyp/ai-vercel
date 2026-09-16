@@ -489,6 +489,39 @@ test("routes real customer turns without stale products or fallback collisions",
     process.env.GROQ_API_KEY = "test-groq-key";
     semanticRoute = {
       scope: "in_scope",
+      intent: "price_promo",
+      intents: ["price_promo"],
+      goals: ["promo"],
+      confidence: 0.96,
+      entities: {
+        product_names: [],
+        budget_min: null,
+        budget_max: null,
+      },
+      requires_product: true,
+      customer_state: "neutral",
+      interpretation: "Pelanggan menanyakan promo beli satu gratis satu.",
+      topic_relation: "new_topic",
+      needs_clarification: false,
+      clarification_question: null,
+    };
+
+    const bogo = await ask("beli barang1 gratis 1 engga?", null, {
+      sessionId: `semantic_bogo_${Date.now()}`,
+    });
+    assert.equal(bogo.intent, "price_promo");
+    assert.equal(bogo.type, "text");
+    assert.equal(bogo.products, undefined);
+    assert.match(bogo.message, /belum memiliki informasi terverifikasi/i);
+    assert.match(bogo.message, /tidak otomatis berarti/i);
+    assert.ok(bogo.admin_handoff);
+    assert.equal(
+      bogo.assistant_meta.llm_led.intent_source,
+      "buy_one_get_one_policy",
+    );
+
+    semanticRoute = {
+      scope: "in_scope",
       intent: "stock_availability",
       intents: ["stock_availability"],
       goals: ["stock"],
