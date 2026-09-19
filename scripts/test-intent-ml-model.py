@@ -21,6 +21,7 @@ QUESTIONS = [
     "berapa harga mazinger",
     "barang bisa diretur",
     "tolong rekomendasikan satu robot untuk koleksi",
+    "apakah robot voltes v masih ada?",
 ]
 
 DEMO_TEXTS = [

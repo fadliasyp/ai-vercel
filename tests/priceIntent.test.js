@@ -52,6 +52,16 @@ test("extracts lower bounds and price ranges", () => {
       max: 7000000,
     },
   );
+  assert.deepEqual(
+    extractBudgetRange(
+      "rekomen dong robot buat hadiah budget nya 3 juta sampe 6 jutaan deh",
+    ),
+    {
+      detected: true,
+      min: 3000000,
+      max: 6000000,
+    },
+  );
 });
 
 test("treats a free-form range as the awaited recommendation budget", () => {

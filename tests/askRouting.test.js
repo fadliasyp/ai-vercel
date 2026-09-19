@@ -306,6 +306,26 @@ test("routes real customer turns without stale products or fallback collisions",
     assert.match(recommendation.reasoning_text, /tidak ada part yang hilang/i);
     assert.doesNotMatch(recommendation.reasoning_text, /\.\.\.|…$/);
 
+    const giftBudgetRecommendation = await ask(
+      "rekomen dong robot buat hadiah budget nya 3 juta sampe 6 jutaan deh",
+      null,
+      { sessionId: `gift_budget_${Date.now()}` },
+    );
+    assert.equal(giftBudgetRecommendation.intent, "recommendation");
+    assert.equal(giftBudgetRecommendation.type, "products");
+    assert.ok(giftBudgetRecommendation.products.length > 0);
+    assert.ok(
+      giftBudgetRecommendation.products.every((item) => {
+        const price = Number(item.numericPrice || 0);
+        return price >= 3000000 && price <= 6000000;
+      }),
+    );
+    assert.ok(
+      productNames(giftBudgetRecommendation).every(
+        (name) => !/JUNK|Part Only/i.test(name),
+      ),
+    );
+
     const internationalQuestion =
       "Ini Voltes V Legacy ukurannya berapa cm ya tingginya? Kalau kirim ke Malaysia ongkirnya berapa dan total harganya jadi berapa USD?";
     const productChoice = await ask(internationalQuestion);

@@ -81,5 +81,15 @@ Untuk pengujian skripsi, rekomendasi saya:
 - Beri jarak dan batasi sekitar 5 pertanyaan kompleks per menit.
 
 
+cara test lokal:
+
+uv run `
+  --with scikit-learn `
+  --with joblib `
+  --with numpy `
+  python scripts/test-intent-ml-model.py `
+  "C:\kumpulan-codingan-fadli\intent-ml-api\intent_model_tfidf_logreg_terbaru.joblib"
+
+
 latih dataset bencmark kyknya ini syntak nya
 npm.cmd run benchmark:images -- --endpoint https://ai-vercel-ten-sigma.vercel.app/api/ask-image --fresh

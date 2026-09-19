@@ -153,6 +153,12 @@ Pada 2026-09-16:
 - Guard buy-one-get-one mencegah pertanyaan `beli 1 gratis 1` diarahkan ke daftar produk diskon; jawaban menyatakan informasi belum terverifikasi dan menyediakan admin handoff.
 - `npm test`: 368 test lulus; coverage replay tetap 9/9 turn lulus setelah perbaikan promo bersyarat.
 
+Pada 2026-09-20:
+
+- Rentang budget informal dengan kata `sampe` dinormalisasi oleh parser harga bersama; pertanyaan rekomendasi hadiah `3 juta sampe 6 jutaan` kini langsung menghasilkan produk pada rentang tersebut.
+- Filter hadiah tetap menolak produk JUNK dan tidak mengendurkan batas budget atau status stok.
+- `npm test`: 368 test lulus; coverage replay: 9/9 turn lulus, coverage 59,4% menjadi 88,9%.
+
 ## Session Handoff
 
 Bootstrap memory project telah selesai. Tidak ada task implementasi aktif. Session berikutnya harus membaca `AGENTS.md`, context ini, `CURRENT_TASK.md`, dan `FEATURE_BASELINE.md` sebelum mengubah source.

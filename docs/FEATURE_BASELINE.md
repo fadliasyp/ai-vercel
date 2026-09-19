@@ -52,6 +52,7 @@ Memecah permintaan majemuk menjadi goal/facet, merencanakan jawaban, lalu mendet
 ### Correct Behavior
 
 - Satu pertanyaan dapat memuat produk, budget, stok, kondisi, shipping, pembayaran, dan policy sekaligus.
+- Rentang budget bahasa sehari-hari seperti `3 juta sampe 6 jutaan` harus dipertahankan sebagai minimum Rp3 juta dan maksimum Rp6 juta, termasuk saat digabung dengan tujuan hadiah.
 - Setiap facet dilacak sampai answered, clarified, atau unresolved.
 - Auto-repair tidak boleh mengubah objek produk atau intent utama.
 - Klarifikasi menjelaskan informasi yang masih kurang.
@@ -61,6 +62,7 @@ Memecah permintaan majemuk menjadi goal/facet, merencanakan jawaban, lalu mendet
 - Jangan mereduksi pertanyaan majemuk menjadi intent tunggal yang membuang goal lain.
 - Jangan menambahkan paragraf generik yang tidak menjawab facet.
 - Jangan menganggap partial answer sebagai complete answer.
+- Jangan meminta budget ulang bila rentang informal sudah terbaca, dan jangan melonggarkan filter budget atau mengikutkan produk JUNK hanya untuk mengisi hasil hadiah.
 
 ### Important Files
 

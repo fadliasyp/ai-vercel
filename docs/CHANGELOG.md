@@ -16,6 +16,8 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Skipped Groq naturalization for responses above 2,400 editable characters, preserving the complete deterministic answer while avoiding repeated JSON-generation failures and wasted quota.
 - Classified Groq `failed_generation` separately and allowed only explicitly configured Groq fallback models to retry it; cross-provider retries remain disabled for this nonfatal case.
 - Added a deterministic buy-one-get-one guard so unsupported `beli 1 gratis 1` questions no longer display ordinary discounted products and instead receive an honest admin handoff.
+- Normalized informal Indonesian `sampe` in the shared budget parser so gift recommendations with ranges such as `3 juta sampe 6 jutaan` no longer ask for the budget again.
+- Added parser and end-to-end regression coverage that preserves the requested Rp3-Rp6 million range and excludes JUNK gift candidates.
 
 ### Verification
 
@@ -31,6 +33,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Verified the deployed production image endpoint returns HTTP 200 using Gemini 2.5 Flash without provider fallback.
 - Verified 367/367 local tests and 9/9 answer-coverage replay turns pass after the naturalizer efficiency fix.
 - Verified 368/368 local tests and 9/9 answer-coverage replay turns pass after the buy-one-get-one routing fix, including active LLM semantic-lock coverage.
+- Verified 368/368 local tests and 9/9 answer-coverage replay turns pass after the informal budget-range fix.
 
 ### Documentation
 

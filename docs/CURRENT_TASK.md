@@ -2,7 +2,7 @@
 
 ## Status
 
-Aktif: guard promo beli 1 gratis 1 sudah lulus lokal dan menunggu deployment.
+Belum ada task aktif. Perbaikan rekomendasi hadiah dengan rentang budget informal sudah selesai dan lulus verifikasi lokal.
 
 ## Current Progress
 
@@ -30,12 +30,15 @@ Aktif: guard promo beli 1 gratis 1 sudah lulus lokal dan menunggu deployment.
 - Pertanyaan buy-one-get-one kini dikenali terpisah dari diskon katalog, termasuk variasi `beli barang1 gratis 1`, `buy 1 get 1`, dan `beli satu dapat satu gratis`.
 - Guard berjalan sebelum katalog/pending handler, mengalahkan semantic intent lock `price_promo`, tidak menampilkan produk diskon, dan mengirim jawaban belum terverifikasi beserta `admin_handoff`.
 - Regression suite setelah perbaikan promo bersyarat lulus 368/368 dan coverage replay lulus 9/9 turn.
+- Parser budget kini menormalkan kata informal `sampe` menjadi `sampai`, sehingga permintaan hadiah dengan rentang seperti `3 juta sampe 6 jutaan` tidak lagi meminta budget ulang.
+- Regression end-to-end memastikan permintaan tersebut menghasilkan produk ready non-JUNK pada rentang Rp3.000.000-Rp6.000.000 tanpa melonggarkan filter hadiah.
+- Regression suite setelah perbaikan rentang informal tetap lulus 368/368 dan coverage replay lulus 9/9 turn.
 
 ## Last Completed Task
 
-- Task: menyusun panduan teknis skripsi untuk Intent ML dan alur chatbot end-to-end.
-- Tanggal selesai: 2026-09-15.
-- Goal: menyediakan referensi sidang/live coding yang menghubungkan frontend, TF-IDF, Logistic Regression, hybrid intent routing, fakta commerce, dan response dengan kutipan source.
+- Task: memperbaiki rekomendasi hadiah dengan rentang budget informal `sampe` tanpa mengubah logic rekomendasi yang sudah benar.
+- Tanggal selesai: 2026-09-20.
+- Goal: membaca rentang harga informal secara deterministik dan tetap mempertahankan filter budget, stok, serta keamanan hadiah.
 
 ## Completed
 
@@ -44,6 +47,8 @@ Aktif: guard promo beli 1 gratis 1 sudah lulus lokal dan menunggu deployment.
 - Mendokumentasikan request frontend, normalisasi, hybrid decision, semantic fusion, commerce grounding, coverage, response, dan renderer.
 - Menambahkan panduan live coding, pertanyaan penguji, limitation, dan checklist reproducibility.
 - Memverifikasi 362 unit/regression tests tetap lulus tanpa perubahan source produksi.
+- Menambahkan normalisasi `sampe` pada parser budget bersama.
+- Menambahkan regression parser dan end-to-end untuk pertanyaan persis dari laporan pengguna.
 
 ## Findings
 
@@ -64,19 +69,23 @@ Aktif: guard promo beli 1 gratis 1 sudah lulus lokal dan menunggu deployment.
 - `lib/chatbot/storePolicy.js`
 - `tests/askRouting.test.js`
 - `tests/storePolicy.test.js`
+- `lib/chatbot/priceIntent.js`
+- `tests/priceIntent.test.js`
 - `scripts/test-intent-ml-model.py`
+- `docs/FEATURE_BASELINE.md`
 - `docs/PROJECT_CONTEXT.md`
 - `docs/CURRENT_TASK.md`
 - `docs/CHANGELOG.md`
 
 ## Next Steps
 
-1. Deploy guard promo beli 1 gratis 1 bersama perbaikan naturalizer dan sinkronisasi pool Gemini terbaru ke Vercel.
-2. Ulangi pertanyaan `beli barang1 gratis 1 engga?`; hasil yang diharapkan adalah jawaban belum terverifikasi dengan tombol admin dan tanpa kartu produk diskon.
-3. Ulangi pertanyaan rekomendasi panjang yang sebelumnya menghasilkan `failed_generation`; hasil yang diharapkan adalah jawaban asli tetap terkirim tanpa panggilan Qwen naturalizer.
-4. Jalankan smoke production dan image production gate lengkap ketika quota provider mencukupi.
-5. Siapkan rate limiting, batas upload gambar, dan monitoring quota sebelum uji pengguna ramai.
-6. Tambahkan replay dari temuan pengujian pengguna nyata.
+1. Deploy perbaikan parser budget informal bersama perubahan lokal lain yang memang siap dirilis.
+2. Ulangi di production: `rekomen dong robot buat hadiah budget nya 3 juta sampe 6 jutaan deh`; hasil yang diharapkan adalah kartu produk ready non-JUNK pada rentang Rp3-Rp6 juta tanpa pertanyaan budget ulang.
+3. Ulangi pertanyaan `beli barang1 gratis 1 engga?`; hasil yang diharapkan adalah jawaban belum terverifikasi dengan tombol admin dan tanpa kartu produk diskon.
+4. Ulangi pertanyaan rekomendasi panjang yang sebelumnya menghasilkan `failed_generation`; hasil yang diharapkan adalah jawaban asli tetap terkirim tanpa panggilan Qwen naturalizer.
+5. Jalankan smoke production dan image production gate lengkap ketika quota provider mencukupi.
+6. Siapkan rate limiting, batas upload gambar, dan monitoring quota sebelum uji pengguna ramai.
+7. Tambahkan replay dari temuan pengujian pengguna nyata.
 
 ## Blockers
 
