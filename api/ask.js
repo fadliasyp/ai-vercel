@@ -747,7 +747,15 @@ export default async function handler(req, res) {
       hasPending: Boolean(getPending(session)),
     },
   );
-  if (questionUnderstanding.reference_scope === "previous_products") {
+  const expectsCompareSecondProduct =
+    session.lastBotQuestionType === "ask_product_name" &&
+    session.lastBotQuestionMeta?.source === "compare_second" &&
+    initialExplicitIntent?.intent === "compare";
+
+  if (
+    questionUnderstanding.reference_scope === "previous_products" ||
+    expectsCompareSecondProduct
+  ) {
     usesPreviousProductContext = true;
   } else if (questionUnderstanding.reference_scope === "specific_product") {
     usesPreviousProductContext = false;
@@ -1328,7 +1336,8 @@ export default async function handler(req, res) {
     explicitCurrentIntent &&
     !isYesAnswer(rawQuestion) &&
     !isContextualPriceOrdering &&
-    !recommendationBudgetFollowUp
+    !recommendationBudgetFollowUp &&
+    !expectsCompareSecondProduct
   ) {
     clearLastBotQuestion(session);
   }
@@ -3265,6 +3274,7 @@ export default async function handler(req, res) {
     ]);
 
     if (
+      !expectsCompareSecondProduct &&
       universalFollowUp &&
       usesPreviousProductContext &&
       Array.isArray(session.lastProducts) &&
@@ -4328,15 +4338,25 @@ export default async function handler(req, res) {
     if (session.lastBotQuestionType === "ask_product_name") {
       const meta = session.lastBotQuestionMeta || {};
       const source = meta.source;
+      const answeredProductName =
+        source === "compare_second"
+          ? String(rawQuestion)
+              .trim()
+              .replace(
+                /^(?:(?:bandingkan|compare)\b\s*)?(?:(?:dengan|sama|dan|atau|vs|versus)\b\s*)?/i,
+                "",
+              )
+              .trim()
+          : rawQuestion;
       const acceptsProductName =
         isShortFollowUp(rawQuestion) ||
         source === "stock" ||
         source === "detail" ||
         source === "compare_second";
 
-      if (acceptsProductName) {
+      if (acceptsProductName && answeredProductName) {
         clearLastBotQuestion(session);
-        updateSlot(session, "productName", rawQuestion);
+        updateSlot(session, "productName", answeredProductName);
 
         if (source === "stock") {
           rebuildQuestion(`${rawQuestion} stok`);
@@ -4344,7 +4364,7 @@ export default async function handler(req, res) {
           rebuildQuestion(`${rawQuestion} detail`);
         } else if (source === "compare_second" && meta.first_product) {
           rebuildQuestion(
-            `bandingkan ${meta.first_product} dengan ${rawQuestion}`,
+            `bandingkan ${meta.first_product} dengan ${answeredProductName}`,
           );
         }
       }
@@ -5799,6 +5819,12 @@ export default async function handler(req, res) {
       return { a, b };
     }
 
+    function isGenericCompareTarget(name = "") {
+      return /^(?:(?:produk|barang|robot|item|pilihan|alternatif)\s+)?(?:yang\s+)?(?:lain|lainnya)$/i.test(
+        String(name).trim(),
+      );
+    }
+
     console.log("RJ_SHIP_TOKEN exists?", !!process.env.RJ_SHIP_TOKEN);
 
     // fuzzy sederhana: exact / include / typo ringan
@@ -5864,6 +5890,42 @@ export default async function handler(req, res) {
       }
       const list = await getCleanProducts();
       const aPick = bestMatchByName(pair.a, list);
+
+      if (isGenericCompareTarget(pair.b)) {
+        if (!aPick.best || aPick.bestScore < 0.35) {
+          session.lastIntent = "compare";
+          session.lastTopic = "compare";
+
+          return await send(
+            {
+              type: "text",
+              intent: "compare",
+              message:
+                `Maaf, aku belum menemukan produk "${pair.a}" di katalog Robot Jadul. ` +
+                "Coba periksa namanya atau copy-paste judul persis dari halaman produk.",
+            },
+            "compare",
+          );
+        }
+
+        session.lastProducts = [aPick.best];
+        session.lastIntent = "compare";
+        session.lastTopic = "compare";
+        setLastBotQuestion(session, "ask_product_name", {
+          source: "compare_second",
+          first_product: aPick.best.name,
+        });
+
+        return await send(
+          {
+            type: "text",
+            intent: "compare",
+            message: `${aPick.best.name} mau dibandingkan dengan produk apa? Sebutkan nama produk keduanya ya.`,
+          },
+          "compare",
+        );
+      }
+
       const bPick = bestMatchByName(pair.b, list);
 
       console.log("COMPARE PICK:", {

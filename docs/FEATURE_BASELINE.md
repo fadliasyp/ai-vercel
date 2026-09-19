@@ -94,6 +94,7 @@ Menyediakan pilihan klarifikasi dan follow-up yang membawa metadata action/requi
 
 - Pilihan produk membawa object action terstruktur.
 - Pending goal dipertahankan setelah pelanggan memilih opsi.
+- Perbandingan bertahap menyimpan produk pertama ketika pelanggan meminta dibandingkan dengan `produk lain`, lalu menerima nama produk kedua pada turn berikutnya.
 - Saran lama dihapus saat pelanggan mengirim pertanyaan baru.
 - Greeting menampilkan enam saran dari pool variatif: empat global dan dua lebih spesifik.
 - Follow-up tidak mengulang informasi yang sudah dijawab.
@@ -102,6 +103,7 @@ Menyediakan pilihan klarifikasi dan follow-up yang membawa metadata action/requi
 
 - Jangan mengubah structured option menjadi teks tanpa metadata.
 - Jangan memaksa pending clarification bila pelanggan mengganti topik.
+- Jangan menghapus konteks produk pertama ketika turn berikutnya memang menjawab permintaan produk kedua untuk perbandingan.
 - Jangan menampilkan saran produk/topik stale dari respons lama.
 
 ### Important Files

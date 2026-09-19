@@ -19,6 +19,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Normalized informal Indonesian `sampe` in the shared budget parser so gift recommendations with ranges such as `3 juta sampe 6 jutaan` no longer ask for the budget again.
 - Added parser and end-to-end regression coverage that preserves the requested Rp3-Rp6 million range and excludes JUNK gift candidates.
 - Fixed gift filtering that treated positive catalog phrases such as `bukan barang JUNK` as an actual JUNK condition; explicit non-negated JUNK, `rongsok`, and `part only` markers remain blocked.
+- Fixed two-turn product comparisons so `produk lain` requests the second product instead of being searched as a literal catalog name; follow-up phrasing such as `bandingkan dengan [Produk B]` now retains Product A.
 
 ### Verification
 
@@ -37,6 +38,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Verified 368/368 local tests and 9/9 answer-coverage replay turns pass after the informal budget-range fix.
 - Verified the corrected filter against the public catalog: 18 products were in the Rp4-Rp12 million range and 17 ready products remained eligible for gift ranking.
 - Verified 369/369 local tests and 9/9 answer-coverage replay turns pass after the negated-JUNK fix.
+- Verified the two-turn comparison regression, the full 369/369 local suite, and 9/9 answer-coverage replay turns after the comparison-context fix.
 
 ### Documentation
 

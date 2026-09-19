@@ -504,6 +504,39 @@ test("routes real customer turns without stale products or fallback collisions",
     assert.match(comparison.reasoning_text, /artikulasi terbatas/i);
     assert.match(comparison.reasoning_text, /tidak ada pemenang mutlak/i);
 
+    const compareFollowUpSession = `compare_followup_${Date.now()}`;
+    const comparePrompt = await ask(
+      "Bandingkan Comparison Robot Alpha dengan produk lain",
+      null,
+      { sessionId: compareFollowUpSession },
+    );
+    assert.equal(comparePrompt.intent, "compare");
+    assert.match(comparePrompt.message, /dibandingkan dengan produk apa/i);
+    assert.match(comparePrompt.message, /Comparison Robot Alpha/i);
+
+    const comparisonFollowUp = await ask(
+      "bandingkan dengan robot Comparison Robot Beta",
+      null,
+      { sessionId: compareFollowUpSession },
+    );
+    assert.equal(comparisonFollowUp.type, "compare_reasoned");
+    assert.deepEqual(productNames(comparisonFollowUp), [
+      "Comparison Robot Alpha",
+      "Comparison Robot Beta",
+    ]);
+
+    const compareTopicSwitchSession = `compare_topic_switch_${Date.now()}`;
+    await ask(
+      "Bandingkan Comparison Robot Alpha dengan produk lain",
+      null,
+      { sessionId: compareTopicSwitchSession },
+    );
+    const compareTopicSwitch = await ask("Berapa harga Action Toys Ideon?", null, {
+      sessionId: compareTopicSwitchSession,
+    });
+    assert.equal(compareTopicSwitch.intent, "price_promo");
+    assert.deepEqual(productNames(compareTopicSwitch), ["Action Toys Ideon"]);
+
     process.env.LLM_LED_ASSISTANT_MODE = "active";
     process.env.GROQ_ROUTER_ENABLED = "true";
     process.env.GROQ_API_KEY = "test-groq-key";

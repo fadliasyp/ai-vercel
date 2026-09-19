@@ -161,6 +161,8 @@ Pada 2026-09-20:
 - Audit production mengonfirmasi parser dan constraint sudah benar, lalu menemukan false positive kondisi: frasa katalog `bukan barang JUNK` dibaca sebagai JUNK sehingga seluruh kandidat hadiah terhapus.
 - Deteksi JUNK kini peka terhadap negasi dan tetap menolak penanda JUNK aktual; validasi katalog publik menghasilkan 17 kandidat hadiah ready dari 18 produk pada rentang Rp4-Rp12 juta.
 - `npm test`: 369 test lulus; coverage replay tetap 9/9 turn lulus setelah perbaikan negasi kondisi.
+- Perbandingan dua turn kini mengenali `produk lain` sebagai placeholder, menyimpan produk pertama, dan menggabungkan jawaban seperti `bandingkan dengan [Produk B]` tanpa kehilangan konteks.
+- Regression suite tetap 369/369 dan coverage replay 9/9 turn lulus setelah perbaikan follow-up perbandingan.
 
 ## Session Handoff
 

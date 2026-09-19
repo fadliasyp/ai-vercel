@@ -2,7 +2,7 @@
 
 ## Status
 
-Belum ada task aktif. Perbaikan rekomendasi hadiah terhadap negasi kondisi JUNK sudah selesai dan lulus verifikasi lokal serta katalog publik.
+Belum ada task aktif. Perbaikan follow-up perbandingan dua turn sudah selesai dan lulus verifikasi lokal.
 
 ## Current Progress
 
@@ -37,12 +37,16 @@ Belum ada task aktif. Perbaikan rekomendasi hadiah terhadap negasi kondisi JUNK 
 - Deteksi kelayakan hadiah kini menghapus frasa JUNK yang dinegasikan sebelum mencari kondisi JUNK aktual; `kondisi JUNK`, `rongsok`, dan `part only` yang tidak dinegasikan tetap ditolak.
 - Validasi read-only terhadap 100 produk katalog publik menemukan 18 produk pada rentang Rp4-Rp12 juta dan 17 kandidat ready yang lolos filter hadiah setelah perbaikan.
 - Regression suite setelah perbaikan negasi kondisi lulus 369/369 dan coverage replay tetap lulus 9/9 turn.
+- Frasa `dengan produk lain` kini diperlakukan sebagai permintaan nama produk kedua, bukan nama produk literal.
+- Produk pertama disimpan dalam session dan state `compare_second`; jawaban lanjutan seperti `bandingkan dengan robot [Produk B]` dibersihkan lalu digabungkan menjadi perbandingan lengkap.
+- State compare kedua dilindungi hanya pada intent compare, sehingga pertanyaan eksplisit dengan intent lain tetap dapat mengganti topik.
+- Regression routing dua turn lulus; seluruh suite tetap 369/369 dan coverage replay tetap 9/9 turn.
 
 ## Last Completed Task
 
-- Task: memperbaiki false positive JUNK pada rekomendasi hadiah tanpa meloloskan produk yang benar-benar JUNK.
+- Task: memperbaiki follow-up perbandingan dua turn tanpa mengubah routing follow-up lain.
 - Tanggal selesai: 2026-09-20.
-- Goal: memahami negasi seperti `bukan barang JUNK` sambil tetap mempertahankan filter budget, stok, dan kondisi hadiah.
+- Goal: mempertahankan produk pertama saat pelanggan memilih produk pembanding pada turn berikutnya.
 
 ## Completed
 
@@ -55,6 +59,7 @@ Belum ada task aktif. Perbaikan rekomendasi hadiah terhadap negasi kondisi JUNK 
 - Menambahkan regression parser dan end-to-end untuk pertanyaan persis dari laporan pengguna.
 - Membuat deteksi kondisi JUNK peka terhadap negasi pada metadata rekomendasi.
 - Menambahkan regression untuk frasa negasi katalog dan kondisi JUNK aktual.
+- Menambahkan state dan regression dua turn untuk `bandingkan [Produk A] dengan produk lain`, diikuti nama Produk B.
 
 ## Findings
 
@@ -87,13 +92,12 @@ Belum ada task aktif. Perbaikan rekomendasi hadiah terhadap negasi kondisi JUNK 
 
 ## Next Steps
 
-1. Deploy perbaikan deteksi negasi JUNK bersama parser budget informal.
-2. Ulangi di production dengan session baru: `rekomen dong robot buat hadiah budget 4 juta sampe 12 jutaan?`; hasil yang diharapkan adalah kartu produk ready pada rentang tersebut, bukan pesan tidak ada produk.
-3. Ulangi pertanyaan `beli barang1 gratis 1 engga?`; hasil yang diharapkan adalah jawaban belum terverifikasi dengan tombol admin dan tanpa kartu produk diskon.
-4. Ulangi pertanyaan rekomendasi panjang yang sebelumnya menghasilkan `failed_generation`; hasil yang diharapkan adalah jawaban asli tetap terkirim tanpa panggilan Qwen naturalizer.
-5. Jalankan smoke production dan image production gate lengkap ketika quota provider mencukupi.
-6. Siapkan rate limiting, batas upload gambar, dan monitoring quota sebelum uji pengguna ramai.
-7. Tambahkan replay dari temuan pengujian pengguna nyata.
+1. Deploy perbaikan follow-up perbandingan dua turn.
+2. Ulangi di production dengan session baru: `Bandingkan Shokugan Modeling Project Voltes V dengan produk lain`, lalu `bandingkan dengan robot Soul of Chogokin GX-74 Getter 1 Dynamic Classic`.
+3. Ulangi pertanyaan rekomendasi panjang yang sebelumnya menghasilkan `failed_generation`; hasil yang diharapkan adalah jawaban asli tetap terkirim tanpa panggilan Qwen naturalizer.
+4. Jalankan smoke production dan image production gate lengkap ketika quota provider mencukupi.
+5. Siapkan rate limiting, batas upload gambar, dan monitoring quota sebelum uji pengguna ramai.
+6. Tambahkan replay dari temuan pengujian pengguna nyata.
 
 ## Blockers
 
