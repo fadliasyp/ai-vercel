@@ -2,7 +2,7 @@
 
 ## Status
 
-Belum ada task aktif. Perbaikan rekomendasi hadiah dengan rentang budget informal sudah selesai dan lulus verifikasi lokal.
+Belum ada task aktif. Perbaikan rekomendasi hadiah terhadap negasi kondisi JUNK sudah selesai dan lulus verifikasi lokal serta katalog publik.
 
 ## Current Progress
 
@@ -33,12 +33,16 @@ Belum ada task aktif. Perbaikan rekomendasi hadiah dengan rentang budget informa
 - Parser budget kini menormalkan kata informal `sampe` menjadi `sampai`, sehingga permintaan hadiah dengan rentang seperti `3 juta sampe 6 jutaan` tidak lagi meminta budget ulang.
 - Regression end-to-end memastikan permintaan tersebut menghasilkan produk ready non-JUNK pada rentang Rp3.000.000-Rp6.000.000 tanpa melonggarkan filter hadiah.
 - Regression suite setelah perbaikan rentang informal tetap lulus 368/368 dan coverage replay lulus 9/9 turn.
+- Audit production membuktikan budget Rp4-Rp12 juta dan tujuan `gift` sudah terbaca, tetapi semua kandidat live dibuang karena deskripsi positif seperti `bukan barang JUNK` dianggap JUNK oleh pencocokan kata mentah.
+- Deteksi kelayakan hadiah kini menghapus frasa JUNK yang dinegasikan sebelum mencari kondisi JUNK aktual; `kondisi JUNK`, `rongsok`, dan `part only` yang tidak dinegasikan tetap ditolak.
+- Validasi read-only terhadap 100 produk katalog publik menemukan 18 produk pada rentang Rp4-Rp12 juta dan 17 kandidat ready yang lolos filter hadiah setelah perbaikan.
+- Regression suite setelah perbaikan negasi kondisi lulus 369/369 dan coverage replay tetap lulus 9/9 turn.
 
 ## Last Completed Task
 
-- Task: memperbaiki rekomendasi hadiah dengan rentang budget informal `sampe` tanpa mengubah logic rekomendasi yang sudah benar.
+- Task: memperbaiki false positive JUNK pada rekomendasi hadiah tanpa meloloskan produk yang benar-benar JUNK.
 - Tanggal selesai: 2026-09-20.
-- Goal: membaca rentang harga informal secara deterministik dan tetap mempertahankan filter budget, stok, serta keamanan hadiah.
+- Goal: memahami negasi seperti `bukan barang JUNK` sambil tetap mempertahankan filter budget, stok, dan kondisi hadiah.
 
 ## Completed
 
@@ -49,6 +53,8 @@ Belum ada task aktif. Perbaikan rekomendasi hadiah dengan rentang budget informa
 - Memverifikasi 362 unit/regression tests tetap lulus tanpa perubahan source produksi.
 - Menambahkan normalisasi `sampe` pada parser budget bersama.
 - Menambahkan regression parser dan end-to-end untuk pertanyaan persis dari laporan pengguna.
+- Membuat deteksi kondisi JUNK peka terhadap negasi pada metadata rekomendasi.
+- Menambahkan regression untuk frasa negasi katalog dan kondisi JUNK aktual.
 
 ## Findings
 
@@ -71,6 +77,8 @@ Belum ada task aktif. Perbaikan rekomendasi hadiah dengan rentang budget informa
 - `tests/storePolicy.test.js`
 - `lib/chatbot/priceIntent.js`
 - `tests/priceIntent.test.js`
+- `lib/chatbot/recommendationMetadata.js`
+- `tests/recommendationMetadata.test.js`
 - `scripts/test-intent-ml-model.py`
 - `docs/FEATURE_BASELINE.md`
 - `docs/PROJECT_CONTEXT.md`
@@ -79,8 +87,8 @@ Belum ada task aktif. Perbaikan rekomendasi hadiah dengan rentang budget informa
 
 ## Next Steps
 
-1. Deploy perbaikan parser budget informal bersama perubahan lokal lain yang memang siap dirilis.
-2. Ulangi di production: `rekomen dong robot buat hadiah budget nya 3 juta sampe 6 jutaan deh`; hasil yang diharapkan adalah kartu produk ready non-JUNK pada rentang Rp3-Rp6 juta tanpa pertanyaan budget ulang.
+1. Deploy perbaikan deteksi negasi JUNK bersama parser budget informal.
+2. Ulangi di production dengan session baru: `rekomen dong robot buat hadiah budget 4 juta sampe 12 jutaan?`; hasil yang diharapkan adalah kartu produk ready pada rentang tersebut, bukan pesan tidak ada produk.
 3. Ulangi pertanyaan `beli barang1 gratis 1 engga?`; hasil yang diharapkan adalah jawaban belum terverifikasi dengan tombol admin dan tanpa kartu produk diskon.
 4. Ulangi pertanyaan rekomendasi panjang yang sebelumnya menghasilkan `failed_generation`; hasil yang diharapkan adalah jawaban asli tetap terkirim tanpa panggilan Qwen naturalizer.
 5. Jalankan smoke production dan image production gate lengkap ketika quota provider mencukupi.

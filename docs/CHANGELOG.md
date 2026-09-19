@@ -18,6 +18,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Added a deterministic buy-one-get-one guard so unsupported `beli 1 gratis 1` questions no longer display ordinary discounted products and instead receive an honest admin handoff.
 - Normalized informal Indonesian `sampe` in the shared budget parser so gift recommendations with ranges such as `3 juta sampe 6 jutaan` no longer ask for the budget again.
 - Added parser and end-to-end regression coverage that preserves the requested Rp3-Rp6 million range and excludes JUNK gift candidates.
+- Fixed gift filtering that treated positive catalog phrases such as `bukan barang JUNK` as an actual JUNK condition; explicit non-negated JUNK, `rongsok`, and `part only` markers remain blocked.
 
 ### Verification
 
@@ -34,6 +35,8 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Verified 367/367 local tests and 9/9 answer-coverage replay turns pass after the naturalizer efficiency fix.
 - Verified 368/368 local tests and 9/9 answer-coverage replay turns pass after the buy-one-get-one routing fix, including active LLM semantic-lock coverage.
 - Verified 368/368 local tests and 9/9 answer-coverage replay turns pass after the informal budget-range fix.
+- Verified the corrected filter against the public catalog: 18 products were in the Rp4-Rp12 million range and 17 ready products remained eligible for gift ranking.
+- Verified 369/369 local tests and 9/9 answer-coverage replay turns pass after the negated-JUNK fix.
 
 ### Documentation
 

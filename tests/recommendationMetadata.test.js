@@ -83,6 +83,31 @@ test("does not mark a ready JUNK product as gift suitable", () => {
   assert.equal(metadata.giftSuitable, false);
 });
 
+test("does not treat negated JUNK wording as an unsafe gift condition", () => {
+  for (const description of [
+    "Kondisi lengkap, bukan barang JUNK.",
+    "Unit utuh, bukan barang bekas, pajangan, atau JUNK.",
+    "Kondisi bagus dan tidak termasuk barang rongsok.",
+  ]) {
+    const metadata = deriveRecommendationMetadata({
+      name: "Robot Koleksi",
+      description,
+      numericPrice: 5500000,
+      stock: "instock",
+    });
+
+    assert.equal(metadata.giftSuitable, true, description);
+  }
+
+  const actualJunk = deriveRecommendationMetadata({
+    name: "Robot Koleksi",
+    description: "Tidak lengkap. Kondisi JUNK dan ada bagian rusak.",
+    numericPrice: 5500000,
+    stock: "instock",
+  });
+  assert.equal(actualJunk.giftSuitable, false);
+});
+
 test("keeps franchise era separate from product release years", () => {
   const metadata = deriveRecommendationMetadata({
     name: "DX Chogokin Grendizer Reissue",

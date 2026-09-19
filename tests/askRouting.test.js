@@ -307,7 +307,7 @@ test("routes real customer turns without stale products or fallback collisions",
     assert.doesNotMatch(recommendation.reasoning_text, /\.\.\.|…$/);
 
     const giftBudgetRecommendation = await ask(
-      "rekomen dong robot buat hadiah budget nya 3 juta sampe 6 jutaan deh",
+      "rekomen dong robot buat hadiah budget 4 juta sampe 12 jutaan?",
       null,
       { sessionId: `gift_budget_${Date.now()}` },
     );
@@ -317,7 +317,7 @@ test("routes real customer turns without stale products or fallback collisions",
     assert.ok(
       giftBudgetRecommendation.products.every((item) => {
         const price = Number(item.numericPrice || 0);
-        return price >= 3000000 && price <= 6000000;
+        return price >= 4000000 && price <= 12000000;
       }),
     );
     assert.ok(

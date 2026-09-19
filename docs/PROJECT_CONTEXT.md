@@ -158,6 +158,9 @@ Pada 2026-09-20:
 - Rentang budget informal dengan kata `sampe` dinormalisasi oleh parser harga bersama; pertanyaan rekomendasi hadiah `3 juta sampe 6 jutaan` kini langsung menghasilkan produk pada rentang tersebut.
 - Filter hadiah tetap menolak produk JUNK dan tidak mengendurkan batas budget atau status stok.
 - `npm test`: 368 test lulus; coverage replay: 9/9 turn lulus, coverage 59,4% menjadi 88,9%.
+- Audit production mengonfirmasi parser dan constraint sudah benar, lalu menemukan false positive kondisi: frasa katalog `bukan barang JUNK` dibaca sebagai JUNK sehingga seluruh kandidat hadiah terhapus.
+- Deteksi JUNK kini peka terhadap negasi dan tetap menolak penanda JUNK aktual; validasi katalog publik menghasilkan 17 kandidat hadiah ready dari 18 produk pada rentang Rp4-Rp12 juta.
+- `npm test`: 369 test lulus; coverage replay tetap 9/9 turn lulus setelah perbaikan negasi kondisi.
 
 ## Session Handoff
 
