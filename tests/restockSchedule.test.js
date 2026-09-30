@@ -59,6 +59,10 @@ test("recognizes specific and catalog-wide restock questions", () => {
     true,
   );
   assert.equal(
+    looksLikeGeneralRestockQuestion("Dari kemarin nunggu kapan restock sih"),
+    true,
+  );
+  assert.equal(
     looksLikeGeneralRestockQuestion("kapan Soul of Chogokin restock?"),
     false,
   );

@@ -240,6 +240,44 @@ test("deterministic greeting bypasses every LLM answer composer", async () => {
   assert.equal(mistralCalls, 0);
 });
 
+test("grounded restock response bypasses every LLM answer composer", async () => {
+  let providerCalls = 0;
+  const restockPayload = {
+    type: "products",
+    intent: "stock_availability",
+    intro:
+      "Berikut jadwal restock mendatang yang tercatat:\n\n- **Daitarn 3**: 1 Desember 2099 pukul 15.30 WIB",
+    products: [{ id: 1, name: "Daitarn 3" }],
+  };
+  const mustNotRun = async () => {
+    providerCalls += 1;
+    throw new Error("LLM composer must not run for grounded restock answers");
+  };
+
+  const result = await runLlmAnswerComposer({
+    payload: restockPayload,
+    question: "Dari kemarin nunggu kapan restock sih",
+    intent: "stock_availability",
+    config: {
+      ...config("active"),
+      geminiFallbackEnabled: true,
+      mistral: {
+        enabled: true,
+        apiKey: "mistral-key",
+        model: "mistral-small-latest",
+      },
+    },
+    fetchImpl: mustNotRun,
+    geminiNaturalizeImpl: mustNotRun,
+    mistralNaturalizeImpl: mustNotRun,
+  });
+
+  assert.deepEqual(result.payload, restockPayload);
+  assert.equal(result.meta.status, "deterministic_intent");
+  assert.equal(result.meta.provider, "template");
+  assert.equal(providerCalls, 0);
+});
+
 test("falls back to Gemini when all Groq composer models are rate limited", async () => {
   const result = await runLlmAnswerComposer({
     payload,

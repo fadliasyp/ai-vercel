@@ -324,6 +324,7 @@ test("routes real customer turns without stale products or fallback collisions",
     for (const question of [
       "kapan restock sih udah nunggu lama nih?",
       "Kapan restock barang emang",
+      "Dari kemarin nunggu kapan restock sih",
     ]) {
       const genericRestock = await ask(question, null, {
         sessionId: `generic_restock_${Date.now()}_${question.length}`,

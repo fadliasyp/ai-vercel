@@ -94,11 +94,12 @@ Menjawab jadwal restock dari metadata WPC Product Timer tanpa meminta LLM meneba
 
 - Pertanyaan restock tetap memakai intent `stock_availability`.
 - Pertanyaan umum seperti `kapan robot-robot restock?` menampilkan semua produk dengan jadwal mendatang, diurutkan dari waktu paling dekat.
-- Pertanyaan umum tanpa nama produk tetap dikenali meskipun memakai filler percakapan, misalnya `kapan restock sih udah nunggu lama nih?` atau `kapan restock barang emang`.
+- Pertanyaan umum tanpa nama produk tetap dikenali meskipun memakai filler percakapan/waktu, misalnya `kapan restock sih udah nunggu lama nih?`, `kapan restock barang emang`, atau `dari kemarin nunggu kapan restock sih`.
 - Pertanyaan yang menyebut satu produk hanya menjawab produk tersebut.
 - Hanya aksi `set_instock` dengan `date_time_after` yang pasti dan berlaku bagi storefront yang boleh ditampilkan.
 - Jadwal lampau tidak ditampilkan sebagai jadwal mendatang.
 - Produk tanpa jadwal terverifikasi tidak diberi tanggal perkiraan dan diarahkan ke admin.
+- Jawaban restock yang sudah dibangun dari metadata WooCommerce tidak memanggil answer composer Groq, Gemini, atau Mistral.
 
 ### Do Not Break
 
@@ -120,7 +121,7 @@ Menjawab jadwal restock dari metadata WPC Product Timer tanpa meminta LLM meneba
 
 - `npm test`
 - `npm run benchmark:coverage-replay`
-- Bukti 2026-09-30: 373/373 test lulus; coverage replay 9/9 turn lulus.
+- Bukti 2026-09-30: 375/375 test lulus; coverage replay 9/9 turn lulus.
 - Audit read-only live: produk ID 4994 menghasilkan jadwal `30 September 2026 pukul 10.24 WIB`.
 
 ## Controlled Conversation Actions
@@ -208,11 +209,12 @@ Mempertahankan layanan ketika model/provider tertentu timeout, rate limited, ata
 ### Correct Behavior
 
 - Groq memiliki fallback model untuk semantic router/naturalizer.
-- Gemini mencoba model family terkonfigurasi dan memakai cooldown.
+- Gemini mencoba model family terkonfigurasi dan memakai cooldown; pool default tidak memuat `gemini-2.5-flash-lite` setelah production API mengembalikan 404 unavailable untuk project ini.
 - Mistral menjadi fallback text/vision bila aktif.
 - Cloudflare menjadi vision fallback bila aktif.
 - Local deterministic understanding tetap tersedia saat provider gagal.
 - Intent `greeting` yang sudah memiliki jawaban template final tidak memanggil Groq, Gemini, atau Mistral answer composer; metadata mencatat `provider: template` dan `status: deterministic_intent`.
+- Pertanyaan restock juga melewati answer composer karena tanggal, jam, dan daftar produk sudah berupa fakta terstruktur dari WooCommerce.
 - Respons dengan teks editable di atas 2.400 karakter mempertahankan payload faktual asli tanpa memanggil naturalizer, untuk menghindari pemborosan quota dan kegagalan JSON akibat batas output.
 - Groq `failed_generation` hanya mencoba model Groq cadangan yang memang dikonfigurasi; bila tidak ada yang berhasil, payload asli tetap dikirim tanpa retry lintas provider.
 
@@ -222,6 +224,7 @@ Mempertahankan layanan ketika model/provider tertentu timeout, rate limited, ata
 - Jangan menganggap provider fallback sebagai izin mengarang fakta.
 - Jangan menghapus cooldown/deadline yang melindungi request Vercel.
 - Jangan mengaktifkan kembali composer LLM untuk sapaan deterministik karena hanya menambah pemakaian quota dan peluang error provider tanpa menambah fakta.
+- Jangan menambahkan model 404 ke pool default; environment Vercel yang menimpa pool harus diaudit terpisah.
 
 ### Important Files
 
@@ -241,6 +244,7 @@ Mempertahankan layanan ketika model/provider tertentu timeout, rate limited, ata
 - Bukti API akun 2026-09-15: seluruh enam ID Gemini pada default pool terdaftar untuk `generateContent`; test setelah sinkronisasi lulus 365/365.
 - Bukti lokal 2026-09-16: perbaikan naturalizer lulus 367/367 test dan coverage replay 9/9 turn.
 - Bukti lokal 2026-09-30: sapaan deterministik terbukti menghasilkan nol panggilan Groq/Gemini/Mistral; 374/374 test dan coverage replay 9/9 turn lulus.
+- Bukti lokal 2026-09-30: kalimat `Dari kemarin nunggu kapan restock sih` menghasilkan daftar restock dan nol panggilan answer composer; pool default bebas `gemini-2.5-flash-lite`; 375/375 test serta replay 9/9 lulus.
 
 ## Statuses Not Yet Baseline-Stable
 

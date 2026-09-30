@@ -103,7 +103,7 @@ Composer hanya boleh mengubah text fields. Structured payload dan protected fact
 - `shadow`: understanding/composer dievaluasi, response legacy tetap disajikan.
 - `active`: understanding terpilih dapat mengunci intent dan candidate aman dapat disajikan.
 
-Sapaan deterministik (`greeting`) berhenti sebelum provider composer dipanggil. Respons template tetap disajikan dan observability mencatat `provider: template`, `status: deterministic_intent`; fallback multi-provider tetap berlaku untuk intent lain yang benar-benar membutuhkan penyusunan bahasa LLM.
+Sapaan deterministik (`greeting`) dan pertanyaan restock berhenti sebelum provider composer dipanggil. Respons template/terverifikasi tetap disajikan dan observability mencatat `provider: template`, `status: deterministic_intent`; fallback multi-provider tetap berlaku untuk intent lain yang benar-benar membutuhkan penyusunan bahasa LLM.
 
 ## Product Data
 

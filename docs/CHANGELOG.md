@@ -14,7 +14,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 - Migrated the Groq router fallback and local naturalizer model from unavailable `qwen/qwen3.6-27b` to account-verified `qwen/qwen3.8-27b`.
 - Added regression coverage for the current default Groq fallback model.
-- Revalidated Gemini model IDs against the account's live `models.list` response: restored valid `gemini-2.5-flash-lite` and `gemini-3-flash-preview` fallbacks while retaining `gemini-3.5-flash-lite` and `gemini-3.5-flash`.
+- Revalidated Gemini model IDs against the account's 2026-09-15 `models.list` response, which at that time listed `gemini-2.5-flash-lite` and `gemini-3-flash-preview`; the newer runtime 404 supersedes that evidence for Flash-Lite as recorded below.
 - Documented that the dashboard label "Gemini 3 Flash" maps to the API ID `gemini-3-flash-preview`; `gemini-3-flash` is not the listed API ID.
 - Updated Cloudflare Workers AI response parsing to accept structured `result.response` objects as well as text.
 - Replaced rate-limited `mistral-small-latest` with live-verified `ministral-8b-2512` and `ministral-3b-2512` fallback defaults for text and vision.
@@ -28,6 +28,9 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Fixed two-turn product comparisons so `produk lain` requests the second product instead of being searched as a literal catalog name; follow-up phrasing such as `bandingkan dengan [Produk B]` now retains Product A.
 - Fixed generic conversational restock questions such as `kapan restock sih udah nunggu lama nih?` and `kapan restock barang emang` being misread as unknown product names.
 - Prevented deterministic greetings such as `halo` from invoking the Groq, Gemini, and Mistral answer-composer fallback chain. The existing template response is returned directly with `deterministic_intent` observability metadata, avoiding quota waste and misleading provider error logs for greetings.
+- Fixed `Dari kemarin nunggu kapan restock sih` being treated as a specific product lookup by recognizing `dari kemarin` as conversational time filler only within restock classification.
+- Skipped the answer-composer provider chain for grounded restock responses, preserving the WooCommerce-derived schedule while avoiding unnecessary quota use and provider errors.
+- Removed `gemini-2.5-flash-lite` from default Gemini pools after the production API returned HTTP 404 stating that the model is unavailable to this project; explicit Vercel model-list overrides still require operator cleanup.
 
 ### Verification
 
@@ -50,6 +53,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Verified the restock parser against live WooCommerce metadata for product ID 4994.
 - Verified 373/373 local tests and 9/9 answer-coverage replay turns after the restock schedule feature.
 - Verified the greeting composer regression test makes zero calls to all three text providers; the full suite passes 374/374 and answer-coverage replay remains 9/9.
+- Verified the exact reported restock sentence through parser and endpoint regressions, plus zero composer-provider calls; the full suite passes 375/375 and answer-coverage replay remains 9/9.
 
 ### Documentation
 

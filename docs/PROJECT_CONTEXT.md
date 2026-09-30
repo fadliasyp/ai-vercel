@@ -179,6 +179,10 @@ Pada 2026-09-30:
 - Log production menunjukkan sapaan `halo` masih memasuki answer composer saat Groq sudah mencapai batas token harian, lalu mencoba Gemini dan Mistral meskipun respons template sudah memadai.
 - Answer composer kini melewati seluruh provider untuk intent `greeting`; regression membuktikan nol panggilan Groq/Gemini/Mistral, sementara fallback intent lain tetap utuh.
 - `npm test`: 374/374 test lulus; coverage replay tetap 9/9 turn dengan coverage 59,4% menjadi 88,9%.
+- Kalimat `Dari kemarin nunggu kapan restock sih` kini diklasifikasikan sebagai restock umum; kata waktu `dari kemarin` tidak lagi dianggap nama produk.
+- Respons restock melewati answer composer karena jadwal sudah dibangun dari metadata WooCommerce. Ini menghindari Groq/Gemini/Mistral error pada tahap penyuntingan tanpa mengurangi fakta jawaban.
+- Production API mengembalikan 404 untuk `gemini-2.5-flash-lite`; model tersebut dikeluarkan dari pool default. Override `GEMINI_*_MODEL(S)` pada Vercel tetap harus bebas dari ID tersebut.
+- `npm test`: 375/375 test lulus; coverage replay tetap 9/9 turn dengan coverage 59,4% menjadi 88,9%.
 
 ## Session Handoff
 

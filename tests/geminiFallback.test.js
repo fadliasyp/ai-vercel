@@ -10,7 +10,8 @@ import {
 
 test("default Gemini pools use the account-supported text model IDs", () => {
   for (const models of Object.values(GEMINI_MODEL_FALLBACKS)) {
-    assert.equal(models.includes("gemini-2.5-flash-lite"), true);
+    assert.equal(models.includes("gemini-2.5-flash-lite"), false);
+    assert.equal(models.includes("gemini-2.5-flash"), true);
     assert.equal(models.includes("gemini-3-flash-preview"), true);
     assert.equal(models.includes("gemini-3.5-flash-lite"), true);
   }
