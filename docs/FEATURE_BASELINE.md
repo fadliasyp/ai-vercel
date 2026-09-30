@@ -246,6 +246,38 @@ Mempertahankan layanan ketika model/provider tertentu timeout, rate limited, ata
 - Bukti lokal 2026-09-30: sapaan deterministik terbukti menghasilkan nol panggilan Groq/Gemini/Mistral; 374/374 test dan coverage replay 9/9 turn lulus.
 - Bukti lokal 2026-09-30: kalimat `Dari kemarin nunggu kapan restock sih` menghasilkan daftar restock dan nol panggilan answer composer; pool default bebas `gemini-2.5-flash-lite`; 375/375 test serta replay 9/9 lulus.
 
+## Automated Crawler Guard
+
+### Status
+
+STABLE (identified Meta crawler and local regression scope)
+
+### Function
+
+Mencegah crawler Meta `meta-externalagent` menjalankan pipeline chatbot text dan menghabiskan resource eksternal.
+
+### Correct Behavior
+
+- `POST /api/ask` dengan User-Agent `meta-externalagent` berhenti dengan HTTP 204 sebelum session, Supabase, intent ML, katalog, atau provider LLM dipanggil.
+- User-Agent browser pelanggan biasa tetap menjalankan pipeline dan menerima response JSON normal.
+- Guard tidak memblokir `facebookexternalhit` atau User-Agent Meta lain yang belum terbukti menjadi sumber burst.
+
+### Do Not Break
+
+- Jangan memblokir semua User-Agent yang memuat kata `facebook` atau `meta` secara umum.
+- Jangan mengandalkan session rate limit untuk burst ini karena crawler membuat UUID baru pada hampir setiap request.
+- Jangan memindahkan guard setelah load session atau pemanggilan dependency eksternal.
+
+### Important Files
+
+- `api/ask.js`
+- `tests/crawlerRequestGuard.test.js`
+
+### Verification
+
+- Bukti production 2026-09-30: 3.386 intent log, 3.372 greeting, dan 3.360 session unik; tiga detail request Vercel menunjukkan `meta-externalagent/1.1` dengan referer `https://fadli.site/`.
+- Bukti lokal 2026-09-30: crawler mendapat HTTP 204, Chrome biasa mendapat greeting HTTP 200, dan `npm test` lulus 376/376.
+
 ## Statuses Not Yet Baseline-Stable
 
 - LLM-led conversational accuracy end-to-end: WORKING, masih perlu replay/manual test berkelanjutan.

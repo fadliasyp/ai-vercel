@@ -40,6 +40,7 @@ Status project: **aktif dikembangkan**.
 - Saran pertanyaan terstruktur, opsi klarifikasi, feedback, dan WhatsApp admin handoff.
 - Session frontend persisten, Markdown ter-sanitasi, upload/kompresi gambar, dan viewport mobile.
 - Observability intent/provider/coverage dan conversation replay benchmarks.
+- Request text dari crawler `meta-externalagent` dihentikan sebelum session, Supabase, intent ML, katalog, atau provider LLM dipanggil.
 
 ## Business Logic
 
@@ -183,6 +184,9 @@ Pada 2026-09-30:
 - Respons restock melewati answer composer karena jadwal sudah dibangun dari metadata WooCommerce. Ini menghindari Groq/Gemini/Mistral error pada tahap penyuntingan tanpa mengurangi fakta jawaban.
 - Production API mengembalikan 404 untuk `gemini-2.5-flash-lite`; model tersebut dikeluarkan dari pool default. Override `GEMINI_*_MODEL(S)` pada Vercel tetap harus bebas dari ID tersebut.
 - `npm test`: 375/375 test lulus; coverage replay tetap 9/9 turn dengan coverage 59,4% menjadi 88,9%.
+- Audit read-only `intent_logs` menemukan 3.386 request pada hari yang sama: 3.372 greeting dan 3.360 session unik. Detail request Vercel mengidentifikasi sumber burst sebagai crawler Meta `meta-externalagent/1.1`, bukan pertanyaan manual pelanggan.
+- `/api/ask` kini mengembalikan HTTP 204 untuk `meta-externalagent` sebelum memuat session atau memanggil dependency eksternal. Browser pelanggan biasa tetap menerima greeting HTTP 200.
+- `npm test`: 376/376 test lulus setelah crawler guard.
 
 ## Session Handoff
 

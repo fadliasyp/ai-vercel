@@ -9,6 +9,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Added grounded per-product restock schedules from WPC Product Timer `woopt_actions` metadata.
 - Added catalog-wide restock questions that list every upcoming product in chronological order and product-specific questions that return only the matched product.
 - Added deterministic WIB date formatting, past-schedule filtering, storefront-role filtering, honest admin handoff when no schedule exists, and regression coverage for all three outcomes.
+- Added an early HTTP 204 guard for `meta-externalagent` requests so the identified Meta crawler cannot reach chatbot session storage, Supabase, intent ML, catalog calls, or LLM providers.
 
 ### Fixed
 
@@ -31,6 +32,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Fixed `Dari kemarin nunggu kapan restock sih` being treated as a specific product lookup by recognizing `dari kemarin` as conversational time filler only within restock classification.
 - Skipped the answer-composer provider chain for grounded restock responses, preserving the WooCommerce-derived schedule while avoiding unnecessary quota use and provider errors.
 - Removed `gemini-2.5-flash-lite` from default Gemini pools after the production API returned HTTP 404 stating that the model is unavailable to this project; explicit Vercel model-list overrides still require operator cleanup.
+- Identified the production request burst as Meta `meta-externalagent/1.1`: a read-only audit found 3,386 requests, 3,372 greetings, and 3,360 unique sessions on 2026-09-30.
 
 ### Verification
 
@@ -54,6 +56,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Verified 373/373 local tests and 9/9 answer-coverage replay turns after the restock schedule feature.
 - Verified the greeting composer regression test makes zero calls to all three text providers; the full suite passes 374/374 and answer-coverage replay remains 9/9.
 - Verified the exact reported restock sentence through parser and endpoint regressions, plus zero composer-provider calls; the full suite passes 375/375 and answer-coverage replay remains 9/9.
+- Verified the crawler guard returns HTTP 204 for `meta-externalagent`, preserves HTTP 200 greeting behavior for a normal Chrome User-Agent, and passes the full 376/376 local suite.
 
 ### Documentation
 

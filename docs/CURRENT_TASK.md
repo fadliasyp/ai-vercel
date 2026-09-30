@@ -2,7 +2,7 @@
 
 ## Status
 
-Belum ada task aktif. Perbaikan restock percakapan dan penghematan composer sudah selesai serta lulus verifikasi lokal.
+Belum ada task aktif. Guard crawler Meta sudah selesai secara lokal dan menunggu deployment production oleh pengguna.
 
 ## Current Progress
 
@@ -57,12 +57,15 @@ Belum ada task aktif. Perbaikan restock percakapan dan penghematan composer suda
 - Jawaban restock kini melewati Groq/Gemini/Mistral answer composer karena faktanya sudah final dari WooCommerce. Error naturalizer pada log yang dilampirkan tidak lagi dipicu oleh pertanyaan restock.
 - `gemini-2.5-flash-lite` dihapus dari semua pool default setelah production API mengembalikan 404. Jika ID itu masih ada pada `GEMINI_*_MODEL(S)` di Vercel, override tersebut harus dibersihkan sebelum redeploy.
 - Seluruh suite lulus 375/375 dan coverage replay tetap 9/9 turn.
+- Audit Supabase pada 2026-09-30 menemukan 3.386 request, terdiri dari 3.372 greeting dan 3.360 session unik; detail Vercel mengidentifikasi User-Agent `meta-externalagent/1.1` sebagai sumber burst.
+- Guard `/api/ask` kini mengembalikan HTTP 204 khusus untuk `meta-externalagent` sebelum session, Supabase, intent ML, katalog, atau provider LLM dijalankan. Browser pelanggan biasa tidak diblokir.
+- Regression baru membuktikan crawler diblokir dan Chrome biasa tetap menerima greeting HTTP 200; seluruh suite lulus 376/376.
 
 ## Last Completed Task
 
-- Task: memperbaiki restock umum dengan filler waktu dan menghilangkan panggilan composer yang tidak diperlukan.
+- Task: menghentikan burst request otomatis dari crawler Meta tanpa mengubah perilaku chatbot pelanggan.
 - Tanggal selesai: 2026-09-30.
-- Goal: menjawab restock umum dari jadwal WooCommerce tanpa salah mencari produk atau membuang quota provider.
+- Goal: mencegah `meta-externalagent` mencapai session, database, intent ML, katalog, dan provider LLM.
 
 ## Completed
 
@@ -81,6 +84,7 @@ Belum ada task aktif. Perbaikan restock percakapan dan penghematan composer suda
 - Menambahkan `dari` dan `kemarin` sebagai filler terbatas pada klasifikasi restock umum.
 - Menambahkan regression parser, endpoint, dan nol-panggilan-composer untuk kalimat persis laporan pengguna.
 - Menghapus `gemini-2.5-flash-lite` dari pool default berdasarkan bukti 404 production.
+- Menambahkan guard HTTP 204 untuk `meta-externalagent` dan regression yang mempertahankan respons browser pelanggan normal.
 
 ## Findings
 
@@ -110,6 +114,7 @@ Belum ada task aktif. Perbaikan restock percakapan dan penghematan composer suda
 - `tests/restockSchedule.test.js`
 - `lib/chatbot/llmAssistant.js`
 - `tests/llmAssistant.test.js`
+- `tests/crawlerRequestGuard.test.js`
 - `scripts/test-intent-ml-model.py`
 - `docs/FEATURE_BASELINE.md`
 - `docs/PROJECT_CONTEXT.md`
@@ -118,12 +123,12 @@ Belum ada task aktif. Perbaikan restock percakapan dan penghematan composer suda
 
 ## Next Steps
 
-1. Periksa `GEMINI_FAST_MODELS`, `GEMINI_SMART_MODELS`, `GEMINI_VISION_MODELS`, `GEMINI_TEXT_MODELS`, dan versi singularnya di Vercel; hapus `gemini-2.5-flash-lite` bila tercantum.
-2. Deploy perubahan terbaru ke Vercel.
-3. Uji production dengan `Dari kemarin nunggu kapan restock sih`; hasil yang diharapkan adalah daftar jadwal, `provider: template`, `reason: deterministic_intent`, dan tanpa error naturalizer.
-4. Jalankan smoke production dan image production gate lengkap ketika quota provider mencukupi.
-5. Siapkan rate limiting, batas upload gambar, dan monitoring quota sebelum uji pengguna ramai.
-6. Tambahkan replay dari temuan pengujian pengguna nyata.
+1. Buat Vercel Custom WAF Rule: Request Path sama dengan `/api/ask` DAN User Agent memuat `meta-externalagent`, lalu action `Deny`.
+2. Deploy perubahan terbaru ke Vercel sebagai defense-in-depth bila trafik mencapai Function.
+3. Tanpa WAF, pastikan request baru dari `meta-externalagent/1.1` berstatus 204, memiliki log `BLOCKED CRAWLER`, dan tidak menampilkan external API calls; dengan WAF, pastikan request tercatat `Deny` sebelum invocation.
+4. Pertimbangkan `User-agent: meta-externalagent` + `Disallow: /` pada `robots.txt` WordPress sebagai lapisan crawl-policy; dokumentasi Meta menyatakan propagasinya dapat memerlukan hingga 24 jam.
+5. Periksa pool Gemini Vercel dan hapus `gemini-2.5-flash-lite` bila masih tercantum, lalu jalankan smoke/gate ketika quota mencukupi.
+6. Siapkan rate limiting umum, batas upload gambar, dan monitoring quota sebelum uji pengguna ramai.
 
 ## Blockers
 

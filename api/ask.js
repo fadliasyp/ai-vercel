@@ -485,6 +485,10 @@ function isGlobalStockQuestion(q = "") {
   );
 }
 
+function isMetaExternalAgent(userAgent = "") {
+  return /\bmeta-externalagent(?:\/|\b)/i.test(String(userAgent || ""));
+}
+
 export default async function handler(req, res) {
   const requestStartedAt = Date.now();
   console.log("ASK HIT:", req.method, req.url);
@@ -507,6 +511,11 @@ export default async function handler(req, res) {
 
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  if (isMetaExternalAgent(req.headers["user-agent"])) {
+    console.log("BLOCKED CRAWLER: meta-externalagent");
+    return res.status(204).end();
   }
 
   const body = req.body || {};

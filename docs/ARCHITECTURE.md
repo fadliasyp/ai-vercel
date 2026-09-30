@@ -52,15 +52,16 @@ Orkestrator chat text. Menerima pertanyaan, history, structured suggested action
 
 Alur utama:
 
-1. Validasi request/session dan muat state.
-2. Analisis pending context dan semantic understanding.
-3. Fusion/lock intent sesuai mode LLM-led dan exception tepercaya.
-4. Decompose pertanyaan dan buat answer/tool plan.
-5. Ambil data Woo/WordPress/shipping/order/tracking/policy.
-6. Bangun response deterministik terverifikasi.
-7. Periksa answer coverage dan lakukan repair/klarifikasi.
-8. Pada shadow/active, jalankan composer dan safety validator.
-9. Tambahkan controlled actions, metadata, metrics, dan simpan session.
+1. Hentikan User-Agent `meta-externalagent` dengan HTTP 204 sebelum dependency eksternal.
+2. Validasi request/session dan muat state.
+3. Analisis pending context dan semantic understanding.
+4. Fusion/lock intent sesuai mode LLM-led dan exception tepercaya.
+5. Decompose pertanyaan dan buat answer/tool plan.
+6. Ambil data Woo/WordPress/shipping/order/tracking/policy.
+7. Bangun response deterministik terverifikasi.
+8. Periksa answer coverage dan lakukan repair/klarifikasi.
+9. Pada shadow/active, jalankan composer dan safety validator.
+10. Tambahkan controlled actions, metadata, metrics, dan simpan session.
 
 ### `POST /api/ask-image`
 
@@ -137,7 +138,7 @@ Lihat `docs/DATABASE.md` untuk status schema.
 - `X-Session-Id` adalah correlation/conversation identifier, bukan autentikasi.
 - WooCommerce, shipping API, Biteship, Supabase, dan AI providers memakai server-side credentials.
 - Status order memakai verifikasi per-order melalui billing email/phone.
-- API-level authorization/rate limiting belum ditemukan.
+- API-level authorization/rate limiting umum belum tersedia. `/api/ask` memiliki guard sempit untuk crawler `meta-externalagent` yang terbukti menghasilkan burst traffic.
 
 ## Background Jobs
 
@@ -164,6 +165,7 @@ Tidak ada queue, cron, atau background worker yang ditemukan. Visual index diban
 - Orkestrator besar meningkatkan risiko branch yang saling menimpa.
 - Multi-provider fallback dapat meningkatkan latency dan biaya/quota.
 - CORS wildcard dan tidak adanya API authentication membuka risiko abuse.
+- Guard User-Agent Meta mengurangi burst yang teridentifikasi, tetapi User-Agent dapat dipalsukan dan bukan pengganti rate limiting umum. Custom WAF Rule Vercel untuk path `/api/ask` + User-Agent `meta-externalagent` direkomendasikan agar trafik berhenti sebelum Function.
 - Persistensi session bergantung schema Supabase yang belum terdokumentasi penuh.
 - Live API/schema WordPress dapat berubah di luar repository.
 - Image search bergantung kualitas visual index, dataset, quota, dan production gate.
