@@ -2,7 +2,7 @@
 
 ## Status
 
-Belum ada task aktif. Guard crawler Meta sudah selesai secara lokal dan menunggu deployment production oleh pengguna.
+Perbaikan retry katalog WooCommerce selesai lokal dan menunggu deployment serta smoke production.
 
 ## Current Progress
 
@@ -60,6 +60,16 @@ Belum ada task aktif. Guard crawler Meta sudah selesai secara lokal dan menunggu
 - Audit Supabase pada 2026-09-30 menemukan 3.386 request, terdiri dari 3.372 greeting dan 3.360 session unik; detail Vercel mengidentifikasi User-Agent `meta-externalagent/1.1` sebagai sumber burst.
 - Guard `/api/ask` kini mengembalikan HTTP 204 khusus untuk `meta-externalagent` sebelum session, Supabase, intent ML, katalog, atau provider LLM dijalankan. Browser pelanggan biasa tidak diblokir.
 - Regression baru membuktikan crawler diblokir dan Chrome biasa tetap menerima greeting HTTP 200; seluruh suite lulus 376/376.
+- Smoke production setelah deployment: `meta-externalagent/1.1` mendapat HTTP 403 dari WAF sebelum Function, sedangkan Chrome biasa mendapat HTTP 200 dengan `provider: template` dan `reason: deterministic_intent`.
+- Audit log pertanyaan `Dari kemarin nunggu kapan restock sih` membuktikan intent restock berhasil (`stock_availability`, confidence 0.95); kegagalan terjadi setelahnya saat request katalog WooCommerce berakhir dengan `TypeError: fetch failed` sebelum status HTTP diterima.
+- Kegagalan transport `fetch failed` dan kode jaringan sementara seperti `UND_ERR_CONNECT_TIMEOUT`, `ECONNRESET`, serta `EAI_AGAIN` kini memakai retry katalog yang sebelumnya hanya berlaku untuk timeout aplikasi, HTTP 429, dan HTTP 5xx.
+- HTTP 4xx non-transient seperti 401 tetap tidak di-retry. Log WooCommerce sekarang mencatat kode transport tanpa mencetak credential.
+- Regression fokus dan seluruh suite lulus 378/378.
+
+## Active Task
+
+- Task: meningkatkan ketahanan fetch katalog WooCommerce terhadap satu kegagalan jaringan sementara.
+- Status: implementasi dan regression lokal selesai; belum diverifikasi pada deployment production.
 
 ## Last Completed Task
 
@@ -115,6 +125,9 @@ Belum ada task aktif. Guard crawler Meta sudah selesai secara lokal dan menunggu
 - `lib/chatbot/llmAssistant.js`
 - `tests/llmAssistant.test.js`
 - `tests/crawlerRequestGuard.test.js`
+- `lib/chatbot/wooCatalog.js`
+- `lib/chatbot/wpApi.js`
+- `tests/wooCatalog.test.js`
 - `scripts/test-intent-ml-model.py`
 - `docs/FEATURE_BASELINE.md`
 - `docs/PROJECT_CONTEXT.md`
@@ -123,12 +136,11 @@ Belum ada task aktif. Guard crawler Meta sudah selesai secara lokal dan menunggu
 
 ## Next Steps
 
-1. Buat Vercel Custom WAF Rule: Request Path sama dengan `/api/ask` DAN User Agent memuat `meta-externalagent`, lalu action `Deny`.
-2. Deploy perubahan terbaru ke Vercel sebagai defense-in-depth bila trafik mencapai Function.
-3. Tanpa WAF, pastikan request baru dari `meta-externalagent/1.1` berstatus 204, memiliki log `BLOCKED CRAWLER`, dan tidak menampilkan external API calls; dengan WAF, pastikan request tercatat `Deny` sebelum invocation.
-4. Pertimbangkan `User-agent: meta-externalagent` + `Disallow: /` pada `robots.txt` WordPress sebagai lapisan crawl-policy; dokumentasi Meta menyatakan propagasinya dapat memerlukan hingga 24 jam.
-5. Periksa pool Gemini Vercel dan hapus `gemini-2.5-flash-lite` bila masih tercantum, lalu jalankan smoke/gate ketika quota mencukupi.
-6. Siapkan rate limiting umum, batas upload gambar, dan monitoring quota sebelum uji pengguna ramai.
+1. Deploy perubahan retry katalog ke Vercel.
+2. Uji `Dari kemarin nunggu kapan restock sih` dan satu pertanyaan rekomendasi; keduanya harus mengembalikan data katalog, bukan pesan server sibuk.
+3. Bila masih gagal, cari `WC FETCH ERROR CODE` pada Function Logs untuk membedakan connect timeout, socket reset, DNS, atau timeout aplikasi.
+4. Pantau Vercel Firewall dan Function Logs selama 24 jam; request `meta-externalagent` boleh terlihat sebagai HTTP 403/Denied tetapi tidak boleh menghasilkan Function Invocation atau external API calls.
+5. Siapkan rate limiting umum, batas upload gambar, dan monitoring quota sebelum uji pengguna ramai.
 
 ## Blockers
 

@@ -277,6 +277,36 @@ Mencegah crawler Meta `meta-externalagent` menjalankan pipeline chatbot text dan
 
 - Bukti production 2026-09-30: 3.386 intent log, 3.372 greeting, dan 3.360 session unik; tiga detail request Vercel menunjukkan `meta-externalagent/1.1` dengan referer `https://fadli.site/`.
 - Bukti lokal 2026-09-30: crawler mendapat HTTP 204, Chrome biasa mendapat greeting HTTP 200, dan `npm test` lulus 376/376.
+- Bukti production 2026-09-30 pascadeploy: WAF menolak `meta-externalagent/1.1` dengan HTTP 403 sebelum Function; request Chrome biasa tetap HTTP 200 dengan template deterministik.
+
+## WooCommerce Catalog Transport Resilience
+
+### Status
+
+STABLE (local retry-contract scope; production smoke pending)
+
+### Correct Behavior
+
+- Satu kegagalan transport sementara seperti `fetch failed`, connect timeout, socket reset, atau DNS retryable dicoba ulang paling banyak satu kali per halaman katalog.
+- HTTP 429 dan 5xx tetap retryable; HTTP 4xx non-transient seperti 401 tidak diulang.
+- Jika refresh gagal tetapi instance memiliki cache katalog lama, stale cache tetap dapat dipakai.
+- Log menyertakan kode transport bila tersedia tanpa mencetak credential WooCommerce.
+
+### Do Not Break
+
+- Jangan membuat retry tanpa batas atau me-retry semua jenis error.
+- Jangan mengubah kegagalan katalog menjadi fakta produk buatan LLM.
+- Jangan menghapus stale-cache fallback atau timeout request.
+
+### Important Files
+
+- `lib/chatbot/wooCatalog.js`
+- `lib/chatbot/wpApi.js`
+- `tests/wooCatalog.test.js`
+
+### Verification
+
+- Bukti lokal 2026-09-30: transient `UND_ERR_CONNECT_TIMEOUT` berhasil pada percobaan kedua, HTTP 401 tetap satu percobaan, dan suite lulus 378/378.
 
 ## Statuses Not Yet Baseline-Stable
 

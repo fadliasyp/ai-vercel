@@ -33,6 +33,8 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Skipped the answer-composer provider chain for grounded restock responses, preserving the WooCommerce-derived schedule while avoiding unnecessary quota use and provider errors.
 - Removed `gemini-2.5-flash-lite` from default Gemini pools after the production API returned HTTP 404 stating that the model is unavailable to this project; explicit Vercel model-list overrides still require operator cleanup.
 - Identified the production request burst as Meta `meta-externalagent/1.1`: a read-only audit found 3,386 requests, 3,372 greetings, and 3,360 unique sessions on 2026-09-30.
+- Retried one transient WooCommerce transport failure per catalog page, covering native `fetch failed` and common Undici/network error codes while leaving non-transient HTTP 4xx responses single-attempt.
+- Added a sanitized `WC FETCH ERROR CODE` log so production can distinguish connect timeout, socket reset, DNS, and application timeout failures.
 
 ### Verification
 
@@ -57,6 +59,8 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Verified the greeting composer regression test makes zero calls to all three text providers; the full suite passes 374/374 and answer-coverage replay remains 9/9.
 - Verified the exact reported restock sentence through parser and endpoint regressions, plus zero composer-provider calls; the full suite passes 375/375 and answer-coverage replay remains 9/9.
 - Verified the crawler guard returns HTTP 204 for `meta-externalagent`, preserves HTTP 200 greeting behavior for a normal Chrome User-Agent, and passes the full 376/376 local suite.
+- Verified production defense-in-depth after deployment: Vercel WAF returns HTTP 403 for `meta-externalagent/1.1`, while a normal Chrome request returns HTTP 200 with the deterministic greeting template.
+- Verified the catalog retry regression reaches a successful second fetch after `UND_ERR_CONNECT_TIMEOUT`, does not retry HTTP 401, and passes the full 378/378 local suite.
 
 ### Documentation
 

@@ -59,7 +59,7 @@ Status project: **aktif dikembangkan**.
 
 - Node.js ESM, Vercel Functions, native `fetch`, dan native Node tests.
 - Tidak ada ORM atau framework backend tambahan.
-- Woo catalog memakai pagination dan cache memory dengan stale fallback.
+- Woo catalog memakai pagination, satu retry terbatas untuk kegagalan transport sementara/429/5xx, cache memory, dan stale fallback.
 - Metadata `woopt_actions` dinormalisasi oleh `restockSchedule.js`; waktu plugin dibaca sebagai waktu toko `Asia/Jakarta`/WIB dan jadwal lampau tidak ditampilkan sebagai restock mendatang.
 - Session memiliki fallback memory per instance dan persistensi opsional ke tabel Supabase `chat_sessions`.
 - Browser menyimpan history teredaksi di local/session storage.
@@ -187,6 +187,10 @@ Pada 2026-09-30:
 - Audit read-only `intent_logs` menemukan 3.386 request pada hari yang sama: 3.372 greeting dan 3.360 session unik. Detail request Vercel mengidentifikasi sumber burst sebagai crawler Meta `meta-externalagent/1.1`, bukan pertanyaan manual pelanggan.
 - `/api/ask` kini mengembalikan HTTP 204 untuk `meta-externalagent` sebelum memuat session atau memanggil dependency eksternal. Browser pelanggan biasa tetap menerima greeting HTTP 200.
 - `npm test`: 376/376 test lulus setelah crawler guard.
+- Smoke production pascadeploy: WAF mengembalikan HTTP 403 untuk `meta-externalagent/1.1`; Chrome biasa tetap menerima greeting HTTP 200 dari template deterministik.
+- Log satu pertanyaan restock membuktikan semantic routing berhasil, tetapi fetch katalog gagal sebelum menerima status HTTP dengan `TypeError: fetch failed`; ini bukan kegagalan Groq/Gemini atau klasifikasi restock.
+- Fetch katalog kini mencoba ulang satu kali untuk kegagalan transport sementara dan mencatat kode penyebab; HTTP 4xx non-transient tidak diulang.
+- `npm test`: 378/378 test lulus setelah perbaikan ketahanan katalog.
 
 ## Session Handoff
 
