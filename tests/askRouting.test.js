@@ -321,6 +321,27 @@ test("routes real customer turns without stale products or fallback collisions",
     assert.match(allRestocks.intro, /2 Desember 2099.*09\.00 WIB/is);
     assert.doesNotMatch(allRestocks.intro, /Vintage Past Restock Robot/i);
 
+    for (const question of [
+      "kapan restock sih udah nunggu lama nih?",
+      "Kapan restock barang emang",
+    ]) {
+      const genericRestock = await ask(question, null, {
+        sessionId: `generic_restock_${Date.now()}_${question.length}`,
+      });
+      assert.equal(genericRestock.intent, "stock_availability");
+      assert.equal(genericRestock.type, "products");
+      assert.deepEqual(productNames(genericRestock), [
+        "Soul of Chogokin Daitarn 3",
+        "DX Chogokin Dairugger XV",
+      ]);
+      assert.doesNotMatch(
+        [genericRestock.message, genericRestock.intro]
+          .filter(Boolean)
+          .join(" "),
+        /produk yang kamu tanyakan belum ditemukan/i,
+      );
+    }
+
     const specificRestock = await ask(
       "kapan Soul of Chogokin Daitarn 3 restock?",
       null,

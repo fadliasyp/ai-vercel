@@ -94,6 +94,7 @@ Menjawab jadwal restock dari metadata WPC Product Timer tanpa meminta LLM meneba
 
 - Pertanyaan restock tetap memakai intent `stock_availability`.
 - Pertanyaan umum seperti `kapan robot-robot restock?` menampilkan semua produk dengan jadwal mendatang, diurutkan dari waktu paling dekat.
+- Pertanyaan umum tanpa nama produk tetap dikenali meskipun memakai filler percakapan, misalnya `kapan restock sih udah nunggu lama nih?` atau `kapan restock barang emang`.
 - Pertanyaan yang menyebut satu produk hanya menjawab produk tersebut.
 - Hanya aksi `set_instock` dengan `date_time_after` yang pasti dan berlaku bagi storefront yang boleh ditampilkan.
 - Jadwal lampau tidak ditampilkan sebagai jadwal mendatang.
@@ -103,6 +104,7 @@ Menjawab jadwal restock dari metadata WPC Product Timer tanpa meminta LLM meneba
 
 - Jangan menyamakan timer `set_outofstock`, timer role admin, atau kondisi berulang/majemuk yang belum dapat dihitung pasti sebagai jadwal restock.
 - Jangan membiarkan nama produk yang mengandung kata `restock` mengubah pertanyaan katalog umum menjadi pencarian produk spesifik.
+- Jangan menganggap filler percakapan sebagai nama produk, tetapi pertahankan nama produk eksplisit/asing yang benar-benar disebut pelanggan sebagai pencarian spesifik.
 - Jangan mengubah jalur pertanyaan stok ready/sisa quantity yang sudah stabil.
 - Jangan mengklaim Global Timer didukung sebelum tersedia endpoint WordPress yang menggabungkan action global dan per produk.
 

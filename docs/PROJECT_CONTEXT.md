@@ -173,6 +173,7 @@ Pada 2026-09-30:
 
 - Pertanyaan umum seperti `kapan robot-robot restock?` menampilkan semua produk dengan jadwal restock mendatang secara berurutan.
 - Pertanyaan spesifik hanya menampilkan jadwal produk yang cocok; produk tanpa jadwal terverifikasi menghasilkan jawaban jujur dan admin handoff.
+- Pertanyaan restock umum dengan filler percakapan tidak lagi dianggap sebagai nama produk, sementara nama produk eksplisit yang tidak ditemukan tetap mendapat respons no-match.
 - Audit read-only katalog live menemukan metadata `woopt_actions` produk ID 4994 dan parser menampilkan `30 September 2026 pukul 10.24 WIB`.
 - `npm test`: 373/373 test lulus; coverage replay tetap 9/9 turn dengan coverage 59,4% menjadi 88,9%.
 

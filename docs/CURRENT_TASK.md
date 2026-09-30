@@ -47,6 +47,8 @@ Belum ada task aktif. Fitur jadwal restock per produk sudah selesai dan lulus ve
 - Produk tanpa jadwal terverifikasi mendapat admin handoff, bukan tanggal perkiraan.
 - Audit read-only live berhasil membaca jadwal produk ID 4994 sebagai `30 September 2026 pukul 10.24 WIB`.
 - Regression suite lulus 373/373 dan coverage replay tetap lulus 9/9 turn.
+- Deteksi restock umum kini mengabaikan filler percakapan seperti `sih`, `udah`, `nunggu`, `lama`, `nih`, `barang`, dan `emang`, tanpa mengubah pencarian nama produk eksplisit.
+- Dua laporan pengguna persis sudah menjadi regression endpoint; suite tetap lulus 373/373 dan coverage replay 9/9 turn.
 
 ## Last Completed Task
 

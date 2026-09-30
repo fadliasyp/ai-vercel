@@ -5468,7 +5468,7 @@ export default async function handler(req, res) {
         usesPreviousProductContext ||
         Boolean(pageContext?.productId || pageContext?.productName);
       const asksForAllRestocks =
-        looksLikeGeneralRestockQuestion(rawQuestion) ||
+        looksLikeGeneralRestockQuestion(rawQuestion, { hasProductContext }) ||
         (!hasProductContext && !hasSpecificProductSearchTerms(rawQuestion));
 
       if (asksForAllRestocks) {

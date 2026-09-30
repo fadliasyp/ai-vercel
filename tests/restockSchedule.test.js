@@ -49,7 +49,27 @@ test("recognizes specific and catalog-wide restock questions", () => {
     true,
   );
   assert.equal(
+    looksLikeGeneralRestockQuestion(
+      "kapan restock sih udah nunggu lama nih?",
+    ),
+    true,
+  );
+  assert.equal(
+    looksLikeGeneralRestockQuestion("Kapan restock barang emang"),
+    true,
+  );
+  assert.equal(
     looksLikeGeneralRestockQuestion("kapan Soul of Chogokin restock?"),
+    false,
+  );
+  assert.equal(
+    looksLikeGeneralRestockQuestion("kapan Gundam XYZ restock?"),
+    false,
+  );
+  assert.equal(
+    looksLikeGeneralRestockQuestion("kapan restock?", {
+      hasProductContext: true,
+    }),
     false,
   );
 });

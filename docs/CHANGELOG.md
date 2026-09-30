@@ -26,6 +26,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Added parser and end-to-end regression coverage that preserves the requested Rp3-Rp6 million range and excludes JUNK gift candidates.
 - Fixed gift filtering that treated positive catalog phrases such as `bukan barang JUNK` as an actual JUNK condition; explicit non-negated JUNK, `rongsok`, and `part only` markers remain blocked.
 - Fixed two-turn product comparisons so `produk lain` requests the second product instead of being searched as a literal catalog name; follow-up phrasing such as `bandingkan dengan [Produk B]` now retains Product A.
+- Fixed generic conversational restock questions such as `kapan restock sih udah nunggu lama nih?` and `kapan restock barang emang` being misread as unknown product names.
 
 ### Verification
 
