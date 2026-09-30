@@ -75,7 +75,7 @@ Status project: **aktif dikembangkan**.
 | Custom WordPress shipping API | Kota, kecamatan, tarif ongkir | `shippingApi.js`, `shippingLocation.js` |
 | Supabase | Session, metrics, feedback | `sessionStore.js`, `observability.js`, `api/feedback.js` |
 | Groq | Semantic router dan response composer | `groq.js`, `responseNaturalizer.js` |
-| Gemini | Semantic fallback, composer fallback, vision | `gemini.js`, `ask-image.js` |
+| Google Gemini/Gemma | Semantic fallback, composer fallback, vision Gemini | `gemini.js`, `ask-image.js` |
 | Mistral | Text/vision fallback | `mistral.js` |
 | Cloudflare Workers AI | Vision fallback | `cloudflare.js` |
 | Biteship | Public shipment tracking | `tracking.js` |
@@ -85,6 +85,7 @@ Status project: **aktif dikembangkan**.
 
 - Vercel request duration dan provider timeout membatasi jumlah call LLM/API per turn.
 - Provider quota/rate limit dapat membuat jalur fallback aktif dan mengubah latency.
+- Default text pool Google menambahkan `gemini-3.8-flash`, `gemini-3.7-flash`, dan `gemma-4-26b-a4b-it` dengan config per-model, cooldown, dan maksimum tiga percobaan per call. `gemma-4-31b-it` tidak default karena smoke valid sekitar 115 detik melebihi deadline Vercel.
 - Audit dan perbaikan 2026-09-15 memigrasikan Groq Qwen, Gemini Flash-Lite, dan Mistral ke model yang lulus live smoke serta memperbaiki parser Cloudflare; perubahan sudah di-deploy dan primary text/image paths terverifikasi di production.
 - Cache/session memory serverless tidak dijamin bertahan antar-instance; Supabase dibutuhkan untuk persistensi lintas instance.
 - Live catalog dan shipping quality bergantung data WordPress serta endpoint custom.
@@ -191,6 +192,8 @@ Pada 2026-09-30:
 - Log satu pertanyaan restock membuktikan semantic routing berhasil, tetapi fetch katalog gagal sebelum menerima status HTTP dengan `TypeError: fetch failed`; ini bukan kegagalan Groq/Gemini atau klasifikasi restock.
 - Fetch katalog kini mencoba ulang satu kali untuk kegagalan transport sementara dan mencatat kode penyebab; HTTP 4xx non-transient tidak diulang.
 - `npm test`: 378/378 test lulus setelah perbaikan ketahanan katalog.
+- `npm test`: 380/380 test lulus setelah ekspansi fallback text Google; coverage replay tetap 9/9 turn.
+- Live adapter smoke: `gemini-3.8-flash`, `gemini-3.7-flash`, dan `gemma-4-26b-a4b-it` menghasilkan JSON valid. `gemma-4-31b-it` terbukti tersedia, tetapi konfigurasi yang berhasil memerlukan sekitar 115 detik dan tidak aman sebagai default untuk fungsi 90 detik.
 
 ## Session Handoff
 

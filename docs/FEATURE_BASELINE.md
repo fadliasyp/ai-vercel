@@ -210,6 +210,9 @@ Mempertahankan layanan ketika model/provider tertentu timeout, rate limited, ata
 
 - Groq memiliki fallback model untuk semantic router/naturalizer.
 - Gemini mencoba model family terkonfigurasi dan memakai cooldown; pool default tidak memuat `gemini-2.5-flash-lite` setelah production API mengembalikan 404 unavailable untuk project ini.
+- Pool text Google memuat fallback live-verified `gemini-3.8-flash`, `gemini-3.7-flash`, dan `gemma-4-26b-a4b-it` tanpa menambah batas maksimal tiga percobaan per call; ketiganya tidak ditambahkan ke pool vision.
+- Gemini 3.7/3.8 memakai config kompatibel tanpa sampling parameter lama dan dengan thinking rendah. Gemma 4 memakai thinking minimal, tidak meminta structured-output API yang belum terdokumentasi, dan output JSON tetap wajib lolos parser/validator lokal.
+- `gemma-4-31b-it` tidak menjadi default karena smoke yang berhasil memerlukan sekitar 115 detik, melebihi batas Vercel 90 detik; model ini hanya boleh diaktifkan kembali setelah smoke latency memenuhi deadline chatbot.
 - Mistral menjadi fallback text/vision bila aktif.
 - Cloudflare menjadi vision fallback bila aktif.
 - Local deterministic understanding tetap tersedia saat provider gagal.
@@ -225,6 +228,7 @@ Mempertahankan layanan ketika model/provider tertentu timeout, rate limited, ata
 - Jangan menghapus cooldown/deadline yang melindungi request Vercel.
 - Jangan mengaktifkan kembali composer LLM untuk sapaan deterministik karena hanya menambah pemakaian quota dan peluang error provider tanpa menambah fakta.
 - Jangan menambahkan model 404 ke pool default; environment Vercel yang menimpa pool harus diaudit terpisah.
+- Jangan mengaktifkan `gemma-4-31b-it` sebagai default hanya berdasarkan quota dashboard; bukti runtime latency dan deadline Vercel harus mengalahkan ketersediaan model di daftar akun.
 
 ### Important Files
 
@@ -307,6 +311,7 @@ STABLE (local retry-contract scope; production smoke pending)
 ### Verification
 
 - Bukti lokal 2026-09-30: transient `UND_ERR_CONNECT_TIMEOUT` berhasil pada percobaan kedua, HTTP 401 tetap satu percobaan, dan suite lulus 378/378.
+- Bukti lokal/live 2026-09-30: `gemini-3.8-flash`, `gemini-3.7-flash`, dan `gemma-4-26b-a4b-it` menghasilkan JSON valid melalui adapter; regression suite lulus 380/380 dan coverage replay 9/9. `gemma-4-31b-it` tersedia tetapi respons valid memerlukan sekitar 115 detik sehingga dikeluarkan dari default pool.
 
 ## Statuses Not Yet Baseline-Stable
 

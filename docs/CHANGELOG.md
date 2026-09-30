@@ -6,6 +6,8 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Added
 
+- Added `gemini-3.8-flash`, `gemini-3.7-flash`, and `gemma-4-26b-a4b-it` to the bounded Google text fallback pools without adding them to vision or increasing the three-attempt cap.
+- Added per-model Google generation config: low thinking and no legacy sampling parameters for Gemini 3.7/3.8, plus minimal thinking and locally validated prompt-JSON for Gemma 4.
 - Added grounded per-product restock schedules from WPC Product Timer `woopt_actions` metadata.
 - Added catalog-wide restock questions that list every upcoming product in chronological order and product-specific questions that return only the matched product.
 - Added deterministic WIB date formatting, past-schedule filtering, storefront-role filtering, honest admin handoff when no schedule exists, and regression coverage for all three outcomes.
@@ -13,6 +15,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Fixed
 
+- Kept `gemma-4-31b-it` out of the default pool after live recovery showed that a valid response took about 115 seconds, beyond the Vercel function's 90-second limit; the model remains opt-in through the existing environment model lists.
 - Migrated the Groq router fallback and local naturalizer model from unavailable `qwen/qwen3.6-27b` to account-verified `qwen/qwen3.8-27b`.
 - Added regression coverage for the current default Groq fallback model.
 - Revalidated Gemini model IDs against the account's 2026-09-15 `models.list` response, which at that time listed `gemini-2.5-flash-lite` and `gemini-3-flash-preview`; the newer runtime 404 supersedes that evidence for Flash-Lite as recorded below.
@@ -38,6 +41,9 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
+- Verified live JSON responses through the chatbot adapter for `gemini-3.8-flash`, `gemini-3.7-flash`, and `gemma-4-26b-a4b-it`.
+- Verified `gemma-4-31b-it` exists and can answer, but its successful probe took about 115 seconds; fast constrained probes returned provider HTTP 500, so it is not production-default evidence.
+- Verified 380/380 local tests and 9/9 answer-coverage replay turns after the Google text fallback expansion.
 - Verified the safe in-memory TF-IDF + Logistic Regression self-check: Pipeline and explicit step execution matched, probabilities summed to one, and three representative predictions completed.
 - Verified the Groq naturalizer end-to-end against `qwen/qwen3.8-27b` with a successful live response.
 - Verified Gemini `gemini-3.5-flash-lite` through the chatbot wrapper and Cloudflare vision through the production image-analysis prompt.

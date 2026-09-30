@@ -88,7 +88,10 @@ Health response sederhana. Tidak memeriksa dependency eksternal.
 ### Understanding
 
 - Groq semantic router adalah jalur utama bila aktif.
-- Gemini dan Mistral dapat menjadi fallback semantic.
+- Google Gemini/Gemma dan Mistral dapat menjadi fallback semantic.
+- Pool fallback text Google memprioritaskan model Gemini yang cepat, lalu `gemini-3.8-flash`, `gemini-3.7-flash`, dan `gemma-4-26b-a4b-it`; jumlah percobaan per panggilan tetap dibatasi dan model yang gagal masuk cooldown.
+- Adapter menghapus parameter sampling lama serta memakai thinking rendah untuk Gemini 3.7/3.8. Gemma 4 memakai thinking minimal, JSON berbasis instruksi, lalu parser/validator lokal karena structured-output API Gemma belum menjadi kontrak yang terdokumentasi.
+- `gemma-4-31b-it` tidak aktif pada default pool: endpoint tersedia, tetapi smoke lokal memerlukan sekitar 115 detik pada konfigurasi yang berhasil, melebihi batas fungsi Vercel 90 detik. Model tetap dapat diuji secara eksplisit melalui environment model-list.
 - Local rules adalah fallback dan guard untuk explicit/pending cases.
 - Output structured mencakup intent, goals, entities, relation/topic switch, confidence, emotion, dan kebutuhan klarifikasi.
 

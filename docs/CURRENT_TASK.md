@@ -2,7 +2,7 @@
 
 ## Status
 
-Perbaikan retry katalog WooCommerce selesai lokal dan menunggu deployment serta smoke production.
+Ekspansi fallback text Google selesai lokal dan menunggu deployment serta smoke production endpoint chatbot.
 
 ## Current Progress
 
@@ -65,11 +65,16 @@ Perbaikan retry katalog WooCommerce selesai lokal dan menunggu deployment serta 
 - Kegagalan transport `fetch failed` dan kode jaringan sementara seperti `UND_ERR_CONNECT_TIMEOUT`, `ECONNRESET`, serta `EAI_AGAIN` kini memakai retry katalog yang sebelumnya hanya berlaku untuk timeout aplikasi, HTTP 429, dan HTTP 5xx.
 - HTTP 4xx non-transient seperti 401 tetap tidak di-retry. Log WooCommerce sekarang mencatat kode transport tanpa mencetak credential.
 - Regression fokus dan seluruh suite lulus 378/378.
+- Default text pool Google kini menambahkan `gemini-3.8-flash`, `gemini-3.7-flash`, dan `gemma-4-26b-a4b-it`; pool vision, batas tiga percobaan, cooldown, dan fallback provider lain tidak diubah.
+- Gemini 3.7/3.8 membuang sampling parameter lama dan memakai thinking rendah. Gemma 4 memakai thinking minimal serta output JSON berbasis prompt yang tetap melewati parser/validator lokal.
+- Live smoke adapter berhasil menghasilkan JSON valid pada ketiga model aktif tersebut.
+- `gemma-4-31b-it` tidak diaktifkan default: dua constrained smoke menghasilkan HTTP 500, sedangkan probe yang berhasil memerlukan sekitar 115 detik dan melewati batas fungsi Vercel 90 detik.
+- Regression provider dan seluruh suite lulus 380/380; coverage replay tetap lulus 9/9 turn.
 
 ## Active Task
 
-- Task: meningkatkan ketahanan fetch katalog WooCommerce terhadap satu kegagalan jaringan sementara.
-- Status: implementasi dan regression lokal selesai; belum diverifikasi pada deployment production.
+- Task: menambah tiga fallback text Google yang kompatibel dan hemat tanpa memperbesar retry per request.
+- Status: implementasi, regression, replay, dan smoke model lokal/live selesai; belum di-deploy dan belum diverifikasi melalui endpoint production.
 
 ## Last Completed Task
 
@@ -136,15 +141,16 @@ Perbaikan retry katalog WooCommerce selesai lokal dan menunggu deployment serta 
 
 ## Next Steps
 
-1. Deploy perubahan retry katalog ke Vercel.
-2. Uji `Dari kemarin nunggu kapan restock sih` dan satu pertanyaan rekomendasi; keduanya harus mengembalikan data katalog, bukan pesan server sibuk.
-3. Bila masih gagal, cari `WC FETCH ERROR CODE` pada Function Logs untuk membedakan connect timeout, socket reset, DNS, atau timeout aplikasi.
-4. Pantau Vercel Firewall dan Function Logs selama 24 jam; request `meta-externalagent` boleh terlihat sebagai HTTP 403/Denied tetapi tidak boleh menghasilkan Function Invocation atau external API calls.
-5. Siapkan rate limiting umum, batas upload gambar, dan monitoring quota sebelum uji pengguna ramai.
+1. Deploy perubahan pool Google ke Vercel tanpa menambahkan `gemma-4-31b-it` pada environment override.
+2. Paksa satu smoke semantic/composer production saat Groq tidak diprioritaskan atau gunakan konfigurasi test yang aman; pastikan metadata model menunjukkan salah satu model Google baru dan response tetap valid.
+3. Uji `Dari kemarin nunggu kapan restock sih` dan satu pertanyaan rekomendasi; keduanya harus mengembalikan data katalog, bukan pesan server sibuk.
+4. Pantau latency, `attemptedModels`, HTTP 429/5xx, dan konsumsi quota sebelum uji pengguna ramai.
+5. Pertahankan rate limiting umum, batas upload gambar, dan monitoring quota sebagai hardening berikutnya.
 
 ## Blockers
 
 - `mistral-small-latest` tetap HTTP 429 pada akun ini, tetapi tidak lagi menjadi model aktif lokal karena diganti dengan Ministral 8B dan 3B yang sudah lulus live smoke.
+- `gemma-4-31b-it` tersedia pada akun, tetapi belum layak menjadi default karena latency live sekitar 115 detik pada respons yang berhasil.
 - Reproduksi model training ketiga belum mungkin hanya dari file aktif repository.
 
 ## Notes For Next Session
