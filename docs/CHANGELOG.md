@@ -4,6 +4,12 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ## Unreleased
 
+### Added
+
+- Added grounded per-product restock schedules from WPC Product Timer `woopt_actions` metadata.
+- Added catalog-wide restock questions that list every upcoming product in chronological order and product-specific questions that return only the matched product.
+- Added deterministic WIB date formatting, past-schedule filtering, storefront-role filtering, honest admin handoff when no schedule exists, and regression coverage for all three outcomes.
+
 ### Fixed
 
 - Migrated the Groq router fallback and local naturalizer model from unavailable `qwen/qwen3.6-27b` to account-verified `qwen/qwen3.8-27b`.
@@ -39,6 +45,8 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Verified the corrected filter against the public catalog: 18 products were in the Rp4-Rp12 million range and 17 ready products remained eligible for gift ranking.
 - Verified 369/369 local tests and 9/9 answer-coverage replay turns pass after the negated-JUNK fix.
 - Verified the two-turn comparison regression, the full 369/369 local suite, and 9/9 answer-coverage replay turns after the comparison-context fix.
+- Verified the restock parser against live WooCommerce metadata for product ID 4994.
+- Verified 373/373 local tests and 9/9 answer-coverage replay turns after the restock schedule feature.
 
 ### Documentation
 

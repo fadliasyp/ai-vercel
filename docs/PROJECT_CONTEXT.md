@@ -29,6 +29,7 @@ Status project: **aktif dikembangkan**.
 - Context/pending state untuk follow-up, klarifikasi produk, lokasi pengiriman, status pesanan, dan pergantian topik.
 - Normalisasi bahasa Indonesia, variasi ejaan, typo fallback, dan analisis bentuk kata.
 - Pencarian katalog, detail, harga/promo, stok, rekomendasi, dan perbandingan WooCommerce.
+- Jadwal restock per produk dari metadata WPC Product Timer, termasuk daftar semua restock mendatang dan pencarian satu produk.
 - Strength/caveat rekomendasi serta perbandingan dapat memakai deskripsi produk WooCommerce.
 - Kebijakan pembayaran, COD, packing, asuransi, retur/refund, jam/lokasi toko, dan pengiriman internasional.
 - Ongkir domestik melalui endpoint WordPress custom dengan pemilihan kota/kecamatan.
@@ -47,6 +48,7 @@ Status project: **aktif dikembangkan**.
 - Jika produk ambigu, sistem harus menawarkan pilihan dan mempertahankan semua kebutuhan pelanggan setelah pilihan dipilih.
 - Nama produk baru pada pertanyaan pelanggan harus mengalahkan stale context dari produk sebelumnya.
 - Jika data katalog tidak tersedia, bot harus menyatakan keterbatasan atau meminta klarifikasi, bukan mengganti produk diam-diam.
+- Tanggal restock hanya boleh berasal dari aksi `set_instock` WPC Product Timer yang memiliki waktu pasti dan berlaku bagi pengunjung; jadwal yang tidak tersedia diarahkan ke admin.
 - Pertanyaan majemuk harus melacak semua facet yang diminta; facet tidak tersedia diklarifikasi secara spesifik.
 - Pengiriman internasional tidak dihitung dengan tarif domestik dan diarahkan ke admin untuk konfirmasi kurir, packing, serta biaya.
 - Status order tidak boleh diungkap sebelum email/telepon billing cocok. Verifikasi dihentikan setelah tiga kegagalan.
@@ -57,6 +59,7 @@ Status project: **aktif dikembangkan**.
 - Node.js ESM, Vercel Functions, native `fetch`, dan native Node tests.
 - Tidak ada ORM atau framework backend tambahan.
 - Woo catalog memakai pagination dan cache memory dengan stale fallback.
+- Metadata `woopt_actions` dinormalisasi oleh `restockSchedule.js`; waktu plugin dibaca sebagai waktu toko `Asia/Jakarta`/WIB dan jadwal lampau tidak ditampilkan sebagai restock mendatang.
 - Session memiliki fallback memory per instance dan persistensi opsional ke tabel Supabase `chat_sessions`.
 - Browser menyimpan history teredaksi di local/session storage.
 - Visual index disimpan sebagai JSON repository dan dapat dibangun ulang melalui script.
@@ -97,6 +100,7 @@ Status project: **aktif dikembangkan**.
 - `api/ask.js` masih mencetak nilai URL Supabase ke log; nilai key tidak dicetak, tetapi logging konfigurasi perlu ditinjau pada task security khusus.
 - Image search pernah belum memenuhi production gate pada benchmark manual; hasil terkini harus diuji ulang dengan dataset minimum lengkap.
 - Tidak ada browser/E2E test yang ditemukan untuk frontend WordPress.
+- Global Timer WPC Product Timer disimpan sebagai option WordPress dan belum tersedia melalui metadata produk WooCommerce; dukungan saat ini hanya untuk timer per produk dengan kondisi waktu pasti `date_time_after`.
 
 ## Pending Work
 
@@ -127,6 +131,7 @@ Status project: **aktif dikembangkan**.
 - `lib/chatbot/semanticRouter.js`: structured understanding contract.
 - `lib/chatbot/answerCoverage.js`: coverage evaluator/repair.
 - `lib/chatbot/productSearch.js`, `productRanking.js`, `productRecommendation.js`: product logic.
+- `lib/chatbot/restockSchedule.js`: parser, penyaring, pengurutan, dan format jadwal WPC Product Timer.
 - `lib/chatbot/followUpClosings.js`: controlled follow-up suggestions.
 - `wordpress-frontend-chatbot/frontend.html`: browser integration.
 - `data/product-visual-index.json`: visual catalog index.
@@ -163,6 +168,13 @@ Pada 2026-09-20:
 - `npm test`: 369 test lulus; coverage replay tetap 9/9 turn lulus setelah perbaikan negasi kondisi.
 - Perbandingan dua turn kini mengenali `produk lain` sebagai placeholder, menyimpan produk pertama, dan menggabungkan jawaban seperti `bandingkan dengan [Produk B]` tanpa kehilangan konteks.
 - Regression suite tetap 369/369 dan coverage replay 9/9 turn lulus setelah perbaikan follow-up perbandingan.
+
+Pada 2026-09-30:
+
+- Pertanyaan umum seperti `kapan robot-robot restock?` menampilkan semua produk dengan jadwal restock mendatang secara berurutan.
+- Pertanyaan spesifik hanya menampilkan jadwal produk yang cocok; produk tanpa jadwal terverifikasi menghasilkan jawaban jujur dan admin handoff.
+- Audit read-only katalog live menemukan metadata `woopt_actions` produk ID 4994 dan parser menampilkan `30 September 2026 pukul 10.24 WIB`.
+- `npm test`: 373/373 test lulus; coverage replay tetap 9/9 turn dengan coverage 59,4% menjadi 88,9%.
 
 ## Session Handoff
 

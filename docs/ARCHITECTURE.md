@@ -109,6 +109,8 @@ Composer hanya boleh mengubah text fields. Structured payload dan protected fact
 
 Deskripsi WooCommerce digunakan untuk condition, strengths, caveats, material, completeness, dan alasan recommendation/compare bila tersedia.
 
+Jadwal restock per produk berasal dari metadata `woopt_actions` milik WPC Product Timer. `restockSchedule.js` hanya menerima aksi `set_instock` dengan kondisi waktu pasti `date_time_after` yang berlaku bagi semua pengguna atau guest, mengubah waktu toko menjadi jadwal WIB, membuang jadwal lampau, lalu mengurutkan restock mendatang. Pertanyaan umum mengembalikan seluruh produk terjadwal, sedangkan pertanyaan spesifik memakai product resolver yang sama dengan jalur stok. Global Timer plugin disimpan sebagai option WordPress dan belum termasuk kontrak ini.
+
 ## Conversation State
 
 - `session.js`: state memory per serverless instance.

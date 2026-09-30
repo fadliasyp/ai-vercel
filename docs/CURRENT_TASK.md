@@ -2,7 +2,7 @@
 
 ## Status
 
-Belum ada task aktif. Perbaikan follow-up perbandingan dua turn sudah selesai dan lulus verifikasi lokal.
+Belum ada task aktif. Fitur jadwal restock per produk sudah selesai dan lulus verifikasi lokal serta audit metadata live.
 
 ## Current Progress
 
@@ -41,12 +41,18 @@ Belum ada task aktif. Perbaikan follow-up perbandingan dua turn sudah selesai da
 - Produk pertama disimpan dalam session dan state `compare_second`; jawaban lanjutan seperti `bandingkan dengan robot [Produk B]` dibersihkan lalu digabungkan menjadi perbandingan lengkap.
 - State compare kedua dilindungi hanya pada intent compare, sehingga pertanyaan eksplisit dengan intent lain tetap dapat mengganti topik.
 - Regression routing dua turn lulus; seluruh suite tetap 369/369 dan coverage replay tetap 9/9 turn.
+- Metadata WPC Product Timer `woopt_actions` sekarang dibaca dari katalog WooCommerce dan dinormalisasi tanpa mengirim raw action ke LLM.
+- Pertanyaan umum restock menampilkan semua jadwal mendatang; pertanyaan spesifik hanya menjawab produk yang cocok.
+- Timer lampau, aksi selain `set_instock`, role non-storefront, tanggal invalid, dan kondisi waktu yang belum dapat dihitung pasti tidak dijadikan fakta restock.
+- Produk tanpa jadwal terverifikasi mendapat admin handoff, bukan tanggal perkiraan.
+- Audit read-only live berhasil membaca jadwal produk ID 4994 sebagai `30 September 2026 pukul 10.24 WIB`.
+- Regression suite lulus 373/373 dan coverage replay tetap lulus 9/9 turn.
 
 ## Last Completed Task
 
-- Task: memperbaiki follow-up perbandingan dua turn tanpa mengubah routing follow-up lain.
-- Tanggal selesai: 2026-09-20.
-- Goal: mempertahankan produk pertama saat pelanggan memilih produk pembanding pada turn berikutnya.
+- Task: menambahkan jadwal restock WPC Product Timer pada intent stok.
+- Tanggal selesai: 2026-09-30.
+- Goal: mendukung daftar seluruh restock mendatang dan jadwal satu produk tanpa mengarang fakta.
 
 ## Completed
 
@@ -60,6 +66,7 @@ Belum ada task aktif. Perbaikan follow-up perbandingan dua turn sudah selesai da
 - Membuat deteksi kondisi JUNK peka terhadap negasi pada metadata rekomendasi.
 - Menambahkan regression untuk frasa negasi katalog dan kondisi JUNK aktual.
 - Menambahkan state dan regression dua turn untuk `bandingkan [Produk A] dengan produk lain`, diikuti nama Produk B.
+- Menambahkan parser jadwal WPC Product Timer, integrasi routing stok, fallback admin, dan regression test umum/spesifik/tanpa jadwal.
 
 ## Findings
 
@@ -67,6 +74,7 @@ Belum ada task aktif. Perbaikan follow-up perbandingan dua turn sudah selesai da
 - Source training yang tersedia hanya dapat dibuktikan dari Git commit `181d6a8`; script/dataset persis training ketiga tidak tersedia di HEAD.
 - Laporan evaluasi tersimpan mencakup 8 kelas, sedangkan kontrak chatbot saat ini memiliki 13 intent.
 - Intent ML adalah classifier/routing signal; fakta commerce tetap berasal dari WooCommerce dan API terverifikasi.
+- Timer per produk tersedia melalui Woo REST `meta_data`; Global Timer tersimpan sebagai option WordPress dan belum tercakup endpoint katalog.
 
 ## Files Modified
 
@@ -84,6 +92,8 @@ Belum ada task aktif. Perbaikan follow-up perbandingan dua turn sudah selesai da
 - `tests/priceIntent.test.js`
 - `lib/chatbot/recommendationMetadata.js`
 - `tests/recommendationMetadata.test.js`
+- `lib/chatbot/restockSchedule.js`
+- `tests/restockSchedule.test.js`
 - `scripts/test-intent-ml-model.py`
 - `docs/FEATURE_BASELINE.md`
 - `docs/PROJECT_CONTEXT.md`
@@ -92,8 +102,8 @@ Belum ada task aktif. Perbaikan follow-up perbandingan dua turn sudah selesai da
 
 ## Next Steps
 
-1. Deploy perbaikan follow-up perbandingan dua turn.
-2. Ulangi di production dengan session baru: `Bandingkan Shokugan Modeling Project Voltes V dengan produk lain`, lalu `bandingkan dengan robot Soul of Chogokin GX-74 Getter 1 Dynamic Classic`.
+1. Deploy fitur jadwal restock dan perbaikan follow-up perbandingan yang belum ada di production.
+2. Uji production dengan session baru: `kapan robot-robot restock?` dan `kapan Deluxe Chogokin Godsigma Popy Made in Japan restock?` sebelum jadwal live terlewati.
 3. Ulangi pertanyaan rekomendasi panjang yang sebelumnya menghasilkan `failed_generation`; hasil yang diharapkan adalah jawaban asli tetap terkirim tanpa panggilan Qwen naturalizer.
 4. Jalankan smoke production dan image production gate lengkap ketika quota provider mencukupi.
 5. Siapkan rate limiting, batas upload gambar, dan monitoring quota sebelum uji pengguna ramai.

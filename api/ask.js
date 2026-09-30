@@ -146,6 +146,15 @@ import {
   isStoreAssortmentQuestion,
 } from "../lib/chatbot/catalogIntent.js";
 import {
+  buildRestockListMessage,
+  extractWpcRestockSchedules,
+  formatRestockDateTime,
+  getNextRestockSchedule,
+  listUpcomingRestocks,
+  looksLikeGeneralRestockQuestion,
+  looksLikeRestockQuestion,
+} from "../lib/chatbot/restockSchedule.js";
+import {
   naturalizeResponseWithGroq,
   resolveGroqNaturalizerConfig,
 } from "../lib/chatbot/responseNaturalizer.js";
@@ -4150,6 +4159,7 @@ export default async function handler(req, res) {
           category: p.categories?.map((c) => c.name.toLowerCase()).join(" "),
           categoryNames: p.categories?.map((c) => c.name).filter(Boolean) || [],
           condition,
+          restockSchedules: extractWpcRestockSchedules(p.meta_data),
           weight: cleanNumberString(p.weight),
           dimensions: { length, width, height },
           type: p.type,
@@ -5447,6 +5457,98 @@ export default async function handler(req, res) {
             "Server lagi sibuk mengambil data produk. Coba ulangi 10-20 detik lagi ya.",
         },
         intentResult.intent,
+      );
+    }
+
+    if (
+      intentResult.intent === "stock_availability" &&
+      looksLikeRestockQuestion(rawQuestion)
+    ) {
+      const hasProductContext =
+        usesPreviousProductContext ||
+        Boolean(pageContext?.productId || pageContext?.productName);
+      const asksForAllRestocks =
+        looksLikeGeneralRestockQuestion(rawQuestion) ||
+        (!hasProductContext && !hasSpecificProductSearchTerms(rawQuestion));
+
+      if (asksForAllRestocks) {
+        const upcomingRestocks = listUpcomingRestocks(cleanProducts);
+        if (!upcomingRestocks.length) {
+          return await send(
+            buildUnknownAnswerResponse({
+              intent: "stock_availability",
+              message:
+                "Belum ada jadwal restock mendatang yang terverifikasi di katalog saat ini. Silakan tanyakan langsung ke Admin Robot Jadul untuk rencana restock terbaru.",
+              topic: "jadwal restock produk",
+            }),
+            "stock_availability",
+          );
+        }
+
+        return await send(
+          {
+            type: "products",
+            intent: "stock_availability",
+            intro: buildRestockListMessage(upcomingRestocks),
+            products: upcomingRestocks.map((entry) => entry.product),
+          },
+          "stock_availability",
+        );
+      }
+
+      const productMatch = resolveRequestedProduct(rawQuestion, cleanProducts);
+      const product = productMatch.product;
+
+      if (product) {
+        const schedule = getNextRestockSchedule(product);
+        if (schedule) {
+          session.lastProducts = [product];
+          session.lastTopic = "stock";
+          session.lastIntent = "stock_availability";
+          return await send(
+            {
+              type: "products",
+              intent: "stock_availability",
+              intro: `**${product.name}** dijadwalkan restock pada **${formatRestockDateTime(schedule)}**.`,
+              products: [product],
+              product_match: {
+                status: productMatch.status,
+                confidence: productMatch.confidence,
+                reason: productMatch.reason,
+              },
+            },
+            "stock_availability",
+          );
+        }
+
+        const currentStockMessage =
+          product.stock === "instock"
+            ? `Saat ini **${product.name}** tercatat **ready stock**, tetapi belum ada jadwal restock berikutnya yang terverifikasi.`
+            : `Belum ada jadwal restock yang terverifikasi untuk **${product.name}**.`;
+        return await send(
+          buildUnknownAnswerResponse({
+            intent: "stock_availability",
+            message: `${currentStockMessage} Silakan tanyakan langsung ke Admin Robot Jadul untuk jadwal terbaru.`,
+            topic: `jadwal restock ${product.name}`,
+          }),
+          "stock_availability",
+        );
+      }
+
+      if (productMatch.status === "ambiguous") {
+        return await send(
+          beginProductClarification(productMatch, "stock_availability"),
+          "stock_availability",
+        );
+      }
+
+      return await send(
+        {
+          type: "text",
+          message:
+            "Maaf, produk yang kamu tanyakan belum ditemukan di katalog Robot Jadul. Coba periksa kembali nama atau kode produknya.",
+        },
+        "stock_availability",
       );
     }
 

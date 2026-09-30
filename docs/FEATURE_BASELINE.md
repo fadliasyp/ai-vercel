@@ -80,6 +80,47 @@ Memecah permintaan majemuk menjadi goal/facet, merencanakan jawaban, lalu mendet
 - `npm run benchmark:coverage-replay`
 - Bukti 2026-09-01: 9/9 turn lulus, coverage 59,4% ke 88,9%.
 
+## Product Restock Schedule
+
+### Status
+
+STABLE (timer per-product, local regression, dan read-only live metadata scope)
+
+### Function
+
+Menjawab jadwal restock dari metadata WPC Product Timer tanpa meminta LLM menebak tanggal atau jam.
+
+### Correct Behavior
+
+- Pertanyaan restock tetap memakai intent `stock_availability`.
+- Pertanyaan umum seperti `kapan robot-robot restock?` menampilkan semua produk dengan jadwal mendatang, diurutkan dari waktu paling dekat.
+- Pertanyaan yang menyebut satu produk hanya menjawab produk tersebut.
+- Hanya aksi `set_instock` dengan `date_time_after` yang pasti dan berlaku bagi storefront yang boleh ditampilkan.
+- Jadwal lampau tidak ditampilkan sebagai jadwal mendatang.
+- Produk tanpa jadwal terverifikasi tidak diberi tanggal perkiraan dan diarahkan ke admin.
+
+### Do Not Break
+
+- Jangan menyamakan timer `set_outofstock`, timer role admin, atau kondisi berulang/majemuk yang belum dapat dihitung pasti sebagai jadwal restock.
+- Jangan membiarkan nama produk yang mengandung kata `restock` mengubah pertanyaan katalog umum menjadi pencarian produk spesifik.
+- Jangan mengubah jalur pertanyaan stok ready/sisa quantity yang sudah stabil.
+- Jangan mengklaim Global Timer didukung sebelum tersedia endpoint WordPress yang menggabungkan action global dan per produk.
+
+### Important Files
+
+- `lib/chatbot/restockSchedule.js`
+- `lib/chatbot/wooCatalog.js`
+- `api/ask.js`
+- `tests/restockSchedule.test.js`
+- `tests/askRouting.test.js`
+
+### Verification
+
+- `npm test`
+- `npm run benchmark:coverage-replay`
+- Bukti 2026-09-30: 373/373 test lulus; coverage replay 9/9 turn lulus.
+- Audit read-only live: produk ID 4994 menghasilkan jadwal `30 September 2026 pukul 10.24 WIB`.
+
 ## Controlled Conversation Actions
 
 ### Status

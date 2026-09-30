@@ -91,6 +91,30 @@ const PRODUCTS = [
     price: "6250000",
     stockQuantity: 6,
   }),
+  product({
+    id: 13,
+    name: "Soul of Chogokin Daitarn 3",
+    price: "8500000",
+    stockStatus: "outofstock",
+    stockQuantity: 0,
+    restockAt: "12/01/2099 03:30 pm",
+  }),
+  product({
+    id: 14,
+    name: "DX Chogokin Dairugger XV",
+    price: "9200000",
+    stockStatus: "outofstock",
+    stockQuantity: 0,
+    restockAt: "12/02/2099 09:00 am",
+  }),
+  product({
+    id: 15,
+    name: "Vintage Past Restock Robot",
+    price: "1200000",
+    stockStatus: "outofstock",
+    stockQuantity: 0,
+    restockAt: "01/01/2020 09:00 am",
+  }),
 ];
 
 function product({
@@ -100,9 +124,30 @@ function product({
   regularPrice = price,
   salePrice = "",
   stockQuantity,
+  stockStatus = "instock",
+  restockAt = "",
   description = "Kondisi BIB dan kelengkapan sesuai foto.",
   dimensions = { length: "30", width: "20", height: "40" },
 }) {
+  const metaData = [{ key: "condition", value: "BIB" }];
+  if (restockAt) {
+    metaData.push({
+      key: "woopt_actions",
+      value: {
+        test_restock: {
+          name: "Regression restock schedule",
+          type: "product",
+          action: "set_instock",
+          action_val: { value: "0", base: "fa", visibility: "visible" },
+          timer: {
+            exact_time: { val: restockAt, type: "date_time_after" },
+          },
+          roles: ["woopt_all"],
+        },
+      },
+    });
+  }
+
   return {
     id,
     name,
@@ -111,13 +156,13 @@ function product({
     price,
     regular_price: regularPrice,
     sale_price: salePrice,
-    stock_status: "instock",
+    stock_status: stockStatus,
     stock_quantity: stockQuantity,
     images: [],
     categories: [{ id: 1, name: "Chogokin" }],
     description,
     short_description: description,
-    meta_data: [{ key: "condition", value: "BIB" }],
+    meta_data: metaData,
     weight: "1000",
     dimensions,
     total_sales: 10,
@@ -262,6 +307,42 @@ test("routes real customer turns without stale products or fallback collisions",
     assert.equal(readyCatalog.type, "products");
     assert.ok(productNames(readyCatalog).length > 1);
     assert.doesNotMatch(readyCatalog.intro, /mau cek stok produk apa/i);
+
+    const allRestocks = await ask("kapan robot2 restock?", null, {
+      sessionId: `all_restocks_${Date.now()}`,
+    });
+    assert.equal(allRestocks.intent, "stock_availability");
+    assert.equal(allRestocks.type, "products");
+    assert.deepEqual(productNames(allRestocks), [
+      "Soul of Chogokin Daitarn 3",
+      "DX Chogokin Dairugger XV",
+    ]);
+    assert.match(allRestocks.intro, /1 Desember 2099.*15\.30 WIB/is);
+    assert.match(allRestocks.intro, /2 Desember 2099.*09\.00 WIB/is);
+    assert.doesNotMatch(allRestocks.intro, /Vintage Past Restock Robot/i);
+
+    const specificRestock = await ask(
+      "kapan Soul of Chogokin Daitarn 3 restock?",
+      null,
+      { sessionId: `specific_restock_${Date.now()}` },
+    );
+    assert.equal(specificRestock.intent, "stock_availability");
+    assert.equal(specificRestock.type, "products");
+    assert.deepEqual(productNames(specificRestock), [
+      "Soul of Chogokin Daitarn 3",
+    ]);
+    assert.match(specificRestock.intro, /1 Desember 2099.*15\.30 WIB/is);
+    assert.doesNotMatch(specificRestock.intro, /Dairugger|2 Desember/i);
+
+    const unknownRestock = await ask(
+      "kapan SOC Bandai 50th Anniversary Godmars restock?",
+      null,
+      { sessionId: `unknown_restock_${Date.now()}` },
+    );
+    assert.equal(unknownRestock.intent, "stock_availability");
+    assert.equal(unknownRestock.type, "text");
+    assert.match(unknownRestock.message, /belum ada jadwal restock/i);
+    assert.ok(unknownRestock.admin_handoff);
 
     const promoAction = {
       label: "Lihat semua produk yang sedang promo",
