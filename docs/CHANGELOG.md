@@ -27,6 +27,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Fixed gift filtering that treated positive catalog phrases such as `bukan barang JUNK` as an actual JUNK condition; explicit non-negated JUNK, `rongsok`, and `part only` markers remain blocked.
 - Fixed two-turn product comparisons so `produk lain` requests the second product instead of being searched as a literal catalog name; follow-up phrasing such as `bandingkan dengan [Produk B]` now retains Product A.
 - Fixed generic conversational restock questions such as `kapan restock sih udah nunggu lama nih?` and `kapan restock barang emang` being misread as unknown product names.
+- Prevented deterministic greetings such as `halo` from invoking the Groq, Gemini, and Mistral answer-composer fallback chain. The existing template response is returned directly with `deterministic_intent` observability metadata, avoiding quota waste and misleading provider error logs for greetings.
 
 ### Verification
 
@@ -48,6 +49,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Verified the two-turn comparison regression, the full 369/369 local suite, and 9/9 answer-coverage replay turns after the comparison-context fix.
 - Verified the restock parser against live WooCommerce metadata for product ID 4994.
 - Verified 373/373 local tests and 9/9 answer-coverage replay turns after the restock schedule feature.
+- Verified the greeting composer regression test makes zero calls to all three text providers; the full suite passes 374/374 and answer-coverage replay remains 9/9.
 
 ### Documentation
 

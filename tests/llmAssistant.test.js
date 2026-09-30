@@ -194,6 +194,52 @@ test("active mode serves only a fact-preserving composition", async () => {
   assert.equal(unsafe.meta.accepted, false);
 });
 
+test("deterministic greeting bypasses every LLM answer composer", async () => {
+  const greetingPayload = {
+    type: "text",
+    intent: "greeting",
+    message: "Halo! Ada yang bisa saya bantu?",
+  };
+  let groqCalls = 0;
+  let geminiCalls = 0;
+  let mistralCalls = 0;
+
+  const result = await runLlmAnswerComposer({
+    payload: greetingPayload,
+    question: "halo",
+    intent: "greeting",
+    config: {
+      ...config("active"),
+      geminiFallbackEnabled: true,
+      mistral: {
+        enabled: true,
+        apiKey: "mistral-key",
+        model: "mistral-small-latest",
+      },
+    },
+    fetchImpl: async () => {
+      groqCalls += 1;
+      throw new Error("Groq must not be called for a deterministic greeting");
+    },
+    geminiNaturalizeImpl: async () => {
+      geminiCalls += 1;
+      throw new Error("Gemini must not be called for a deterministic greeting");
+    },
+    mistralNaturalizeImpl: async () => {
+      mistralCalls += 1;
+      throw new Error("Mistral must not be called for a deterministic greeting");
+    },
+  });
+
+  assert.deepEqual(result.payload, greetingPayload);
+  assert.equal(result.meta.status, "deterministic_intent");
+  assert.equal(result.meta.provider, "template");
+  assert.equal(result.meta.accepted, false);
+  assert.equal(groqCalls, 0);
+  assert.equal(geminiCalls, 0);
+  assert.equal(mistralCalls, 0);
+});
+
 test("falls back to Gemini when all Groq composer models are rate limited", async () => {
   const result = await runLlmAnswerComposer({
     payload,

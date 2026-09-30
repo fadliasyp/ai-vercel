@@ -2,7 +2,7 @@
 
 ## Status
 
-Belum ada task aktif. Fitur jadwal restock per produk sudah selesai dan lulus verifikasi lokal serta audit metadata live.
+Belum ada task aktif. Perbaikan pemborosan provider pada sapaan deterministik sudah selesai dan lulus verifikasi lokal.
 
 ## Current Progress
 
@@ -49,12 +49,15 @@ Belum ada task aktif. Fitur jadwal restock per produk sudah selesai dan lulus ve
 - Regression suite lulus 373/373 dan coverage replay tetap lulus 9/9 turn.
 - Deteksi restock umum kini mengabaikan filler percakapan seperti `sih`, `udah`, `nunggu`, `lama`, `nih`, `barang`, dan `emang`, tanpa mengubah pencarian nama produk eksplisit.
 - Dua laporan pengguna persis sudah menjadi regression endpoint; suite tetap lulus 373/373 dan coverage replay 9/9 turn.
+- Audit log memastikan error yang dilaporkan berasal dari sapaan `halo` yang tidak perlu memasuki answer composer: Groq mencapai TPD, Gemini sedang cooldown, lalu kandidat Mistral ditolak safety validator sementara template tetap terkirim.
+- Intent `greeting` kini berhenti di template sebelum panggilan Groq, Gemini, atau Mistral; intent lain tetap memakai urutan composer dan fallback yang lama.
+- Regression baru membuktikan ketiga provider dipanggil nol kali untuk sapaan; seluruh suite lulus 374/374 dan coverage replay tetap 9/9 turn.
 
 ## Last Completed Task
 
-- Task: menambahkan jadwal restock WPC Product Timer pada intent stok.
+- Task: mencegah sapaan deterministik membuang quota pada answer composer multi-provider.
 - Tanggal selesai: 2026-09-30.
-- Goal: mendukung daftar seluruh restock mendatang dan jadwal satu produk tanpa mengarang fakta.
+- Goal: mempertahankan respons sapaan yang sudah benar tanpa Groq/Gemini/Mistral, sambil menjaga fallback untuk intent lain.
 
 ## Completed
 
@@ -69,6 +72,7 @@ Belum ada task aktif. Fitur jadwal restock per produk sudah selesai dan lulus ve
 - Menambahkan regression untuk frasa negasi katalog dan kondisi JUNK aktual.
 - Menambahkan state dan regression dua turn untuk `bandingkan [Produk A] dengan produk lain`, diikuti nama Produk B.
 - Menambahkan parser jadwal WPC Product Timer, integrasi routing stok, fallback admin, dan regression test umum/spesifik/tanpa jadwal.
+- Menambahkan composer guard dan regression test nol-panggilan-provider untuk intent `greeting`.
 
 ## Findings
 
@@ -96,6 +100,8 @@ Belum ada task aktif. Fitur jadwal restock per produk sudah selesai dan lulus ve
 - `tests/recommendationMetadata.test.js`
 - `lib/chatbot/restockSchedule.js`
 - `tests/restockSchedule.test.js`
+- `lib/chatbot/llmAssistant.js`
+- `tests/llmAssistant.test.js`
 - `scripts/test-intent-ml-model.py`
 - `docs/FEATURE_BASELINE.md`
 - `docs/PROJECT_CONTEXT.md`
@@ -104,9 +110,9 @@ Belum ada task aktif. Fitur jadwal restock per produk sudah selesai dan lulus ve
 
 ## Next Steps
 
-1. Deploy fitur jadwal restock dan perbaikan follow-up perbandingan yang belum ada di production.
-2. Uji production dengan session baru: `kapan robot-robot restock?` dan `kapan Deluxe Chogokin Godsigma Popy Made in Japan restock?` sebelum jadwal live terlewati.
-3. Ulangi pertanyaan rekomendasi panjang yang sebelumnya menghasilkan `failed_generation`; hasil yang diharapkan adalah jawaban asli tetap terkirim tanpa panggilan Qwen naturalizer.
+1. Deploy perbaikan composer greeting ke Vercel.
+2. Uji production dengan `halo`; hasil yang diharapkan adalah HTTP 200 tanpa `GROQ NATURALIZER FALLBACK`, cooldown Gemini, atau panggilan Mistral, serta metadata `provider: template` dan `reason: deterministic_intent`.
+3. Ulangi satu pertanyaan produk untuk memastikan fallback provider tetap bekerja bila primary provider terkena limit.
 4. Jalankan smoke production dan image production gate lengkap ketika quota provider mencukupi.
 5. Siapkan rate limiting, batas upload gambar, dan monitoring quota sebelum uji pengguna ramai.
 6. Tambahkan replay dari temuan pengujian pengguna nyata.
