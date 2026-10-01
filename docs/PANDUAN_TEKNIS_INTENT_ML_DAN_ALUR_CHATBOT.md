@@ -17,14 +17,15 @@ Ada tiga tingkat kepastian yang dipakai:
 | **Riwayat Git** | Kode pernah ada dan dapat dibuktikan melalui commit, tetapi tidak tersedia sebagai file aktif. |
 | **Konsep** | Penjelasan teori untuk membantu sidang; bukan tambahan perilaku baru pada aplikasi. |
 
-Catatan penting tentang reproducibility model:
+Catatan penting tentang reproducibility model aktif:
 
-- Source aktif memuat `intent_model_tfidf_logreg_training_3.joblib`.
-- Source training yang dapat ditemukan berada pada commit awal `181d6a8` dengan nama `train_model.py`.
-- Script dan dataset persis yang menghasilkan model `training_3.joblib` tidak tersedia di HEAD.
-- Karena itu, pipeline TF-IDF + Logistic Regression dapat dibuktikan dari source historis dan interface model aktif, tetapi hyperparameter serta dataset persis model training ketiga belum dapat direproduksi dari repository saat ini.
+- Source aktif memuat `intent_model_tfidf_logreg_training_13.joblib`.
+- Model aktif memiliki kontrak 13 intent, metadata JSON, checksum model/dataset, versi dependency, dan confidence threshold yang tersimpan.
+- Source training tersedia sebagai `Training_Intent_13.ipynb`; notebook tersebut dapat dibangun ulang secara deterministik melalui `scripts/build_training_notebook.py` pada repository `intent-ml-api`.
+- Dataset training dan hard test tersedia terpisah di folder `Data yg dilatih dan di test`.
+- Pipeline terpilih adalah gabungan TF-IDF kata dan karakter (`word_char_tfidf`) dengan Logistic Regression.
 
-Jangan menyampaikan model training ketiga sebagai sepenuhnya reproducible sebelum script, dataset, label mapping, versi library, dan metadata training-nya disimpan kembali.
+Model intent aktif sekarang jauh lebih reproducible daripada artefak lama `training_3`. Namun, metrik classifier tetap tidak boleh disebut sebagai akurasi jawaban chatbot end-to-end karena retrieval WooCommerce, context resolution, coverage, dan provider eksternal merupakan lapisan yang berbeda.
 
 ## 2. Ringkasan satu menit untuk penguji
 
@@ -77,6 +78,684 @@ Pembagian tanggung jawabnya:
 | Decision/fusion | Memvalidasi label/confidence dan menggabungkan ML, rule, dan semantic LLM | `intentDecision.js`, `intentFusion.js` |
 | Commerce tools | Mengambil fakta produk, ongkir, order, tracking, dan policy | `wooCatalog.js`, `shippingApi.js`, `transactionStatus.js`, `tracking.js`, `storePolicy.js` |
 | Response safety | Coverage, humanizer, structured action, composer validation | `answerCoverage.js`, `responseNaturalizer.js`, `llmAssistant.js` |
+
+### 3.1 Alur linear satu pertanyaan: dari pelanggan sampai jawaban tampil
+
+Bagian ini sengaja mengikuti **urutan waktu satu request**. Gunakan contoh yang sama sepanjang penjelasan:
+
+```text
+Getter Robo Black Version masih ready dan harganya berapa?
+```
+
+Nomor baris mengacu pada source aktif saat panduan ini diperbarui. Nomor tersebut dapat bergeser setelah kode diedit; nama fungsi dan nama file adalah acuan yang lebih permanen. Beberapa kutipan dipendekkan hanya pada bagian yang tidak relevan, tetapi urutan dan nama fungsi mengikuti source aktif.
+
+#### Langkah 1 - Pelanggan menulis dan mengirim pertanyaan
+
+**File:** `ai-vercel/wordpress-frontend-chatbot/frontend.html`, baris 1503-1518.
+
+```javascript
+window.sendQuestion = async function (forcedQuestion = null, options = {}) {
+  if (requestInFlight) return;
+
+  const hasImage = !!selectedImage?.dataUrl;
+  const question =
+    (forcedQuestion || input?.value || "").trim() ||
+    (hasImage ? "Tolong carikan produk yang mirip dengan foto ini" : "");
+  if (!question && !hasImage) return;
+
+  const isSuggestionClick = options.isSuggestionClick === true;
+  const pageContext = getCurrentProductPageContext();
+}
+```
+
+Pada tahap ini browser:
+
+1. mengambil teks dari kotak chat;
+2. mencegah dua request berjalan bersamaan melalui `requestInFlight`;
+3. mendeteksi apakah ada gambar;
+4. menandai apakah pertanyaan berasal dari tombol saran;
+5. mengambil konteks halaman produk yang sedang dibuka.
+
+Belum ada klasifikasi intent atau pemanggilan ML pada tahap ini.
+
+#### Langkah 2 - Frontend membentuk request HTTP
+
+**File:** `ai-vercel/wordpress-frontend-chatbot/frontend.html`, baris 1534-1565.
+
+```javascript
+const response = await fetch(
+  imageToSend
+    ? "https://ai-vercel-ten-sigma.vercel.app/api/ask-image"
+    : "https://ai-vercel-ten-sigma.vercel.app/api/ask",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Session-Id": sessionId,
+    },
+    body: JSON.stringify({
+      question,
+      history: recentApiHistory(),
+      isSuggestionClick,
+      isBootstrap,
+      suggestedAction: options.suggestedAction || null,
+      pageContext,
+    }),
+  },
+);
+```
+
+Pertanyaan teks dikirim ke `/api/ask`. Pertanyaan dengan gambar memakai pipeline berbeda, yaitu `/api/ask-image`. Untuk request teks, backend menerima:
+
+```text
+question + history + session ID + suggested action + page context
+```
+
+#### Langkah 3 - `/api/ask` memvalidasi request
+
+**File:** `ai-vercel/api/ask.js`, baris 492-535.
+
+```javascript
+export default async function handler(req, res) {
+  if (req.method === "OPTIONS") return res.status(204).end();
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  if (isMetaExternalAgent(req.headers["user-agent"])) {
+    return res.status(204).end();
+  }
+
+  const body = req.body || {};
+  let rawQuestion = String(body.question || "").trim();
+  if (!rawQuestion) {
+    return res.status(400).json({ type: "text", message: "Pertanyaan kosong" });
+  }
+}
+```
+
+Urutannya:
+
+1. melayani CORS preflight `OPTIONS`;
+2. menolak method selain `POST`;
+3. menghentikan crawler Meta yang pernah menghabiskan quota;
+4. membaca body;
+5. menolak pertanyaan kosong;
+6. memvalidasi metadata suggested action jika pertanyaan berasal dari tombol.
+
+#### Langkah 4 - Pertanyaan dibuat aman dan dinormalisasi
+
+**File:** `ai-vercel/api/ask.js`, baris 539-561.
+
+```javascript
+const privacySafeQuestion = () => redactOrderVerification(rawQuestion);
+
+function normalizeQuestion(rawQuestion = "") {
+  const q = normalizeCustomerQuestion(rawQuestion);
+  const words = q.split(/\s+/);
+  const fixed = words.map((word) => {
+    if (TYPO_MAP[word]) return TYPO_MAP[word];
+    return fuzzyCorrectWord(word, CORRECTION_WORDS);
+  });
+  return fixed.join(" ");
+}
+
+let effectiveQuestion = normalizeQuestion(privacySafeQuestion());
+let linguisticAnalysis = analyzeIndonesianQuestion(privacySafeQuestion());
+```
+
+Backend mempertahankan dua bentuk:
+
+| Nilai | Kegunaan |
+| --- | --- |
+| `rawQuestion` | Mempertahankan kalimat asli dan konteks pengguna. |
+| `effectiveQuestion` | Versi yang sudah dinormalisasi untuk pencocokan/routing. |
+| `privacySafeQuestion()` | Versi yang meredaksi data verifikasi order sebelum logging atau dikirim ke LLM. |
+
+Normalisasi membantu typo dan bahasa informal, tetapi tidak boleh mengubah nama produk, kode seri, harga, nomor order, atau resi menjadi objek lain.
+
+#### Langkah 5 - Session dan konteks percakapan dipulihkan
+
+**File:** `ai-vercel/api/ask.js`, baris 563-665.
+
+```javascript
+const sessionId = resolveSessionId(req.headers["x-session-id"]);
+const session = getSession(sessionId);
+const persisted = await loadSessionState(supabase, sessionId);
+
+const conversationTurn = resolveConversationTurn(rawQuestion, {
+  activeGoal: session.activeGoal,
+  lastIntent: session.lastIntent,
+  lastProducts: session.lastProducts,
+});
+```
+
+Tahap ini menjawab pertanyaan seperti:
+
+- Apakah kalimat ini topik baru?
+- Apakah kata `yang tadi` merujuk produk sebelumnya?
+- Apakah pelanggan sedang menjawab klarifikasi nama produk?
+- Apakah ada pending flow ongkir, perbandingan, tracking, atau status order?
+- Apakah pengguna menyebut produk baru yang harus mengalahkan konteks lama?
+
+`X-Session-Id` hanya identitas percakapan, bukan autentikasi pelanggan.
+
+#### Langkah 6 - Sistem memecah kebutuhan tunggal atau majemuk
+
+**File:** `ai-vercel/api/ask.js`, baris 667-805.
+
+```javascript
+let compoundAnalysis = analyzeCompoundQuestion(privacySafeQuestion(), {
+  recentProducts: session.lastProducts,
+  focusedProductName: session.activeGoal?.focusedProductName || "",
+});
+let answerPlan = buildAnswerPlan(compoundAnalysis);
+
+const contextualIntent = resolveContextualIntent(rawQuestion, {
+  lastIntent: session.lastIntent,
+  lastBotQuestionType: session.lastBotQuestionType,
+  hasRecentProducts:
+    Array.isArray(session.lastProducts) && session.lastProducts.length > 0,
+  productQueryScope,
+});
+
+let questionUnderstanding = buildQuestionUnderstanding(
+  privacySafeQuestion(),
+  { linguisticAnalysis, productQueryScope },
+);
+```
+
+Untuk contoh pertanyaan, sistem dapat menemukan:
+
+```text
+objek utama : Getter Robo Black Version
+facet 1     : stock
+facet 2     : price
+majemuk     : ya
+```
+
+Ini penting karena classifier tetap memilih satu primary intent, sedangkan `compoundAnalysis` dan `answerPlan` menjaga agar pertanyaan harga tidak hilang ketika primary intent-nya stok.
+
+#### Langkah 7 - Dua jalur pemahaman dimulai secara paralel
+
+**File:** `ai-vercel/api/ask.js`, baris 841-940.
+
+```javascript
+const localIntentTask =
+  localScopeDecision === "out_of_scope"
+    ? Promise.resolve({ intent: "general", method: "out_of_scope_guard" })
+    : classifyIntentHybrid(effectiveQuestion);
+
+const groqRouteTask = /* Groq -> Gemini -> Mistral -> null */;
+
+const [localIntentResult, groqRoute] = await Promise.all([
+  localIntentTask,
+  groqRouteTask,
+]);
+```
+
+Yang paralel adalah:
+
+```text
+Jalur A: ML Python + rule lokal
+Jalur B: semantic router LLM
+```
+
+TF-IDF dan Logistic Regression **tidak** berjalan paralel. Keduanya berjalan berurutan di dalam pipeline model pada Jalur A.
+
+#### Langkah 8 - Jalur A memanggil Intent ML API
+
+**File:** `ai-vercel/lib/chatbot/askLanguage.js`, baris 335-357.
+
+```javascript
+export async function classifyIntentHybrid(rawQuestion) {
+  try {
+    const ml = await classifyIntentML(rawQuestion);
+    const rule = classifyIntentFromDataset(rawQuestion);
+
+    return chooseHybridIntent({
+      ml,
+      rule,
+      minConfidence: resolveIntentMlMinConfidence(
+        process.env.INTENT_ML_MIN_CONFIDENCE,
+      ),
+    });
+  } catch (err) {
+    const rule = classifyIntentFromDataset(rawQuestion);
+    return {
+      intent: rule.intent,
+      method: "fallback_rule_low_confidence",
+      score: rule.score ?? 0,
+    };
+  }
+}
+```
+
+Jalur A terdiri dari tiga bagian:
+
+1. minta prediksi ke Python;
+2. hitung rule lokal sebagai pembanding/fallback;
+3. pilih hasil yang aman melalui `chooseHybridIntent()`.
+
+#### Langkah 9 - Node mengirim teks ke service Python
+
+**File:** `ai-vercel/lib/classifyIntentML.js`, baris 1-29.
+
+```javascript
+export async function classifyIntentML(question) {
+  const url = process.env.INTENT_API_URL;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+
+  try {
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }),
+      signal: controller.signal,
+    });
+
+    return await resp.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+```
+
+`INTENT_API_URL` harus menunjuk ke endpoint lengkap:
+
+```text
+https://<host-intent-ml-api>/predict_intent
+```
+
+JavaScript hanya menjadi HTTP client. TF-IDF dan Logistic Regression tidak dijalankan di file JavaScript ini.
+
+#### Langkah 10 - FastAPI memuat dan memvalidasi model saat startup
+
+**File:** `intent-ml-api/app.py`, baris 17-145.
+
+```python
+DEFAULT_MODEL_FILENAME = "intent_model_tfidf_logreg_training_13.joblib"
+
+def load_and_validate_model(model_path: Path, metadata: dict):
+    # validasi file, checksum, 13 label, dan versi scikit-learn
+    loaded_model = joblib.load(model_path)
+    return loaded_model
+
+metadata = load_metadata(METADATA_PATH)
+confidence_threshold = resolve_confidence_threshold(metadata)
+model = load_and_validate_model(MODEL_PATH, metadata)
+model_classes = np.asarray(model.classes_, dtype=str)
+```
+
+Model dimuat sekali ketika process API hidup, bukan dimuat ulang dan bukan dilatih ulang untuk setiap pertanyaan. Startup akan gagal jika checksum, versi library, atau kontrak 13 intent tidak sesuai.
+
+#### Langkah 11 - TF-IDF dan Logistic Regression melakukan inference
+
+**File:** `intent-ml-api/app.py`, baris 184-213.
+
+```python
+@app.post("/predict_intent")
+def predict_intent(payload: PredictRequest):
+    question = normalize_text(payload.question)
+    probabilities = model.predict_proba([question])[0]
+    best_idx = int(np.argmax(probabilities))
+    confidence = float(probabilities[best_idx])
+    predicted_intent = str(model_classes[best_idx])
+
+    ranked_indices = np.argsort(probabilities)[::-1][:3]
+```
+
+Pipeline aktif dibentuk pada `intent-ml-api/scripts/build_training_notebook.py`, sekitar baris 272-309:
+
+```python
+features = FeatureUnion([
+    ("word", TfidfVectorizer(analyzer="word", ngram_range=(1, 2))),
+    ("char", TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5))),
+])
+
+Pipeline([
+    ("features", features),
+    ("classifier", LogisticRegression(...)),
+])
+```
+
+Urutan internalnya:
+
+```text
+teks pertanyaan
+  -> word TF-IDF: unigram + bigram kata
+  -> character TF-IDF: potongan karakter 3-5
+  -> FeatureUnion menggabungkan kedua sparse vector
+  -> Logistic Regression menghitung probabilitas 13 intent
+  -> argmax memilih intent dengan probabilitas tertinggi
+  -> API mengirim intent + confidence + top-3
+```
+
+Character TF-IDF membantu variasi chat dan typo. Logistic Regression tidak mencari produk dan tidak membuat jawaban; ia hanya memilih kategori pertanyaan.
+
+#### Langkah 12 - Node memvalidasi hasil ML dengan rule dan threshold
+
+**File:** `ai-vercel/lib/chatbot/intentDecision.js`, baris 32-69.
+
+```javascript
+if (
+  mlIntentSupported &&
+  !apiMarksLowConfidence &&
+  mlConfidence >= threshold
+) {
+  return {
+    intent: mlIntent,
+    method: ml?.method || "ml",
+    score: mlConfidence,
+  };
+}
+
+return {
+  intent: safeRule.intent || "general",
+  method: `fallback_rule_low_confidence:${safeRule.method || "fallback"}`,
+  score: normalizeIntentConfidence(safeRule.score),
+};
+```
+
+Hasil ML diterima hanya jika:
+
+1. label termasuk kontrak 13 intent;
+2. API tidak menandainya low confidence;
+3. confidence memenuhi threshold Node.
+
+Jika tidak, rule lokal menang. Jika API Python mati atau timeout, `classifyIntentHybrid()` juga kembali ke rule lokal.
+
+#### Langkah 13 - Jalur B memahami makna dengan semantic LLM
+
+**File:** `ai-vercel/api/ask.js`, baris 850-935.
+
+Semantic router mencoba provider yang tersedia dengan fallback terbatas:
+
+```text
+Groq -> Gemini -> Mistral -> null/local fallback
+```
+
+Output semantic bukan paragraf jawaban, melainkan struktur seperti:
+
+```json
+{
+  "intent": "stock_availability",
+  "confidence": 0.95,
+  "product_name": "Getter Robo Black Version",
+  "goals": ["stock", "price"],
+  "topic_relation": "new_topic",
+  "tool_plan": ["woo_catalog"]
+}
+```
+
+Contoh JSON tersebut bersifat konseptual. Nilai sebenarnya mengikuti respons provider dan validator lokal.
+
+#### Langkah 14 - Hasil lokal dan semantic digabungkan
+
+**File:** `ai-vercel/api/ask.js`, baris 937-971.  
+**File keputusan:** `ai-vercel/lib/chatbot/intentFusion.js`, mulai baris 267.
+
+```javascript
+const legacyIntentResult = chooseSemanticIntent({
+  question: privacySafeQuestion(),
+  localScope: localScopeDecision,
+  local: localIntentResult,
+  semantic: groqRoute,
+  minSemanticConfidence,
+});
+
+let intentResult =
+  llmAssistantConfig.mode === "active"
+    ? llmLedIntentResult
+    : legacyIntentResult;
+```
+
+Secara sederhana:
+
+- semantic tidak tersedia atau confidence rendah -> pertahankan hasil lokal;
+- semantic valid dan confidence cukup -> semantic dapat menjadi primary intent;
+- out-of-scope guard, pending state, atau structured action tepercaya tetap memiliki perlindungan khusus.
+
+#### Langkah 15 - Aturan deterministik menjaga kasus penting
+
+**File:** `ai-vercel/api/ask.js`, sekitar baris 1097-1350.
+
+Setelah fusion, backend masih memeriksa aturan yang harus stabil, misalnya:
+
+- ongkir dan metode pembayaran;
+- perbandingan produk;
+- budget rekomendasi;
+- retur;
+- status transaksi dan tracking;
+- konteks halaman produk;
+- pending state;
+- suggested action yang sudah divalidasi.
+
+Contoh structured action:
+
+```javascript
+if (selectedSuggestionIntent) {
+  explicitIntentSource = "suggested_action";
+  intentResult = {
+    ...intentResult,
+    intent: selectedSuggestionIntent,
+    method: `suggested_action_${selectedSuggestion.action_key}_rule`,
+    score: 1,
+  };
+}
+```
+
+Tahap ini bukan “menghapus” ML. Tahap ini melindungi business flow ketika ada bukti eksplisit yang lebih kuat daripada tebakan classifier.
+
+#### Langkah 16 - Intent final memilih handler dan sumber fakta
+
+Contoh handler aktif:
+
+| Intent | Lokasi utama di `api/ask.js` | Yang dilakukan |
+| --- | ---: | --- |
+| `recommendation` | sekitar 6500 | Filter/ranking kandidat sesuai tujuan, budget, stok, dan kondisi. |
+| `price_promo` | sekitar 6710 | Memilih harga/promo yang benar dari katalog. |
+| `stock_availability` | sekitar 6845 | Menemukan produk lalu membaca stok aktual. |
+| `product_detail` | sekitar 6915 | Menemukan produk lalu membangun detail/pertimbangan. |
+| `product_discovery` | sekitar 7028 | Membersihkan query dan mencari produk relevan. |
+
+Contoh jalur stok, `api/ask.js` sekitar baris 6845-6900:
+
+```javascript
+if (intentResult.intent === "stock_availability") {
+  const productMatch = resolveRequestedProduct(rawQuestion, cleanProducts);
+  const bestProduct = productMatch.product;
+
+  if (bestProduct) {
+    return await send(
+      { type: "products", products: [bestProduct] },
+      "stock_availability",
+    );
+  }
+}
+```
+
+Intent hanya membuka pintu handler. Fakta tetap harus diambil dari sumber yang benar.
+
+#### Langkah 17 - Produk dan fakta diambil dari WooCommerce
+
+**File:** `ai-vercel/api/ask.js`, fungsi `getCleanProducts()`, mulai baris 4105.  
+**File transport:** `ai-vercel/lib/chatbot/wooCatalog.js`, fungsi `getWooProductsCached()`, mulai baris 127.
+
+```javascript
+async function getCleanProducts() {
+  if (cleanProducts) return cleanProducts;
+
+  let products;
+  try {
+    products = await getProductsCached();
+  } catch (error) {
+    throw new Error("WC_PRODUCTS_UNAVAILABLE");
+  }
+
+  // normalisasi produk WooCommerce
+}
+```
+
+WooCommerce menentukan:
+
+- nama dan link produk;
+- harga regular/sale;
+- status dan jumlah stok;
+- gambar, kategori, kondisi, deskripsi;
+- berat dan dimensi;
+- metadata jadwal restock.
+
+Jika fakta tidak tersedia, chatbot harus mengatakan belum tahu atau meminta konfirmasi admin. LLM tidak boleh mengisi kekosongan tersebut.
+
+#### Langkah 18 - Handler membentuk payload terstruktur
+
+Untuk contoh stok + harga, payload dapat berbentuk:
+
+```javascript
+{
+  type: "products",
+  products: [bestProduct]
+}
+```
+
+Objek `bestProduct` sudah mengandung harga dan stok dari katalog. Karena pertanyaan meminta dua facet, answer plan/coverage juga memastikan keduanya muncul dalam jawaban.
+
+#### Langkah 19 - `send()` memfinalisasi jawaban
+
+**File:** `ai-vercel/api/ask.js`, fungsi `send()`, baris 1852-2336.
+
+Urutannya di dalam `send()`:
+
+1. menetapkan `finalIntent`;
+2. melengkapi planned answer sections;
+3. menormalisasi gambar dan field produk;
+4. menyimpan produk terakhir ke session;
+5. menjalankan `humanizeResponse()`;
+6. membentuk controlled follow-up actions;
+7. menjalankan coverage repair;
+8. bila aman, menjalankan composer/naturalizer LLM;
+9. memvalidasi agar fakta dan struktur tidak berubah;
+10. menambahkan `assistant_meta`;
+11. mencatat observability dan menyimpan session;
+12. mengirim JSON ke frontend.
+
+Potongan utama:
+
+```javascript
+let finalPayload = humanizeResponse(payload, {
+  intent: finalIntent,
+  rawQuestion,
+});
+
+const coverageRepair = repairAnswerCoverage(
+  privacySafeQuestion(),
+  finalPayload,
+  {
+    answerSections: {
+      price: productCoverageSection,
+      stock: productCoverageSection,
+      cod: transactionCoverageSection,
+    },
+    clarificationSections: {
+      price: productClarification,
+      stock: productClarification,
+    },
+  },
+);
+finalPayload = coverageRepair.payload;
+
+const composed = await runLlmAnswerComposer({
+  payload: finalPayload,
+  question: privacySafeQuestion(),
+  intent: finalIntent,
+});
+```
+
+Tidak semua respons harus memakai composer. Greeting, restock terstruktur, transaksi sensitif, respons terlalu panjang, provider limit, atau konfigurasi tertentu dapat mempertahankan template deterministik.
+
+#### Langkah 20 - Backend mengirim response JSON
+
+**File:** `ai-vercel/api/ask.js`, baris 2327-2336.
+
+```javascript
+return res.json({
+  ...finalPayload,
+  intent: finalIntent,
+  assistant_meta: assistantMeta,
+});
+```
+
+`assistant_meta` menjelaskan jalur yang terjadi, misalnya provider router, provider composer, intent source, coverage, serta status validasi. Metadata ini untuk observability; fakta utama tetap berada pada payload response.
+
+#### Langkah 21 - Frontend memilih renderer dan menampilkan jawaban
+
+**File:** `ai-vercel/wordpress-frontend-chatbot/frontend.html`, baris 1567-1625.
+
+```javascript
+const data = await response.json();
+
+if (data.type === "how_to_buy") {
+  addHowToBuy(data.steps || []);
+} else if (data.type === "suggestions") {
+  addSuggestions(...);
+} else if (data.type === "products") {
+  addProducts(data);
+} else if (data.type === "options") {
+  renderOptions("", data.options || []);
+} else if (
+  data.type === "compare_reasoned" ||
+  data.type === "compare"
+) {
+  addCompare(data);
+} else {
+  addBotText(data.message || data.intro || "Tidak ada jawaban");
+}
+```
+
+Teks Markdown disanitasi sebelum dimasukkan ke DOM:
+
+**File:** `ai-vercel/wordpress-frontend-chatbot/frontend.html`, baris 759-765.
+
+```javascript
+function renderMarkdown(mdText = "") {
+  const rawHtml = marked.parse(String(mdText || ""));
+  return DOMPurify.sanitize(rawHtml);
+}
+```
+
+Pada titik ini pelanggan akhirnya melihat jawaban chatbot.
+
+#### Ringkasan urutan yang wajib diingat
+
+```text
+1. Pelanggan mengetik
+2. Frontend membuat POST /api/ask
+3. API memvalidasi request
+4. Teks dinormalisasi dan PII dilindungi
+5. Session/konteks dipulihkan
+6. Compound goals dan answer plan dibentuk
+7. Local hybrid dan semantic LLM berjalan paralel
+8. Node memanggil Intent ML API
+9. Python: word+character TF-IDF -> Logistic Regression
+10. ML menghasilkan intent, confidence, top-3
+11. Node memvalidasi ML terhadap rule dan threshold
+12. Hasil lokal digabungkan dengan semantic router
+13. Override/pending/structured action melindungi kasus eksplisit
+14. Intent final memilih handler
+15. Handler mengambil fakta dari WooCommerce/API tepercaya
+16. Payload terstruktur dibentuk
+17. Coverage memastikan semua facet terjawab
+18. Composer opsional hanya memperbaiki bahasa
+19. Session dan observability disimpan
+20. JSON dikirim ke browser
+21. Frontend merender dan menyucikan output
+```
+
+Kalimat pendek untuk sidang:
+
+> Pertanyaan dipahami oleh gabungan ML, rule, konteks, dan semantic LLM. Intent final memilih handler, handler mengambil fakta terverifikasi, lalu coverage dan safety layer memastikan jawaban lengkap sebelum frontend menampilkannya.
 
 ## 4. Kontrak request dari frontend
 
@@ -269,6 +948,56 @@ Bagian ini membedakan fase **training** dan **inference**.
 
 Training dilakukan sebelum aplikasi menerima request pelanggan. Tujuannya adalah mempelajari hubungan antara pola kata pada pertanyaan dan label intent.
 
+#### 7.1.1 Training model aktif 13 intent
+
+**Source aktif:** `intent-ml-api/Training_Intent_13.ipynb`, yang dibangun oleh `intent-ml-api/scripts/build_training_notebook.py`.
+
+Dataset aktif dipisahkan menjadi:
+
+```text
+Data yg dilatih dan di test/dataset_intent_13_ready_training.csv
+Data yg dilatih dan di test/dataset_intent_13_hard_test.csv
+```
+
+Pipeline terpilih menggabungkan TF-IDF kata dan karakter:
+
+```python
+features = FeatureUnion([
+    ("word", TfidfVectorizer(
+        analyzer="word",
+        ngram_range=(1, 2),
+        max_features=30_000,
+    )),
+    ("char", TfidfVectorizer(
+        analyzer="char_wb",
+        ngram_range=(3, 5),
+        max_features=50_000,
+    )),
+])
+
+model = Pipeline([
+    ("features", features),
+    ("classifier", LogisticRegression(
+        solver="lbfgs",
+        class_weight="balanced",
+        C=4.0,
+        max_iter=3_000,
+        random_state=42,
+    )),
+])
+```
+
+Kandidat model dievaluasi memakai 5-fold stratified cross-validation dan hard test terpisah. Artefak production kemudian dibuat dengan:
+
+```python
+final_model.fit(X_train, y_train)
+joblib.dump(final_model, "intent_model_tfidf_logreg_training_13.joblib")
+```
+
+Metadata production menyimpan 13 label, jumlah data, metrik, versi dependency, checksum dataset, checksum model, dan threshold yang disarankan. API memvalidasi metadata tersebut sebelum model boleh menerima request.
+
+#### 7.1.2 Riwayat model awal sebagai pembanding konsep
+
 **Bukti riwayat Git:** `intent-ml-api`, commit `181d6a8`, file `train_model.py`.
 
 Untuk melihat sumber historis tanpa mengubah working tree:
@@ -331,7 +1060,7 @@ print(classification_report(y_test, pred, digits=3))
 joblib.dump(model, "intent_tfidf_logreg.joblib")
 ```
 
-Karena TF-IDF dan classifier berada dalam satu `Pipeline`, artefak Joblib menyimpan kedua tahap. Saat `model.predict([question])` dipanggil, teks otomatis melewati transformasi TF-IDF sebelum masuk ke Logistic Regression.
+Contoh historis tersebut menjelaskan konsep dasar pipeline, tetapi bukan konfigurasi artefak production sekarang. Model aktif memakai step `features` dan `classifier`, bukan `tfidf` dan `clf`.
 
 ### 7.2 Apa yang dilakukan TF-IDF?
 
@@ -368,11 +1097,12 @@ Kata `getter` muncul di semua dokumen sehingga kurang diskriminatif. Kata `harga
 
 Jadi TF-IDF tidak memahami makna layaknya manusia. Ia mengukur pola statistik token yang dipelajari dari dataset.
 
-### 7.3 Mengapa memakai unigram dan bigram?
+### 7.3 Mengapa memakai n-gram kata dan karakter?
 
 - Unigram menangkap satu kata penting: `harga`, `stok`, `ongkir`, `retur`.
 - Bigram menangkap konteks dua kata: `berapa harga`, `status pesanan`, `nomor resi`, `ready stok`.
-- Kombinasi keduanya lebih kuat daripada hanya keyword tunggal, tetapi masih ringan untuk inference API.
+- Character n-gram 3-5 membantu mengenali typo dan variasi ejaan chat.
+- `FeatureUnion` menggabungkan fitur kata dan karakter sebelum klasifikasi.
 
 Keterbatasannya:
 
@@ -397,20 +1127,21 @@ Keterangan:
 - `b_k`: bias kelas.
 - `z_k`: skor kelas sebelum dikonversi menjadi probabilitas.
 
-Probabilitas kemudian dipakai oleh `predict_proba`. Detail strategi multiclass mengikuti versi dan default scikit-learn yang digunakan ketika model dilatih. Source historis tidak menetapkan `solver` atau `multi_class` secara eksplisit, dan dependency aktif belum dipin; karena itu jangan mengklaim konfigurasi solver/model multiclass yang lebih spesifik tanpa membuka metadata artefak di environment Python yang kompatibel.
+Probabilitas kemudian dipakai oleh `predict_proba`. Model aktif memakai `solver="lbfgs"`, `class_weight="balanced"`, `C=4.0`, `max_iter=3000`, dan scikit-learn `1.8.0` sesuai source training serta metadata artefak.
 
 Kelas dengan probabilitas tertinggi menjadi prediksi. Confidence di project ini adalah probabilitas tertinggi dari `predict_proba`, bukan jaminan bahwa prediksi pasti benar.
 
 ### 7.5 Fase inference pada FastAPI
 
-**Source aktif:** `intent-ml-api/app.py`, baris 1-48.
+**Source aktif:** `intent-ml-api/app.py`, terutama baris 17-145 dan 184-213.
 
 Model dimuat satu kali saat proses API dimulai:
 
 ```python
-app = FastAPI()
-
-model = joblib.load("intent_model_tfidf_logreg_training_3.joblib")
+metadata = load_metadata(METADATA_PATH)
+confidence_threshold = resolve_confidence_threshold(metadata)
+model = load_and_validate_model(MODEL_PATH, metadata)
+model_classes = np.asarray(model.classes_, dtype=str)
 ```
 
 Ini lebih efisien daripada memuat file Joblib untuk setiap request.
@@ -427,46 +1158,48 @@ Normalisasi ini melakukan lowercase, trim, dan merapikan spasi. Normalisasi baha
 Inference:
 
 ```python
-pred = model.predict([question])[0]
-probs = model.predict_proba([question])[0]
-
-classes = model.named_steps["clf"].classes_
-best_idx = int(np.argmax(probs))
-confidence = float(probs[best_idx])
+probabilities = model.predict_proba([question])[0]
+best_idx = int(np.argmax(probabilities))
+confidence = float(probabilities[best_idx])
+predicted_intent = str(model_classes[best_idx])
 ```
 
 Urutannya secara implisit:
 
 ```text
 question
-  → Pipeline.tfidf.transform(question)
-  → sparse TF-IDF vector
-  → Pipeline.clf.predict / predict_proba
-  → label dan probabilitas
+  → Pipeline.features.transform(question)
+  → word TF-IDF + character TF-IDF
+  → gabungan sparse vector
+  → Pipeline.classifier.predict_proba
+  → probabilitas 13 kelas
+  → argmax memilih label teratas
 ```
 
 Top-3 dibentuk dengan memasangkan nama kelas dan probabilitas:
 
 ```python
-top3 = sorted(
-    [{"intent": str(c), "prob": float(p)} for c, p in zip(classes, probs)],
-    key=lambda x: x["prob"],
-    reverse=True
-)[:3]
+ranked_indices = np.argsort(probabilities)[::-1][:3]
+top3 = [
+    {
+        "intent": str(model_classes[index]),
+        "prob": float(probabilities[index]),
+    }
+    for index in ranked_indices
+]
 ```
 
 Threshold confidence di service Python:
 
 ```python
-threshold = 0.6
-
 return {
-    "intent": str(pred),
+    "intent": predicted_intent,
     "confidence": confidence,
     "top3": top3,
     "method": "tfidf_logreg",
-    "is_low_confidence": confidence < threshold,
-    "model_name": "TF-IDF + Logistic Regression"
+    "is_low_confidence": confidence < confidence_threshold,
+    "model_name": "TF-IDF Word/Character + Logistic Regression",
+    "model_version": metadata.get("artifact_version", 1),
 }
 ```
 
@@ -483,7 +1216,8 @@ Contoh response, dengan angka hanya sebagai ilustrasi format:
   ],
   "method": "tfidf_logreg",
   "is_low_confidence": false,
-  "model_name": "TF-IDF + Logistic Regression"
+  "model_name": "TF-IDF Word/Character + Logistic Regression",
+  "model_version": 1
 }
 ```
 
@@ -506,7 +1240,7 @@ Pemetaan komponennya:
 | `api/ask.js` | Node.js/Vercel Function | Menerima pertanyaan chatbot dan memulai klasifikasi hybrid. |
 | `lib/classifyIntentML.js` | Node.js/Vercel Function | Membaca `INTENT_API_URL` dan mengirim pertanyaan melalui HTTP POST. |
 | `intent-ml-api/app.py` | Proses Python/FastAPI terpisah | Menerima JSON, menjalankan inference scikit-learn, dan mengembalikan prediksi. |
-| `intent_model_tfidf_logreg_training_3.joblib` | File di server Python | Menyimpan pipeline TF-IDF dan Logistic Regression yang sudah dilatih. |
+| `intent_model_tfidf_logreg_training_13.joblib` | File di server Python | Menyimpan FeatureUnion TF-IDF kata/karakter dan Logistic Regression yang sudah dilatih. |
 
 Saat development lokal, nilainya dapat berupa:
 
@@ -548,9 +1282,8 @@ sequenceDiagram
     Hybrid->>Client: classifyIntentML(question)
     Client->>API: POST INTENT_API_URL<br/>{ question: "..." }
     API->>API: validasi Pydantic + normalize_text()
-    API->>Model: predict([question])
-    Model->>Model: TF-IDF transform -> Logistic Regression
     API->>Model: predict_proba([question])
+    Model->>Model: word/character TF-IDF -> Logistic Regression
     Model-->>API: label + probabilitas setiap kelas
     API-->>Client: intent, confidence, top3, low confidence
     Client-->>Hybrid: object JSON hasil ML
@@ -560,7 +1293,7 @@ sequenceDiagram
 
 Poin terpenting untuk sidang:
 
-> JavaScript tidak menjalankan TF-IDF atau Logistic Regression secara langsung. JavaScript hanya menjadi HTTP client. Inference ML yang sebenarnya berlangsung di proses Python ketika `model.predict()` dan `model.predict_proba()` dipanggil.
+> JavaScript tidak menjalankan TF-IDF atau Logistic Regression secara langsung. JavaScript hanya menjadi HTTP client. Inference ML yang sebenarnya berlangsung di proses Python ketika route aktif memanggil `model.predict_proba()`.
 
 Pemisahan service ini diperlukan karena artefak `.joblib` dibuat oleh scikit-learn/Python dan tidak dapat dimuat langsung sebagai model scikit-learn oleh runtime Node.js.
 
@@ -627,14 +1360,15 @@ Tidak ada proses `fit`, `transform`, `predict`, atau `predict_proba` di file Jav
 
 ### 8.4 Sisi penerima: `intent-ml-api/app.py`
 
-**Source aktif:** `intent-ml-api/app.py`, baris 7-48.
+**Source aktif:** `intent-ml-api/app.py`, terutama baris 17-145 dan 184-213.
 
 Ketika process FastAPI dimulai, file model dimuat:
 
 ```python
-app = FastAPI()
-
-model = joblib.load("intent_model_tfidf_logreg_training_3.joblib")
+metadata = load_metadata(METADATA_PATH)
+confidence_threshold = resolve_confidence_threshold(metadata)
+model = load_and_validate_model(MODEL_PATH, metadata)
+model_classes = np.asarray(model.classes_, dtype=str)
 ```
 
 `joblib.load(...)` menghasilkan object pipeline scikit-learn yang sudah terlatih. Model dimuat sekali saat startup process, bukan dilatih ulang dan bukan dibaca ulang pada setiap pertanyaan.
@@ -644,7 +1378,8 @@ Path file `.joblib` bersifat relatif terhadap working directory process Python. 
 ```text
 intent-ml-api/
 |-- app.py
-|-- intent_model_tfidf_logreg_training_3.joblib
+|-- intent_model_tfidf_logreg_training_13.joblib
+|-- intent_model_tfidf_logreg_training_13.metadata.json
 |-- requirements.txt
 ```
 
@@ -654,7 +1389,7 @@ Kontrak request ditentukan oleh Pydantic:
 
 ```python
 class PredictRequest(BaseModel):
-    question: str
+    question: str = Field(min_length=1, max_length=1000)
 ```
 
 Route yang harus dituju `INTENT_API_URL` adalah:
@@ -678,18 +1413,20 @@ if not question:
 Setelah itu barulah inference ML benar-benar terjadi:
 
 ```python
-pred = model.predict([question])[0]
-probs = model.predict_proba([question])[0]
+probabilities = model.predict_proba([question])[0]
+best_idx = int(np.argmax(probabilities))
+confidence = float(probabilities[best_idx])
+predicted_intent = str(model_classes[best_idx])
 ```
 
 Karena `model` adalah pipeline, pemanggilan tersebut secara internal menjalankan:
 
 ```text
 string pertanyaan
-  --> tahap TF-IDF di dalam pipeline
-  --> sparse vector berisi bobot fitur
-  --> Logistic Regression
-  --> label intent dan probabilitas kelas
+  --> word TF-IDF dan character TF-IDF
+  --> FeatureUnion menggabungkan sparse vector
+  --> Logistic Regression menghasilkan probabilitas
+  --> argmax memilih label intent teratas
 ```
 
 Tidak ada training pada tahap ini. Training sudah selesai sebelumnya dan hasilnya disimpan di dalam `.joblib`.
@@ -709,40 +1446,51 @@ Struktur konseptual object yang dimuat adalah:
 
 ```text
 model: Pipeline
-|-- named_steps["tfidf"] -> TfidfVectorizer yang sudah di-fit
-`-- named_steps["clf"]   -> LogisticRegression yang sudah di-fit
+|-- named_steps["features"]
+|   `-- FeatureUnion: word TF-IDF + character TF-IDF
+`-- named_steps["classifier"] -> LogisticRegression yang sudah di-fit
 ```
 
-Kode training historis membentuk pola berikut:
+Kode training aktif membentuk pola berikut:
 
 ```python
 model = Pipeline([
-    ("tfidf", TfidfVectorizer(
-        lowercase=True,
-        ngram_range=(1, 2)
+    ("features", FeatureUnion([
+        ("word", TfidfVectorizer(
+            analyzer="word",
+            ngram_range=(1, 2),
+        )),
+        ("char", TfidfVectorizer(
+            analyzer="char_wb",
+            ngram_range=(3, 5),
+        )),
+    ])),
+    ("classifier", LogisticRegression(
+        solver="lbfgs",
+        class_weight="balanced",
+        C=4.0,
+        max_iter=3000,
+        random_state=42,
     )),
-    ("clf", LogisticRegression(
-        max_iter=500
-    ))
 ])
 
 model.fit(X_train, y_train)
-joblib.dump(model, "intent_tfidf_logreg.joblib")
+joblib.dump(model, "intent_model_tfidf_logreg_training_13.joblib")
 ```
 
 Nama langkah penting:
 
 | Nama step | Object | Tugas |
 | --- | --- | --- |
-| `tfidf` | `TfidfVectorizer` | Mengubah teks pertanyaan menjadi sparse vector numerik. |
-| `clf` | `LogisticRegression` | Mengubah vector TF-IDF menjadi skor, probabilitas, dan label intent. |
+| `features` | `FeatureUnion` berisi dua `TfidfVectorizer` | Menggabungkan vector TF-IDF kata dan karakter. |
+| `classifier` | `LogisticRegression` | Mengubah vector gabungan menjadi probabilitas dan label intent. |
 
-Nama file pada contoh historis berbeda dari artefak runtime aktif. Source aktif memuat `intent_model_tfidf_logreg_training_3.joblib`; script dan dataset persis yang menghasilkan artefak training ketiga belum tersedia di HEAD. Karena itu, contoh training menjelaskan struktur pipeline yang dapat dibuktikan dari riwayat, tetapi jangan mengklaim seluruh parameter artefak training ketiga identik tanpa metadata model yang kompatibel.
+Source aktif memuat `intent_model_tfidf_logreg_training_13.joblib`. Script pembentuk notebook, dataset training/hard test, kontrak label, metadata, checksum, dan versi dependency tersedia pada repository `intent-ml-api`.
 
 #### 8.4.2 Bagaimana `joblib.load()` mengaktifkan kedua algoritma?
 
 ```python
-model = joblib.load("intent_model_tfidf_logreg_training_3.joblib")
+model = joblib.load("intent_model_tfidf_logreg_training_13.joblib")
 ```
 
 `joblib.load()` melakukan deserialisasi terhadap object pipeline yang sebelumnya disimpan. File tersebut tidak hanya menyimpan nama algoritma, tetapi juga state hasil training, antara lain:
@@ -774,9 +1522,11 @@ file .joblib
 
 Package `scikit-learn` tetap harus tersedia di environment server Python agar Joblib dapat membangun kembali class `Pipeline`, `TfidfVectorizer`, dan `LogisticRegression` ketika file dimuat.
 
-#### 8.4.3 Apa yang sebenarnya terjadi saat `model.predict()`?
+#### 8.4.3 Apa hubungan `predict()` dengan inference aktif?
 
-Kode production cukup menulis:
+`Pipeline.predict()` tetap dapat digunakan untuk memperoleh label secara langsung, tetapi `app.py` aktif tidak memanggil method ini. API aktif memanggil `predict_proba()`, lalu memilih label menggunakan `np.argmax` agar probabilitas, confidence, dan top-3 dapat dibuat dari satu hasil yang sama.
+
+Contoh konseptual `predict()`:
 
 ```python
 pred = model.predict([question])[0]
@@ -785,19 +1535,19 @@ pred = model.predict([question])[0]
 Scikit-learn `Pipeline` otomatis menjalankan seluruh transformer sebelum estimator terakhir. Dengan struktur pipeline tersebut, satu baris di atas secara konseptual setara dengan:
 
 ```python
-tfidf = model.named_steps["tfidf"]
-classifier = model.named_steps["clf"]
+features_pipeline = model.named_steps["features"]
+classifier = model.named_steps["classifier"]
 
-features = tfidf.transform([question])
+features = features_pipeline.transform([question])
 pred = classifier.predict(features)[0]
 ```
 
 Urutannya:
 
 1. `[question]` diterima sebagai kumpulan berisi satu dokumen.
-2. Step `tfidf` memanggil `transform([question])`.
-3. Hasilnya adalah sparse matrix dengan satu baris dan kolom sebanyak fitur vocabulary.
-4. Sparse matrix diberikan kepada step `clf`.
+2. Step `features` menjalankan TF-IDF kata dan TF-IDF karakter.
+3. `FeatureUnion` menggabungkannya menjadi sparse matrix satu baris.
+4. Sparse matrix diberikan kepada step `classifier`.
 5. Logistic Regression menghitung skor setiap kelas.
 6. `predict()` mengembalikan label intent terpilih.
 7. `[0]` mengambil hasil untuk dokumen pertama.
@@ -821,25 +1571,25 @@ model.predict([
 Kode berikut menjalankan pipeline yang sama, tetapi meminta probabilitas seluruh kelas:
 
 ```python
-probs = model.predict_proba([question])[0]
+probabilities = model.predict_proba([question])[0]
 ```
 
 Secara konseptual setara dengan:
 
 ```python
-tfidf = model.named_steps["tfidf"]
-classifier = model.named_steps["clf"]
+features_pipeline = model.named_steps["features"]
+classifier = model.named_steps["classifier"]
 
-features = tfidf.transform([question])
-probs = classifier.predict_proba(features)[0]
+features = features_pipeline.transform([question])
+probabilities = classifier.predict_proba(features)[0]
 ```
 
 Perbedaannya:
 
 | Method | Hasil |
 | --- | --- |
-| `predict()` | Satu label intent terbaik, misalnya `stock_availability`. |
-| `predict_proba()` | Probabilitas untuk seluruh kelas sesuai urutan `classes_`. |
+| `predict()` | Satu label intent terbaik; tersedia pada pipeline tetapi tidak dipanggil route aktif. |
+| `predict_proba()` | Probabilitas seluruh kelas; dipakai route aktif untuk label, confidence, dan top-3. |
 
 Contoh ilustrasi:
 
@@ -850,7 +1600,7 @@ classes = [
     "stock_availability"
 ]
 
-probs = [0.08, 0.12, 0.80]
+probabilities = [0.08, 0.12, 0.80]
 ```
 
 Pasangannya:
@@ -863,39 +1613,42 @@ stock_availability -> 0.80
 
 Angka tersebut hanya ilustrasi. Nilai sebenarnya ditentukan oleh fitur pertanyaan dan parameter model hasil training.
 
-#### 8.4.5 Mengapa `classes_` diambil dari step `clf`?
+#### 8.4.5 Dari mana urutan label kelas diambil?
 
 ```python
-classes = model.named_steps["clf"].classes_
+model_classes = np.asarray(model.classes_, dtype=str)
 ```
 
-`predict_proba()` mengembalikan array angka tanpa nama label di dalam setiap posisi. `classes_` memberikan urutan label yang digunakan classifier. Karena urutannya sama, kode dapat memasangkan keduanya:
+`predict_proba()` mengembalikan array angka tanpa nama label di dalam setiap posisi. `model.classes_` memberikan urutan label pipeline. Karena urutannya sama, index probabilitas dapat dipetakan kembali ke nama intent.
 
 ```python
-zip(classes, probs)
+model_classes[index], probabilities[index]
 ```
 
 Setelah dipasangkan dan diurutkan, aplikasi memperoleh top-3 intent:
 
 ```python
-top3 = sorted(
-    [{"intent": str(c), "prob": float(p)} for c, p in zip(classes, probs)],
-    key=lambda x: x["prob"],
-    reverse=True
-)[:3]
+ranked_indices = np.argsort(probabilities)[::-1][:3]
+top3 = [
+    {
+        "intent": str(model_classes[index]),
+        "prob": float(probabilities[index]),
+    }
+    for index in ranked_indices
+]
 ```
 
 #### 8.4.6 Bagaimana confidence dipilih?
 
 ```python
-best_idx = int(np.argmax(probs))
-confidence = float(probs[best_idx])
+best_idx = int(np.argmax(probabilities))
+confidence = float(probabilities[best_idx])
 ```
 
 `np.argmax(probs)` mencari posisi probabilitas terbesar. Misalnya:
 
 ```python
-probs = [0.08, 0.12, 0.80]
+probabilities = [0.08, 0.12, 0.80]
 best_idx = 2
 confidence = 0.80
 ```
@@ -903,7 +1656,7 @@ confidence = 0.80
 Label pada posisi yang sama adalah:
 
 ```python
-classes[best_idx] == "stock_availability"
+model_classes[best_idx] == "stock_availability"
 ```
 
 Confidence ini adalah probabilitas keluaran model untuk kelas teratas, bukan jaminan prediksi selalu benar. Karena itu hasil masih diperiksa menggunakan threshold dan validasi hybrid di Node.js.
@@ -920,24 +1673,17 @@ normalize_text()
 
         |
         v
-model.predict([question])
-        |
-        +--> named_steps["tfidf"].transform(...)
-        |       menghasilkan sparse TF-IDF vector
-        |
-        `--> named_steps["clf"].predict(...)
-                menghasilkan label intent
-
 model.predict_proba([question])
         |
-        +--> TF-IDF transform
+        +--> named_steps["features"].transform(...)
+        |       word TF-IDF + character TF-IDF
         |
-        `--> LogisticRegression.predict_proba(...)
+        `--> named_steps["classifier"].predict_proba(...)
                 menghasilkan probabilitas seluruh kelas
 
         |
         v
-classes_ + np.argmax + top3
+model_classes + np.argmax + top3
 
         |
         v
@@ -946,7 +1692,7 @@ Response JSON untuk ai-vercel
 
 Jawaban ringkas yang dapat digunakan saat sidang:
 
-> TF-IDF dan Logistic Regression tidak dideklarasikan ulang di `app.py` karena keduanya sudah berada di dalam Pipeline scikit-learn yang disimpan sebagai Joblib. `joblib.load()` memuat pipeline beserta vocabulary TF-IDF dan bobot classifier. Saat `model.predict()` atau `model.predict_proba()` dipanggil, Pipeline otomatis menjalankan transformasi TF-IDF terlebih dahulu, lalu memberikan sparse vector kepada Logistic Regression untuk menentukan intent dan confidence.
+> TF-IDF dan Logistic Regression tidak dideklarasikan ulang di `app.py` karena keduanya sudah berada di dalam Pipeline scikit-learn yang disimpan sebagai Joblib. Route aktif memanggil `model.predict_proba()`: Pipeline menjalankan TF-IDF kata dan karakter, menggabungkan sparse vector, lalu Logistic Regression menghasilkan probabilitas. `np.argmax` memilih intent dan confidence tertinggi.
 
 ### 8.5 Response kembali ke Node.js
 
@@ -954,12 +1700,13 @@ FastAPI mengembalikan object berikut:
 
 ```python
 return {
-    "intent": str(pred),
+    "intent": predicted_intent,
     "confidence": confidence,
     "top3": top3,
     "method": "tfidf_logreg",
-    "is_low_confidence": confidence < threshold,
-    "model_name": "TF-IDF + Logistic Regression"
+    "is_low_confidence": confidence < confidence_threshold,
+    "model_name": "TF-IDF Word/Character + Logistic Regression",
+    "model_version": metadata.get("artifact_version", 1),
 }
 ```
 
@@ -971,9 +1718,9 @@ Node mengirim:
 
 Python memproses:
 normalize_text
-  --> pipeline TF-IDF
+  --> word/character TF-IDF
   --> Logistic Regression
-  --> predict + predict_proba
+  --> predict_proba + argmax
 
 Python mengembalikan:
 {
@@ -982,7 +1729,8 @@ Python mengembalikan:
   "top3": [...],
   "method": "tfidf_logreg",
   "is_low_confidence": false,
-  "model_name": "TF-IDF + Logistic Regression"
+  "model_name": "TF-IDF Word/Character + Logistic Regression",
+  "model_version": 1
 }
 
 Node menerima:
@@ -1078,7 +1826,7 @@ Urutan penjelasan kepada penguji:
 1. Tunjukkan `INTENT_API_URL` mengarah ke `/predict_intent`.
 2. Tunjukkan decorator `@app.post("/predict_intent")` pada `app.py`.
 3. Tunjukkan `joblib.load(...)` sebagai proses memuat artefak.
-4. Tunjukkan `model.predict(...)` dan `model.predict_proba(...)` sebagai lokasi inference.
+4. Tunjukkan `model.predict_proba(...)`, `np.argmax`, dan `model_classes` sebagai lokasi inference serta pemilihan label.
 5. Tunjukkan response JSON kembali ke Node.
 6. Tunjukkan `chooseHybridIntent(...)` untuk membuktikan bahwa prediksi masih divalidasi.
 
@@ -1629,38 +2377,32 @@ Ini adalah graceful degradation: kualitas bisa berubah, tetapi chatbot tidak oto
 
 ## 19. Model dan hasil evaluasi yang tersedia
 
-Artefak aktif pada `intent-ml-api`:
+Artefak dan bukti aktif pada `intent-ml-api`:
 
 ```text
-intent_model_tfidf_logreg_training_3.joblib
-intent_tfidf_logreg_final.joblib
-intent_tfidf_logreg.joblib
-classification_report.csv
-result_predictions.csv
-confusion_matrix_external_test (1).png
+intent_model_tfidf_logreg_training_13.joblib
+intent_model_tfidf_logreg_training_13.metadata.json
+Training_Intent_13.ipynb
+scripts/build_training_notebook.py
+intent_contract.json
+Data yg dilatih dan di test/dataset_intent_13_ready_training.csv
+Data yg dilatih dan di test/dataset_intent_13_hard_test.csv
 ```
 
-`classification_report.csv` mencatat evaluasi eksternal 160 contoh untuk delapan kelas:
+Metadata artefak aktif mencatat:
 
-| Intent | Precision | Recall | F1 | Support |
-| --- | ---: | ---: | ---: | ---: |
-| general | 0,882 | 0,750 | 0,811 | 20 |
-| price_promo | 0,944 | 0,850 | 0,895 | 20 |
-| product_detail | 0,833 | 0,750 | 0,789 | 20 |
-| product_discovery | 0,690 | 1,000 | 0,816 | 20 |
-| recommendation | 0,895 | 0,850 | 0,872 | 20 |
-| return_product | 0,895 | 0,850 | 0,872 | 20 |
-| shipping_transaction | 0,818 | 0,900 | 0,857 | 20 |
-| stock_availability | 0,889 | 0,800 | 0,842 | 20 |
+| Bukti | Nilai |
+| --- | ---: |
+| Jumlah intent | 13 |
+| Baris training | 2.322 |
+| Baris hard test | 104 |
+| Hard-test accuracy | 1,0 |
+| Hard-test Macro F1 | 1,0 |
+| Rata-rata CV accuracy | 0,97803 |
+| Rata-rata CV Macro F1 | 0,97877 |
+| Hard-test error | 0 |
 
-Ringkasan:
-
-```text
-Accuracy       : 0,84375 atau 84,375%
-Macro F1       : 0,84427
-Weighted F1    : 0,84427
-Jumlah contoh  : 160
-```
+Nilai tersebut berasal dari `intent_model_tfidf_logreg_training_13.metadata.json`. Checksum model, checksum dataset, serta versi Python, scikit-learn, pandas, Joblib, dan NumPy juga tersimpan di metadata dan diverifikasi saat startup API.
 
 Cara menjelaskan metrik:
 
@@ -1671,12 +2413,13 @@ Cara menjelaskan metrik:
 - **Macro average**: rata-rata tiap kelas dengan bobot sama.
 - **Weighted average**: rata-rata yang dibobot berdasarkan support.
 
-Keterbatasan laporan:
+Keterbatasan evaluasi:
 
-- Hanya delapan kelas, sedangkan kontrak chatbot saat ini 13 intent.
-- Tidak mencakup `greeting`, `shipping_origin`, `compare`, `transaction_status`, dan `shipment_tracking`.
-- Tidak ada metadata di report yang mengikatnya secara pasti ke hash artefak `training_3.joblib`.
-- Angka 84,375% bukan ukuran akurasi end-to-end jawaban chatbot.
+- Hard test hanya 104 contoh sehingga hasil sempurna harus dibaca bersama ukuran dan cara penyusunan dataset.
+- Variasi sintetik atau pola yang sangat dekat dengan training dapat membuat metrik lebih tinggi daripada performa percakapan pelanggan nyata.
+- Confidence classifier belum otomatis berarti probabilitasnya terkalibrasi sempurna.
+- Metrik classifier tidak mengukur akurasi pencarian produk, fakta WooCommerce, pemahaman follow-up, jawaban majemuk, atau kualitas bahasa composer.
+- Evaluasi end-to-end tetap membutuhkan replay dan pertanyaan pelanggan nyata yang telah dianonimkan.
 
 ## 20. Tests yang membuktikan hybrid boundary
 
@@ -1720,13 +2463,13 @@ test("uses the rule when ML confidence is below the default threshold", () => {
 });
 ```
 
-Regression suite terakhir yang dijalankan saat penyusunan panduan:
+Regression suite terakhir yang dijalankan saat pembaruan panduan pada 2026-10-01:
 
 ```text
-tests      362
-pass       362
+tests      380
+pass       380
 fail       0
-duration   sekitar 8,5 detik
+duration   sekitar 8,4 detik
 ```
 
 Test lokal memakai mocks/fallback dan tidak membuktikan semua provider eksternal sedang hidup.
@@ -1772,7 +2515,9 @@ Repository `ai-vercel` menyediakan script:
 scripts/test-intent-ml-model.py
 ```
 
-Script tersebut menguji logic ML secara langsung tanpa membuka port FastAPI. Pemeriksaannya meliputi:
+Script tersebut terutama dipakai pada mode `--demo` untuk menjelaskan mekanisme baseline TF-IDF kata + Logistic Regression tanpa membuka port FastAPI. Pipeline demo memakai nama step `tfidf` dan `clf`; pipeline production 13 intent memakai `features` dan `classifier` sehingga diuji dengan test pada repository `intent-ml-api` di Mode B.
+
+Pemeriksaan mode demo meliputi:
 
 1. object model merupakan scikit-learn `Pipeline`;
 2. pipeline memiliki step `tfidf` dan `clf`;
@@ -1844,61 +2589,42 @@ Mode demo hanya membuktikan mekanisme algoritma dan script pengujian. Mode ini b
 
 ##### Mode B: menguji artefak Joblib aktif
 
-Struktur folder yang diharapkan:
+Artefak production sekarang memakai pipeline `features` + `classifier`, sedangkan script demo lama memakai `tfidf` + `clf`. Karena itu pengujian artefak aktif dilakukan dari repository `intent-ml-api`, bukan dengan menjalankan script demo tanpa `--demo`.
+
+Struktur file wajib:
 
 ```text
-kumpulan-codingan-fadli/
-|-- ai-vercel/
-|   `-- scripts/test-intent-ml-model.py
-`-- intent-ml-api/
-    `-- intent_model_tfidf_logreg_training_3.joblib
+intent-ml-api/
+|-- app.py
+|-- intent_model_tfidf_logreg_training_13.joblib
+|-- intent_model_tfidf_logreg_training_13.metadata.json
+|-- intent_contract.json
+`-- tests/test_app.py
 ```
 
-Dari folder `ai-vercel`, jalankan tanpa `--demo`:
+Dari folder `intent-ml-api`, aktifkan environment dengan dependency pada `requirements.txt`, kemudian jalankan:
 
 ```powershell
-python scripts/test-intent-ml-model.py
+python -m unittest discover -s tests -p "test_*.py"
 ```
 
-Script secara default mencari:
+Test tersebut membuktikan bahwa:
 
-```text
-../intent-ml-api/intent_model_tfidf_logreg_training_3.joblib
-```
-
-Path juga dapat diberikan secara eksplisit:
-
-```powershell
-python scripts/test-intent-ml-model.py `
-  "C:\kumpulan-codingan-fadli\intent-ml-api\intent_model_tfidf_logreg_training_3.joblib"
-```
-
-Jika memakai `uv`:
-
-```powershell
-$env:UV_CACHE_DIR = Join-Path $env:TEMP "intent-ml-uv-cache"
-
-uv run `
-  --with scikit-learn `
-  --with joblib `
-  --with numpy `
-  python scripts/test-intent-ml-model.py
-```
-
-Output yang dianggap lulus harus berakhir dengan:
-
-```text
-PASS: TF-IDF dan Logistic Regression berjalan konsisten.
-```
+1. model memiliki tepat 13 intent;
+2. health check menyatakan model sudah dimuat;
+3. response prediction mempertahankan kontrak API;
+4. contoh intent kritis menghasilkan label yang diharapkan;
+5. pertanyaan kosong ditolak;
+6. metadata dengan kontrak intent tidak lengkap ditolak.
 
 Penting:
 
 - Joblib/Pickle hanya boleh dimuat dari artefak yang dipercaya karena proses deserialisasi dapat menjalankan kode Python.
 - Jangan mengunduh dan mengeksekusi file `.joblib` acak dari internet.
-- Gunakan versi scikit-learn yang kompatibel dengan versi saat model dilatih. Dependency project saat ini belum dipin, sehingga warning atau incompatibility versi harus dicatat, bukan diabaikan.
-- Pengujian artefak aktif belum membuktikan akurasi seluruh intent; script ini memverifikasi struktur dan konsistensi inference. Evaluasi akurasi tetap membutuhkan test set berlabel yang terpisah dari data training.
+- Gunakan versi dependency yang dipin pada `requirements.txt`; API memang menolak versi scikit-learn yang berbeda dari metadata.
+- Unit test membuktikan kontrak dan beberapa contoh tetap, bukan seluruh akurasi percakapan pelanggan.
 
-Pada sesi dokumentasi 2026-09-16, mode demo berhasil dijalankan. Artefak lokal production tidak dapat dijangkau oleh sandbox yang hanya memasang workspace `ai-vercel`, sehingga hasil artefak aktif tidak diklaim lulus sampai perintah Mode B dijalankan pada workspace lokal yang dapat melihat kedua folder.
+Mode A tetap berguna untuk menjelaskan mekanisme dasar TF-IDF + Logistic Regression. Mode B adalah pengujian yang sesuai untuk artefak production 13 intent.
 
 Health check:
 
@@ -2016,7 +2742,7 @@ Gunakan urutan ini agar cerita live coding tidak meloncat-loncat:
 3. `lib/chatbot/askLanguage.js` — tunjukkan `classifyIntentHybrid`.
 4. `lib/classifyIntentML.js` — tunjukkan HTTP request ke Python.
 5. `intent-ml-api/app.py` — tunjukkan model load dan `predict_proba`.
-6. `git show 181d6a8:train_model.py` — tunjukkan TF-IDF + Logistic Regression training.
+6. `intent-ml-api/Training_Intent_13.ipynb` atau `scripts/build_training_notebook.py` — tunjukkan FeatureUnion TF-IDF kata/karakter dan Logistic Regression training.
 7. `lib/chatbot/intentDecision.js` — tunjukkan confidence boundary.
 8. `lib/chatbot/intentFusion.js` — tunjukkan fusion dengan semantic router.
 9. `lib/chatbot/wooCatalog.js` — tunjukkan fakta berasal dari WooCommerce.
@@ -2051,7 +2777,7 @@ Tidak. TF-IDF membuat fitur numerik. Logistic Regression memilih intent. Handler
 
 ### “Di mana bukti TF-IDF benar-benar digunakan?”
 
-Pada `train_model.py` historis terdapat `Pipeline` dengan step bernama `tfidf`. Pada source aktif, `app.py` memanggil `model.predict` dan `model.predict_proba` terhadap Pipeline Joblib, serta mengakses step `clf`. Method response juga bernama `tfidf_logreg`.
+Pada `Training_Intent_13.ipynb` dan builder-nya terdapat pipeline dengan step `features` dan `classifier`. Step `features` berisi dua `TfidfVectorizer`, yaitu TF-IDF kata dan karakter. Pada source aktif, `app.py` memanggil `model.predict_proba()`, lalu `np.argmax` memilih label teratas. Method response tetap bernama `tfidf_logreg`.
 
 ### “Bagaimana jika model salah?”
 
@@ -2067,21 +2793,20 @@ Secara praktis terdapat pemisahan service: Node/Vercel untuk orkestrasi dan Pyth
 
 ### “Apa kekurangan penelitian saat ini?”
 
-Artefak training ketiga belum reproducible, evaluasi tersimpan belum mencakup semua 13 intent, dependency Python belum dipin, dan pengujian end-to-end live masih bergantung layanan eksternal.
+Model aktif sudah memiliki dataset training/hard test, notebook reproducible, metadata, checksum, dependency yang dipin, dan kontrak 13 intent. Kekurangannya adalah hard test masih kecil, calibration belum dilaporkan, dan akurasi percakapan end-to-end tetap bergantung konteks, retrieval, serta layanan eksternal.
 
 ### “Apa pengembangan berikutnya yang paling ilmiah?”
 
-Simpan dataset versioned, script training final, random seed, versi dependency, label contract, hash artefak, confusion matrix 13 kelas, calibration metrics, serta benchmark end-to-end pada data pelanggan yang telah dianonimkan.
+Tambahkan calibration metrics, perluas hard test dengan variasi pelanggan nyata yang dianonimkan, simpan riwayat versi dataset/model, dan ukur routing, retrieval, factuality, serta kualitas jawaban secara terpisah.
 
 ## 24. Risiko dan technical debt yang relevan untuk sidang
 
 | Temuan | Dampak | Jawaban yang jujur |
 | --- | --- | --- |
-| Training source model ketiga tidak tersedia | Model aktif sulit direproduksi | Ini batas artefak saat ini dan perlu model manifest/training package. |
-| Requirements Python tidak dipin | Deserialisasi Joblib dapat berbeda antarversi | Bekukan versi pada environment reproducible. |
-| Laporan hanya delapan kelas | Belum mewakili kontrak 13 intent | Evaluasi ulang semua kelas dengan test set terpisah. |
+| Hard test hanya 104 contoh | Nilai sempurna dapat terlalu optimistis untuk bahasa pelanggan nyata | Perluas hard test anonim dan pertahankan pemisahannya dari training. |
+| Calibration metric belum tersedia | Confidence belum terbukti mencerminkan peluang benar secara absolut | Ukur calibration/Brier score dan evaluasi threshold per versi model. |
+| Dataset versioning masih berbasis file/checksum | Riwayat perubahan contoh belum mudah dianalisis | Simpan changelog dataset dan alasan perubahan label/contoh. |
 | Timeout ML 12 detik ikut ditunggu `Promise.all` | Dapat menambah latency turn | Ukur latency dan pertimbangkan deadline lebih pendek/circuit breaker bila terbukti perlu. |
-| Detail exception Python dikirim ke client | Dapat membocorkan informasi internal | Produksi sebaiknya mengirim error generik dan mencatat detail server-side. |
 | Tidak ada auth/rate limit khusus pada ML API | Potensi abuse bila endpoint publik | Batasi akses sesuai arsitektur deployment. |
 | CORS chatbot wildcard | Endpoint dapat dipanggil origin lain | Lakukan threat assessment sebelum hardening. |
 | Akurasi intent bukan akurasi jawaban | Klaim penelitian bisa terlalu luas | Pisahkan evaluasi classifier, routing, retrieval, factuality, dan response quality. |
@@ -2114,38 +2839,30 @@ Simpan dataset versioned, script training final, random seed, versi dependency, 
 - Bedakan confidence model dan kepastian fakta.
 - Jelaskan fungsi threshold.
 - Jelaskan mengapa sistem hybrid.
-- Akui batas reproducibility model training ketiga.
+- Jelaskan bahwa reproducibility classifier sudah ditingkatkan, tetapi evaluasi end-to-end masih terpisah.
 
-## 26. Checklist peningkatan reproducibility setelah sidang
+## 26. Status reproducibility dan peningkatan berikutnya
 
-Ini bukan syarat menjalankan sistem saat ini, tetapi penting untuk kualitas akademik:
+Yang sudah tersedia pada model aktif:
 
-1. Simpan `train_model.py` final yang benar-benar menghasilkan `training_3.joblib`.
-2. Simpan dataset dengan versi atau checksum tanpa data sensitif.
-3. Simpan daftar label final dan jumlah contoh per kelas.
-4. Pin versi Python, scikit-learn, NumPy, pandas, dan Joblib.
-5. Simpan seed, split policy, dan preprocessing policy.
-6. Simpan classification report dan confusion matrix untuk semua 13 intent.
-7. Catat SHA-256 model dalam model manifest.
-8. Tambahkan smoke test yang memuat Joblib dan memprediksi contoh tetap.
-9. Pisahkan test set dari contoh yang dipakai memperbaiki model.
-10. Evaluasi precision, recall, F1, confusion matrix, dan calibration.
+- notebook training 13 intent dan script pembangunnya;
+- dataset training serta hard test terpisah;
+- kontrak 13 label;
+- random seed dan konfigurasi preprocessing/model;
+- dependency Python yang dipin;
+- metadata metrik, versi library, dan jumlah data;
+- SHA-256 dataset dan artefak;
+- startup validation dan unit test prediction contract.
 
-Contoh model manifest yang disarankan untuk masa depan:
+Peningkatan ilmiah berikutnya:
 
-```json
-{
-  "model_name": "intent_tfidf_logreg_training_3",
-  "algorithm": "TfidfVectorizer + LogisticRegression",
-  "dataset_version": "belum tersedia",
-  "trained_at": "belum tersedia",
-  "python_version": "belum tersedia",
-  "scikit_learn_version": "belum tersedia",
-  "labels": [],
-  "test_metrics": {},
-  "artifact_sha256": "belum tersedia"
-}
-```
+1. Tambahkan calibration curve, expected calibration error, atau Brier score.
+2. Perbesar hard test menggunakan variasi pelanggan nyata yang dianonimkan.
+3. Simpan changelog dataset dan alasan setiap relabeling.
+4. Pertahankan test set yang belum pernah dipakai untuk memperbaiki model.
+5. Laporkan confusion matrix dan precision/recall/F1 per 13 intent untuk setiap versi.
+6. Pisahkan evaluasi classifier, routing final, product resolution, answer coverage, factuality, dan response quality.
+7. Tambahkan benchmark latency dan fallback ketika ML API tidak tersedia.
 
 ## 27. Glosarium
 

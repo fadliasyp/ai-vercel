@@ -58,6 +58,7 @@ Status project: **aktif dikembangkan**.
 ## Technical Facts
 
 - Node.js ESM, Vercel Functions, native `fetch`, dan native Node tests.
+- Intent ML production memakai artefak 13 intent `intent_model_tfidf_logreg_training_13.joblib`: FeatureUnion TF-IDF kata/karakter dan Logistic Regression, disertai metadata/checksum serta dependency terpin di repository `intent-ml-api`.
 - Tidak ada ORM atau framework backend tambahan.
 - Woo catalog memakai pagination, satu retry terbatas untuk kegagalan transport sementara/429/5xx, cache memory, dan stale fallback.
 - Metadata `woopt_actions` dinormalisasi oleh `restockSchedule.js`; waktu plugin dibaca sebagai waktu toko `Asia/Jakarta`/WIB dan jadwal lampau tidak ditampilkan sebagai restock mendatang.

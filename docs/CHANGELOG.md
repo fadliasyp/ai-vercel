@@ -71,6 +71,8 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 ### Documentation
 
 - Added `docs/PANDUAN_TEKNIS_INTENT_ML_DAN_ALUR_CHATBOT.md` sebagai panduan komprehensif untuk skripsi dan live coding.
+- Added a chronological 21-step walkthrough from browser input through request validation, context restoration, compound analysis, hybrid/semantic routing, grounded commerce handlers, coverage/composer safety, JSON response, and frontend rendering, with active file and line references.
+- Synchronized the guide with the active 13-intent artifact: word/character TF-IDF FeatureUnion, Logistic Regression, metadata/checksum validation, current evaluation scope, and the production API test path.
 - Documented frontend request, Indonesian preprocessing, TF-IDF, Logistic Regression, Intent ML API, hybrid/semantic intent fusion, commerce grounding, answer coverage, response rendering, dan batas reproducibility.
 - Added direct source excerpts, evaluation interpretation, demonstration commands, examiner Q&A, dan pre-defense checklist.
 - Expanded stage 8 with the explicit Node-to-FastAPI request path, local versus production `INTENT_API_URL`, `.joblib` loading, inference location, response validation, failure fallback, and a live-coding walkthrough.

@@ -70,6 +70,8 @@ Ekspansi fallback text Google selesai lokal dan menunggu deployment serta smoke 
 - Live smoke adapter berhasil menghasilkan JSON valid pada ketiga model aktif tersebut.
 - `gemma-4-31b-it` tidak diaktifkan default: dua constrained smoke menghasilkan HTTP 500, sedangkan probe yang berhasil memerlukan sekitar 115 detik dan melewati batas fungsi Vercel 90 detik.
 - Regression provider dan seluruh suite lulus 380/380; coverage replay tetap lulus 9/9 turn.
+- Panduan teknis kini memiliki alur linear 21 langkah dari input browser sampai renderer, lengkap dengan potongan source dan nomor baris aktif.
+- Dokumentasi Intent ML diselaraskan dengan artefak production `training_13`: FeatureUnion TF-IDF kata/karakter, Logistic Regression, metadata/checksum, 13 intent, dan test API aktif.
 
 ## Active Task
 
@@ -88,7 +90,7 @@ Ekspansi fallback text Google selesai lokal dan menunggu deployment serta smoke 
 - Mendokumentasikan pipeline training historis TF-IDF + Logistic Regression dan inference model aktif.
 - Mendokumentasikan request frontend, normalisasi, hybrid decision, semantic fusion, commerce grounding, coverage, response, dan renderer.
 - Menambahkan panduan live coding, pertanyaan penguji, limitation, dan checklist reproducibility.
-- Memverifikasi 362 unit/regression tests tetap lulus tanpa perubahan source produksi.
+- Memverifikasi ulang 380 unit/regression tests tetap lulus tanpa perubahan source produksi.
 - Menambahkan normalisasi `sampe` pada parser budget bersama.
 - Menambahkan regression parser dan end-to-end untuk pertanyaan persis dari laporan pengguna.
 - Membuat deteksi kondisi JUNK peka terhadap negasi pada metadata rekomendasi.
@@ -103,9 +105,9 @@ Ekspansi fallback text Google selesai lokal dan menunggu deployment serta smoke 
 
 ## Findings
 
-- Runtime aktif memakai `intent_model_tfidf_logreg_training_3.joblib`.
-- Source training yang tersedia hanya dapat dibuktikan dari Git commit `181d6a8`; script/dataset persis training ketiga tidak tersedia di HEAD.
-- Laporan evaluasi tersimpan mencakup 8 kelas, sedangkan kontrak chatbot saat ini memiliki 13 intent.
+- Runtime Intent ML aktif memakai `intent_model_tfidf_logreg_training_13.joblib` dan metadata terverifikasi.
+- Notebook, script pembangun notebook, dataset training/hard test, kontrak label, checksum, dan dependency model 13 intent tersedia di repository `intent-ml-api`.
+- Metadata model mencakup evaluasi 13 intent; metrik classifier tetap tidak mewakili kualitas chatbot end-to-end.
 - Intent ML adalah classifier/routing signal; fakta commerce tetap berasal dari WooCommerce dan API terverifikasi.
 - Timer per produk tersedia melalui Woo REST `meta_data`; Global Timer tersimpan sebagai option WordPress dan belum tercakup endpoint katalog.
 
@@ -151,11 +153,11 @@ Ekspansi fallback text Google selesai lokal dan menunggu deployment serta smoke 
 
 - `mistral-small-latest` tetap HTTP 429 pada akun ini, tetapi tidak lagi menjadi model aktif lokal karena diganti dengan Ministral 8B dan 3B yang sudah lulus live smoke.
 - `gemma-4-31b-it` tersedia pada akun, tetapi belum layak menjadi default karena latency live sekitar 115 detik pada respons yang berhasil.
-- Reproduksi model training ketiga belum mungkin hanya dari file aktif repository.
+- Hard test model aktif masih terbatas 104 contoh dan calibration metric belum tersedia.
 
 ## Notes For Next Session
 
 - Panduan membedakan bukti source aktif, riwayat Git, dan penjelasan konsep; pertahankan perbedaan tersebut saat model diperbarui.
-- Jangan menyatakan report 8 kelas sebagai evaluasi lengkap kontrak 13 intent.
+- Jangan menyatakan metrik classifier 13 intent sebagai akurasi jawaban chatbot end-to-end.
 - Deployment 2026-09-15 telah diverifikasi melalui satu smoke text dan satu smoke image, tetapi dibuat sebelum sinkronisasi pool Gemini terbaru; fallback production Mistral/Cloudflare belum dipaksa karena primary provider berhasil.
 
