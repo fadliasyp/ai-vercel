@@ -155,6 +155,7 @@ Pada 2026-10-06:
 
 - Koreksi `antara 5 sampai 8 juta ... kalau yang 3 jutaan ada?` menghasilkan target Rp3 juta dan mempertahankan tujuan pajangan, termasuk ketika output LLM disimulasikan keliru sebagai batas maksimum.
 - `npm test`: 399/399 lulus; coverage replay: 9/9 turn; benchmark pelanggan deterministik: 26/26 turn dengan 135 assertion (100%).
+- Setelah deployment, pengguna mengonfirmasi smoke production rekomendasi lulus 3/3: target harga, rentang dengan kebutuhan, dan follow-up target singkat.
 - Benchmark konteks lokal tidak dinilai lulus/gagal untuk perubahan ini karena fetch WooCommerce eksternal tidak tersedia pada saat verifikasi.
 
 Pada 2026-09-15:

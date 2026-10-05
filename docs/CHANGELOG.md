@@ -28,6 +28,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
+- User-verified production smoke passes 3/3 for an approximate target, a bounded range with product-purpose constraints, and a terse same-session price refinement.
 - Added unit and full `/api/ask` regressions using the production question and a deliberately wrong Groq-shaped `maximum` result. All 399 local tests pass; only products within the Rp5.6-Rp8.4 million target window survive.
 - Added a data-driven language matrix and follow-up regressions. All 397 local tests pass, answer-coverage replay passes 9/9 turns, and the customer conversation benchmark passes 26/26 turns with 135 assertions (100%).
 - Added parser, ranking, and `/api/ask` regressions for latest-price correction, including a deliberately incorrect LLM `maximum` result. All 393 local tests pass, answer-coverage replay passes 9/9 turns, and customer conversation benchmark passes 26/26 turns.

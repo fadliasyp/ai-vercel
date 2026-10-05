@@ -133,6 +133,7 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 - `npm test`
 - `npm run benchmark:coverage-replay`
 - Bukti 2026-10-06: 399/399 test lulus, replay 9/9 turn lulus, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus.
+- Bukti production 2026-10-06: smoke manual pengguna lulus 3/3 untuk target harga, rentang + kebutuhan, dan refinement harga singkat dalam sesi yang sama.
 
 ## Product Restock Schedule
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-Belum ada task aktif. Hardening bahasa sehari-hari pada rekomendasi selesai lokal dan menunggu deployment serta smoke production terarah.
+Belum ada task aktif. Hardening bahasa sehari-hari pada rekomendasi sudah ter-deploy dan lulus smoke production terarah 3/3 berdasarkan pengujian manual pengguna.
 
 ## Current Progress
 
@@ -14,6 +14,7 @@ Belum ada task aktif. Hardening bahasa sehari-hari pada rekomendasi selesai loka
 - Resolver konteks tidak lagi menambahkan awalan `rekomendasi robot budget` pada pertanyaan rekomendasi baru yang sudah lengkap hanya karena goal sebelumnya juga rekomendasi.
 - Regression endpoint memakai pertanyaan dan kesalahan semantic persis dari log production; hanya fixture Rp6,25-Rp7 juta yang lolos, sedangkan Rp3 juta dan Rp650 ribu ditolak.
 - Verifikasi akhir: 399/399 test lulus, coverage replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%).
+- Pengguna mengonfirmasi tiga smoke production lulus: target harga, rentang dengan kebutuhan, dan follow-up target singkat dalam satu sesi.
 - Memperbaiki pesan rekomendasi yang memuat rentang lama lalu alternatif baru, misalnya `Cari robot antara 5 sampe 8 juta buat pajangan. Kalau yang 3 jutaan ada?`.
 - Structured LLM prompt kini mewajibkan constraint harga eksplisit paling akhir menggantikan constraint lama sambil mempertahankan tujuan seperti `pajangan`.
 - Validator grounding membedakan target `kalau yang 3 jutaan` dari batas `maksimal/budget 3 juta`, sehingga produk Rp650 ribu atau Rp1,5 juta tidak lolos sebagai rekomendasi Rp3 jutaan.
@@ -112,7 +113,7 @@ Belum ada task aktif. Hardening bahasa sehari-hari pada rekomendasi selesai loka
 
 ## Active Task
 
-- Belum ada task aktif; hardening rekomendasi bahasa sehari-hari siap di-deploy dan diuji dengan smoke production terarah.
+- Belum ada task aktif; hardening rekomendasi bahasa sehari-hari sudah terverifikasi lokal dan production.
 
 ## Last Completed Task
 
@@ -218,9 +219,8 @@ Belum ada task aktif. Hardening bahasa sehari-hari pada rekomendasi selesai loka
 
 ## Next Steps
 
-1. Deploy perubahan source ke Vercel.
-2. Jalankan smoke production terarah untuk rekomendasi target, rentang, dan follow-up singkat; pengujian variasi bahasa selebihnya sudah ditanggung matriks otomatis.
-3. Pantau metadata intent/provider, latency, HTTP 429/5xx, dan konsumsi quota sebelum uji pengguna ramai.
+1. Lanjutkan ke audit intent berikutnya berdasarkan prioritas sidang, tanpa mengubah baseline rekomendasi yang sudah lulus.
+2. Pantau metadata intent/provider, latency, HTTP 429/5xx, dan konsumsi quota sebelum uji pengguna ramai.
 
 ## Blockers
 
