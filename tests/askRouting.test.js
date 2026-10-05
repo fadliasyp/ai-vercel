@@ -952,6 +952,46 @@ test("routes real customer turns without stale products or fallback collisions",
       ...semanticRoute,
       entities: {
         ...semanticRoute.entities,
+        budget_min: null,
+        budget_max: 3000000,
+      },
+      recommendation_request: {
+        price_mode: "maximum",
+        target_price: null,
+        budget_min: null,
+        budget_max: 3000000,
+        purposes: ["display"],
+        stock: null,
+        condition: null,
+        promo_only: false,
+      },
+      interpretation:
+        "Pelanggan mengoreksi pilihan menjadi robot sekitar tiga juta untuk pajangan.",
+    };
+
+    const latestPriceAlternative = await ask(
+      "Cari robot antara 5 sampe 8 juta buat pajangan. Kalau yang 3 jutaan ada?",
+      null,
+      { sessionId: `semantic_latest_price_${Date.now()}` },
+    );
+    assert.equal(latestPriceAlternative.intent, "recommendation");
+    assert.ok(latestPriceAlternative.products.length > 0);
+    assert.ok(
+      latestPriceAlternative.products.every((item) => {
+        const price = Number(item.numericPrice || 0);
+        return price >= 2400000 && price <= 3600000;
+      }),
+    );
+    assert.ok(
+      latestPriceAlternative.products.every(
+        (item) => Number(item.numericPrice || 0) !== 650000,
+      ),
+    );
+
+    semanticRoute = {
+      ...semanticRoute,
+      entities: {
+        ...semanticRoute.entities,
         product_names: ["Robot Ultraman Galactic"],
         budget_min: null,
         budget_max: null,

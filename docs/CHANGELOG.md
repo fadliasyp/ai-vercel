@@ -12,6 +12,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Fixed
 
+- Fixed recommendation messages that state an earlier range and then a newer alternative, such as `antara 5 sampai 8 juta ... kalau yang 3 jutaan ada?`. The latest explicit amount is now a target price while the earlier purpose remains active; genuinely explicit maximum-budget wording is unchanged.
 - Fixed generic recommendation requests such as `Cari robot antara 5 sampai 8 juta buat pajangan dong` being rejected as an unavailable named product even though the LLM correctly returned an empty `product_names` list.
 - Recommendation catalog guards now use trusted semantic product entities first, while the local fallback ignores range words such as `antara`, `sampai`, `sekitar`, and `kisaran`. Explicit unavailable product names remain protected from unrelated substitutions.
 - Connected LLM recommendation understanding to the actual catalog filter/ranker instead of discarding it during legacy semantic conversion.
@@ -22,6 +23,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
+- Added parser, ranking, and `/api/ask` regressions for latest-price correction, including a deliberately incorrect LLM `maximum` result. All 393 local tests pass, answer-coverage replay passes 9/9 turns, and customer conversation benchmark passes 26/26 turns.
 - Added exact endpoint regressions for generic Rp5-Rp8 million display recommendations and the inverse unavailable-named-product case. All 391 local tests pass, answer-coverage replay passes 9/9 turns, and customer conversation benchmark passes 26/26 turns.
 - Added semantic-contract, grounding, follow-up inheritance, negated-budget, ranking, and `/api/ask` regressions. All 390 local tests pass, answer-coverage replay passes 9/9 turns, and customer conversation benchmark passes 26/26 turns.
 - Added parser, ranking, and `/api/ask` regression coverage for conversational recommendation targets. All 386 local tests pass and answer-coverage replay passes 9/9 turns.

@@ -3,9 +3,29 @@ import assert from "node:assert/strict";
 
 import {
   extractBudgetRange,
+  extractLatestRecommendationTargetPrice,
   extractRecommendationBudgetAnswer,
   isRecommendationBudgetFollowUp,
 } from "../lib/chatbot/priceIntent.js";
+
+test("extracts the latest explicit recommendation price alternative", () => {
+  assert.equal(
+    extractLatestRecommendationTargetPrice(
+      "Cari robot antara 5 sampe 8 juta buat pajangan. Kalau yang 3 jutaan ada?",
+    ),
+    3000000,
+  );
+  assert.equal(
+    extractLatestRecommendationTargetPrice(
+      "Cari robot 5 sampai 8 juta, tapi harga sekitar 4 jutaan ada?",
+    ),
+    4000000,
+  );
+  assert.equal(
+    extractLatestRecommendationTargetPrice("Kalau budget 3 juta ada?"),
+    null,
+  );
+});
 
 test("extracts natural maximum-budget phrases", () => {
   assert.deepEqual(extractBudgetRange("maks budget saya 500rb, dapet apa"), {

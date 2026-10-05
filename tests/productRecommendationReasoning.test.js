@@ -320,6 +320,59 @@ test("accepts an LLM maximum for negated wording and rejects invented money", ()
   assert.equal(inventedNeeds.targetPrice, 19000000);
 });
 
+test("latest explicit price alternative replaces an earlier range", () => {
+  const needs = extractRecommendationNeeds(
+    "Cari robot antara 5 sampe 8 juta buat pajangan. Kalau yang 3 jutaan ada?",
+    {
+      intent: "recommendation",
+      confidence: 0.95,
+      recommendation_request: {
+        price_mode: "maximum",
+        target_price: null,
+        budget_min: null,
+        budget_max: 3000000,
+        purposes: ["display"],
+        stock: null,
+        condition: null,
+        promo_only: false,
+      },
+    },
+  );
+
+  assert.equal(needs.priceMode, "target");
+  assert.equal(needs.targetPrice, 3000000);
+  assert.equal(needs.budgetMin, null);
+  assert.equal(needs.budgetMax, null);
+  assert.equal(needs.wantsDisplay, true);
+  assert.deepEqual(
+    pickRecommendedProducts(
+      [
+        {
+          id: 1,
+          name: "Tepat 3 juta",
+          numericPrice: 3000000,
+          description: "Figure untuk pajangan",
+        },
+        {
+          id: 2,
+          name: "Terlalu murah",
+          numericPrice: 1500000,
+          description: "Figure untuk pajangan",
+        },
+        {
+          id: 3,
+          name: "Jauh lebih murah",
+          numericPrice: 650000,
+          description: "Figure untuk pajangan",
+        },
+      ],
+      needs,
+      3,
+    ).map((product) => product.name),
+    ["Tepat 3 juta"],
+  );
+});
+
 test("inherits a verified recommendation price only on an LLM follow-up", () => {
   const semantic = {
     intent: "recommendation",

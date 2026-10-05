@@ -2,10 +2,15 @@
 
 ## Status
 
-Belum ada task aktif. Tahap pertama rekomendasi LLM-first selesai lokal dan menunggu deployment serta uji production manual.
+Belum ada task aktif. Koreksi harga terbaru dalam rekomendasi selesai lokal dan menunggu deployment serta uji production manual.
 
 ## Current Progress
 
+- Memperbaiki pesan rekomendasi yang memuat rentang lama lalu alternatif baru, misalnya `Cari robot antara 5 sampe 8 juta buat pajangan. Kalau yang 3 jutaan ada?`.
+- Structured LLM prompt kini mewajibkan constraint harga eksplisit paling akhir menggantikan constraint lama sambil mempertahankan tujuan seperti `pajangan`.
+- Validator grounding membedakan target `kalau yang 3 jutaan` dari batas `maksimal/budget 3 juta`, sehingga produk Rp650 ribu atau Rp1,5 juta tidak lolos sebagai rekomendasi Rp3 jutaan.
+- Regression mencakup parser, ranking, dan endpoint dengan output LLM yang sengaja disimulasikan salah sebagai `maximum`; verifikasi lulus 393/393 test, coverage replay 9/9, dan benchmark pelanggan 26/26.
+- `benchmark:context` lokal tidak dapat menjadi bukti pada sesi ini karena fetch WooCommerce eksternal gagal; kegagalannya berupa respons server sibuk/data produk, bukan kegagalan assertion harga.
 - Semantic router kini menghasilkan `recommendation_request` terstruktur untuk mode harga, target/batas, tujuan penggunaan, stok, kondisi, dan promo.
 - Jalur rekomendasi utama memakai hasil tersebut secara langsung; parser lokal tetap menjadi fallback saat provider tidak tersedia atau output LLM gagal validasi.
 - Nominal LLM divalidasi terhadap pesan pelanggan. Nilai dari goal lama hanya dapat diwarisi pada relasi `follow_up`/`clarification_answer`, sehingga topik baru tidak tercemar konteks lama.
