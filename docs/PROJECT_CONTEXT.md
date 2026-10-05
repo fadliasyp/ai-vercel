@@ -24,6 +24,7 @@ Status project: **aktif dikembangkan**.
 ## Completed Capabilities
 
 - Semantic intent routing dan structured understanding dengan Groq, fallback Gemini/Mistral, lalu fallback lokal.
+- Structured understanding rekomendasi mencakup mode harga (`target`, `maximum`, `minimum`, `range`), tujuan penggunaan, stok, kondisi, dan promo. Constraint LLM hanya dipakai setelah nominalnya cocok dengan pesan pelanggan atau goal follow-up yang terverifikasi.
 - Intent lock pada mode LLM-led active dengan pengecualian untuk pending state dan structured action tepercaya.
 - Pemecahan pertanyaan majemuk, answer planner, coverage validator, dan auto-repair.
 - Context/pending state untuk follow-up, klarifikasi produk, lokasi pengiriman, status pesanan, dan pergantian topik.
@@ -33,6 +34,7 @@ Status project: **aktif dikembangkan**.
 - Strength/caveat rekomendasi serta perbandingan dapat memakai deskripsi produk WooCommerce.
 - Rekomendasi membedakan target harga seperti `harga 7 jutaan` dan `rekomen robot 19 jutaan` dari batas budget; target harga hanya menerima kandidat dalam toleransi 20%, sedangkan batas/rentang tetap menjadi filter keras. Frasa `budget sekitar/kisaran X` memakai X sebagai target sekaligus batas maksimum.
 - Goal rekomendasi aktif melengkapi follow-up nominal singkat maupun berbungkus percakapan: `yg 3 jutaan` dan `Kalau yang 6 jutaan ada apa aja?` menjadi target harga baru, sedangkan `3 juta` menjadi batas budget; pergantian intent eksplisit tetap tidak diwarisi.
+- Goal rekomendasi menyimpan target harga, mode harga, dan tujuan penggunaan agar LLM dapat menyelesaikan follow-up alami tanpa memaksakan constraint lama ke `new_topic`.
 - Produk fokus mendukung follow-up atribut alami seperti `stoknya`, `harganya`, `kondisinya`, dan `bahannya`; nama produk eksplisit serta produk halaman tetap memiliki prioritas lebih tinggi.
 - Kebijakan pembayaran, COD, packing, asuransi, retur/refund, jam/lokasi toko, dan pengiriman internasional.
 - Ongkir domestik melalui endpoint WordPress custom dengan pemilihan kota/kecamatan.

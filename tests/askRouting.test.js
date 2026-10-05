@@ -871,6 +871,47 @@ test("routes real customer turns without stale products or fallback collisions",
     );
 
     semanticRoute = {
+      scope: "in_scope",
+      intent: "recommendation",
+      intents: ["recommendation"],
+      goals: ["recommendation", "price"],
+      confidence: 0.96,
+      entities: {
+        product_names: [],
+        budget_min: null,
+        budget_max: 10000000,
+      },
+      recommendation_request: {
+        price_mode: "target",
+        target_price: 10000000,
+        budget_min: null,
+        budget_max: 10000000,
+        purposes: [],
+        stock: "ready",
+        condition: null,
+        promo_only: false,
+      },
+      requires_product: true,
+      customer_state: "neutral",
+      interpretation:
+        "Pelanggan meminta pilihan robot terbaik dengan dana sekitar sepuluh juta.",
+      topic_relation: "new_topic",
+      needs_clarification: false,
+      clarification_question: null,
+    };
+
+    const llmRecommendation = await ask(
+      "Modal gue 10 jutaan, enaknya ambil robot apa?",
+      null,
+      { sessionId: `semantic_recommendation_${Date.now()}` },
+    );
+    assert.equal(llmRecommendation.intent, "recommendation");
+    assert.deepEqual(productNames(llmRecommendation), [
+      "Comparison Robot Alpha",
+    ]);
+    assert.match(llmRecommendation.reasoning_text, /Rp\s*10\.000\.000/i);
+
+    semanticRoute = {
       ...semanticRoute,
       intent: "recommendation",
       intents: ["recommendation"],

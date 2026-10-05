@@ -2,10 +2,17 @@
 
 ## Status
 
-Belum ada task aktif. Perbaikan target harga rekomendasi selesai lokal dan menunggu deployment serta uji production.
+Belum ada task aktif. Tahap pertama rekomendasi LLM-first selesai lokal dan menunggu deployment serta uji production manual.
 
 ## Current Progress
 
+- Semantic router kini menghasilkan `recommendation_request` terstruktur untuk mode harga, target/batas, tujuan penggunaan, stok, kondisi, dan promo.
+- Jalur rekomendasi utama memakai hasil tersebut secara langsung; parser lokal tetap menjadi fallback saat provider tidak tersedia atau output LLM gagal validasi.
+- Nominal LLM divalidasi terhadap pesan pelanggan. Nilai dari goal lama hanya dapat diwarisi pada relasi `follow_up`/`clarification_answer`, sehingga topik baru tidak tercemar konteks lama.
+- Goal percakapan menyimpan target harga, mode harga, dan tujuan rekomendasi untuk turn lanjutan.
+- Fallback lokal memperbaiki negasi `jangan lebih dari 6 juta` sebagai batas maksimum dan rentang `di atas 6 juta tapi jangan lebih dari 8 juta`.
+- Regression endpoint membuktikan `Modal gue 10 jutaan, enaknya ambil robot apa?` hanya menghasilkan fixture Rp10 juta.
+- Verifikasi tahap ini: 390/390 test, coverage replay 9/9 turn, dan benchmark pelanggan 26/26 turn lulus.
 - Frasa rekomendasi seperti `harga 7 jutaan` dan `harga sekitar 7 juta` sekarang menjadi target harga, bukan batas maksimum generik.
 - Frasa tanpa kata `harga`, termasuk laporan persis `rekomen cok robot 19 jutaan`, sekarang menjadi target harga selama intent rekomendasi disebut eksplisit.
 - Target harga memakai filter toleransi 20%; jika tidak ada kandidat dekat, sistem tidak lagi kembali ke produk murah yang tidak relevan.
@@ -89,13 +96,13 @@ Belum ada task aktif. Perbaikan target harga rekomendasi selesai lokal dan menun
 
 ## Active Task
 
-- Belum ada task aktif; perbaikan rekomendasi target eksplisit siap di-deploy dan diuji ulang pada production.
+- Belum ada task aktif; tahap pertama rekomendasi LLM-first siap di-deploy dan diuji manual pada production.
 
 ## Last Completed Task
 
-- Task: tahap pertama penguatan follow-up dan pergantian konteks menjelang sidang.
+- Task: tahap pertama rekomendasi LLM-first yang tetap data-grounded.
 - Tanggal selesai: 2026-10-05.
-- Goal: mempertahankan objek/intent pada follow-up atribut umum sekaligus memastikan produk dan topik baru mengalahkan konteks lama.
+- Goal: memakai pemahaman LLM untuk constraint rekomendasi dinamis tanpa memberi LLM wewenang mengarang fakta katalog.
 
 ## Completed
 

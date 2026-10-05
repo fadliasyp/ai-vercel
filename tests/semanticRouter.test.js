@@ -74,6 +74,35 @@ test("keeps the LLM-led interpretation and conversation relation structured", ()
   assert.match(parsed.interpretation, /harga dan stok Getter Robo/);
 });
 
+test("normalizes structured recommendation needs from the LLM", () => {
+  const parsed = parseSemanticRouterOutput(
+    validOutput({
+      intent: "recommendation",
+      recommendation_request: {
+        price_mode: "target",
+        target_price: "19000000",
+        budget_min: null,
+        budget_max: "19000000",
+        purposes: ["collection", "collection", "unknown"],
+        stock: "ready",
+        condition: "good",
+        promo_only: false,
+      },
+    }),
+  );
+
+  assert.deepEqual(parsed.recommendation_request, {
+    price_mode: "target",
+    target_price: 19000000,
+    budget_min: null,
+    budget_max: 19000000,
+    purposes: ["collection"],
+    stock: "ready",
+    condition: "good",
+    promo_only: false,
+  });
+});
+
 test("rejects unsupported intent and invalid confidence", () => {
   assert.throws(
     () => parseSemanticRouterOutput(validOutput({ intent: "payment_method" })),
@@ -133,7 +162,12 @@ test("builds compact messages with ecommerce context", () => {
         category: "chogokin",
         focusedProductName: "Produk B",
         productNames: ["Produk A", "Produk B"],
-        constraints: { budgetMin: 7000000, budgetMax: 9500000 },
+        constraints: {
+          budgetMin: 7000000,
+          budgetMax: 9500000,
+          recommendationPriceMode: "range",
+          recommendationPurposes: ["gift"],
+        },
       },
       compound: {
         compound: true,
@@ -190,6 +224,8 @@ test("builds compact messages with ecommerce context", () => {
     products: ["Produk A", "Produk B"],
     budget_min: 7000000,
     budget_max: 9500000,
+    recommendation_price_mode: "range",
+    recommendation_purposes: ["gift"],
   });
   assert.deepEqual(userPayload.context.compound_request, {
     compound: true,

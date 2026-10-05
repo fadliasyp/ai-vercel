@@ -249,3 +249,115 @@ test("uses bare recommendation amounts as targets without distant fallback", () 
     [],
   );
 });
+
+test("uses grounded LLM recommendation constraints for conversational wording", () => {
+  const semantic = {
+    intent: "recommendation",
+    confidence: 0.94,
+    recommendation_request: {
+      price_mode: "target",
+      target_price: 19000000,
+      budget_min: null,
+      budget_max: 19000000,
+      purposes: ["collection"],
+      stock: "ready",
+      condition: null,
+      promo_only: false,
+    },
+  };
+  const needs = extractRecommendationNeeds(
+    "Budget gue 19 jutaan, cariin yang bagus buat koleksi",
+    semantic,
+  );
+
+  assert.equal(needs.understandingSource, "llm");
+  assert.equal(needs.targetPrice, 19000000);
+  assert.equal(needs.budgetMax, 19000000);
+  assert.equal(needs.wantsCollection, true);
+  assert.equal(needs.readyOnly, true);
+});
+
+test("accepts an LLM maximum for negated wording and rejects invented money", () => {
+  const maximumNeeds = extractRecommendationNeeds(
+    "Yang bagus, tapi jangan lebih dari 6 juta",
+    {
+      intent: "recommendation",
+      confidence: 0.95,
+      recommendation_request: {
+        price_mode: "maximum",
+        target_price: null,
+        budget_min: null,
+        budget_max: 6000000,
+        purposes: [],
+        stock: null,
+        condition: null,
+        promo_only: false,
+      },
+    },
+  );
+  const inventedNeeds = extractRecommendationNeeds(
+    "Rekomendasi robot 19 jutaan",
+    {
+      intent: "recommendation",
+      confidence: 0.95,
+      recommendation_request: {
+        price_mode: "target",
+        target_price: 20000000,
+        budget_min: null,
+        budget_max: null,
+        purposes: [],
+        stock: null,
+        condition: null,
+        promo_only: false,
+      },
+    },
+  );
+
+  assert.equal(maximumNeeds.understandingSource, "llm");
+  assert.equal(maximumNeeds.budgetMin, null);
+  assert.equal(maximumNeeds.budgetMax, 6000000);
+  assert.equal(inventedNeeds.understandingSource, "local_fallback");
+  assert.equal(inventedNeeds.targetPrice, 19000000);
+});
+
+test("inherits a verified recommendation price only on an LLM follow-up", () => {
+  const semantic = {
+    intent: "recommendation",
+    confidence: 0.95,
+    topic_relation: "follow_up",
+    recommendation_request: {
+      price_mode: "target",
+      target_price: 19000000,
+      budget_min: null,
+      budget_max: 19000000,
+      purposes: ["display"],
+      stock: "ready",
+      condition: null,
+      promo_only: false,
+    },
+  };
+  const activeGoal = {
+    constraints: {
+      targetPrice: 19000000,
+      budgetMax: 19000000,
+    },
+  };
+  const followUp = extractRecommendationNeeds(
+    "Kalau buat pajangan gimana?",
+    semantic,
+    null,
+    activeGoal,
+  );
+  const newTopic = extractRecommendationNeeds(
+    "Kalau buat pajangan gimana?",
+    { ...semantic, topic_relation: "new_topic" },
+    null,
+    activeGoal,
+  );
+
+  assert.equal(followUp.understandingSource, "llm");
+  assert.equal(followUp.targetPrice, 19000000);
+  assert.equal(followUp.wantsDisplay, true);
+  assert.equal(newTopic.understandingSource, "local_fallback");
+  assert.equal(newTopic.targetPrice, null);
+});

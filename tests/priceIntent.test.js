@@ -62,6 +62,19 @@ test("extracts lower bounds and price ranges", () => {
       max: 6000000,
     },
   );
+  assert.deepEqual(extractBudgetRange("jangan lebih dari 6 juta"), {
+    detected: true,
+    min: null,
+    max: 6000000,
+  });
+  assert.deepEqual(
+    extractBudgetRange("di atas 6 juta tapi jangan lebih dari 8 juta"),
+    {
+      detected: true,
+      min: 6000000,
+      max: 8000000,
+    },
+  );
 });
 
 test("treats a free-form range as the awaited recommendation budget", () => {

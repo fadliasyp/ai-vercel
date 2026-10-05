@@ -198,13 +198,22 @@ test("keeps a compact product goal and preserves it across shipping", () => {
   const goal = buildActiveConversationGoal(null, {
     intent: "recommendation",
     products,
-    slots: { budgetMin: 7000000, budgetMax: 9500000 },
+    slots: {
+      budgetMin: 7000000,
+      budgetMax: 9500000,
+      targetPrice: 8500000,
+      recommendationPriceMode: "range",
+      recommendationPurposes: ["collection"],
+    },
     filters: { stockOnly: true },
   });
 
   assert.equal(goal.intent, "recommendation");
   assert.deepEqual(goal.productNames, products.map((product) => product.name));
   assert.equal(goal.constraints.budgetMax, 9500000);
+  assert.equal(goal.constraints.targetPrice, 8500000);
+  assert.equal(goal.constraints.recommendationPriceMode, "range");
+  assert.deepEqual(goal.constraints.recommendationPurposes, ["collection"]);
   assert.equal(goal.focusedProductName, null);
   assert.equal(
     buildActiveConversationGoal(goal, { intent: "shipping_transaction" }),

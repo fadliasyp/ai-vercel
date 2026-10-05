@@ -6227,8 +6227,9 @@ export default async function handler(req, res) {
       const isPopularityQuery = isPopularityStyleQuestion(rawQuestion);
       const recNeeds = extractRecommendationNeeds(
         rawQuestion,
-        semantic,
+        groqRoute || semantic,
         compoundAnalysis,
+        session.activeGoal,
       );
       const hasStructuredCatalogPreference =
         recNeeds.requestedDecade != null ||
@@ -6290,14 +6291,38 @@ export default async function handler(req, res) {
         })),
       );
 
-      if (recNeeds.budgetMin != null) {
+      if (recNeeds.understandingSource === "llm") {
         updateSlot(session, "budgetMin", recNeeds.budgetMin);
-      }
-      if (recNeeds.budgetMax != null) {
         updateSlot(session, "budgetMax", recNeeds.budgetMax);
-      }
-      if (recNeeds.conditionPreference) {
+        updateSlot(session, "targetPrice", recNeeds.targetPrice);
+        updateSlot(session, "recommendationPriceMode", recNeeds.priceMode);
+        updateSlot(session, "recommendationPurposes", [
+          recNeeds.wantsDisplay && "display",
+          recNeeds.wantsCollection && "collection",
+          recNeeds.wantsGift && "gift",
+          recNeeds.wantsBeginner && "beginner",
+        ].filter(Boolean));
+        updateSlot(
+          session,
+          "recommendationStock",
+          recNeeds.readyOnly ? "ready" : null,
+        );
         updateSlot(session, "condition", recNeeds.conditionPreference);
+        updateSlot(session, "recommendationPromoOnly", recNeeds.promoOnly);
+      } else {
+        if (recNeeds.budgetMin != null) {
+          updateSlot(session, "budgetMin", recNeeds.budgetMin);
+        }
+        if (recNeeds.budgetMax != null) {
+          updateSlot(session, "budgetMax", recNeeds.budgetMax);
+        }
+        if (recNeeds.targetPrice != null) {
+          updateSlot(session, "targetPrice", recNeeds.targetPrice);
+          updateSlot(session, "recommendationPriceMode", recNeeds.priceMode);
+        }
+        if (recNeeds.conditionPreference) {
+          updateSlot(session, "condition", recNeeds.conditionPreference);
+        }
       }
 
       // pakai sumber kandidat yang lebih luas, jangan langsung shortlist mahal

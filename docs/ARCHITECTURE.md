@@ -93,7 +93,8 @@ Health response sederhana. Tidak memeriksa dependency eksternal.
 - Adapter menghapus parameter sampling lama serta memakai thinking rendah untuk Gemini 3.7/3.8. Gemma 4 memakai thinking minimal, JSON berbasis instruksi, lalu parser/validator lokal karena structured-output API Gemma belum menjadi kontrak yang terdokumentasi.
 - `gemma-4-31b-it` tidak aktif pada default pool: endpoint tersedia, tetapi smoke lokal memerlukan sekitar 115 detik pada konfigurasi yang berhasil, melebihi batas fungsi Vercel 90 detik. Model tetap dapat diuji secara eksplisit melalui environment model-list.
 - Local rules adalah fallback dan guard untuk explicit/pending cases.
-- Output structured mencakup intent, goals, entities, relation/topic switch, confidence, emotion, dan kebutuhan klarifikasi.
+- Output structured mencakup intent, goals, entities, relation/topic switch, confidence, emotion, kebutuhan klarifikasi, serta `recommendation_request` untuk mode harga dan preferensi rekomendasi.
+- Constraint rekomendasi dari LLM divalidasi lokal sebelum eksekusi: nominal harus ada pada pesan pelanggan atau goal follow-up terverifikasi. Setelah itu filter dan ranking hanya memakai data WooCommerce.
 
 ### Tool Execution
 

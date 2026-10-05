@@ -6,15 +6,21 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Added
 
+- Added a structured LLM recommendation contract for price mode, target/range, purpose, stock, condition, and promo constraints.
+- Added verified recommendation context fields so natural follow-ups can retain target price and purpose without leaking them into explicit new topics.
 - Added `npm run benchmark:context` with six multi-turn gates covering recommendation price refinement, ordinal selection, focused-product pronouns, explicit product switches, restock topic switches, and interruption of pending shipping questions.
 
 ### Fixed
 
+- Connected LLM recommendation understanding to the actual catalog filter/ranker instead of discarding it during legacy semantic conversion.
+- Rejected LLM-generated recommendation amounts unless they are grounded in the current customer message or a verified follow-up goal.
+- Fixed fallback parsing for `jangan lebih dari 6 juta`, mixed lower/upper bounds with negation, and informal `budget gue/gw` wording.
 - Fixed bare recommendation amounts such as `rekomen cok robot 19 jutaan` not becoming a target price when the customer omitted the word `harga`.
 - Removed the distant-product fallback for target-price recommendations. When no product is within 20% of the requested target, the system now returns no matching candidate instead of unrelated Rp1.5-Rp3.5 million products.
 
 ### Verification
 
+- Added semantic-contract, grounding, follow-up inheritance, negated-budget, ranking, and `/api/ask` regressions. All 390 local tests pass, answer-coverage replay passes 9/9 turns, and customer conversation benchmark passes 26/26 turns.
 - Added parser, ranking, and `/api/ask` regression coverage for conversational recommendation targets. All 386 local tests pass and answer-coverage replay passes 9/9 turns.
 - Added `gemini-3.8-flash`, `gemini-3.7-flash`, and `gemma-4-26b-a4b-it` to the bounded Google text fallback pools without adding them to vision or increasing the three-attempt cap.
 - Added per-model Google generation config: low thinking and no legacy sampling parameters for Gemini 3.7/3.8, plus minimal thinking and locally validated prompt-JSON for Gemma 4.

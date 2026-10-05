@@ -92,6 +92,8 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 
 ### Correct Behavior
 
+- Pada mode LLM-led, `recommendation_request` terstruktur menjadi sumber utama pemahaman mode harga, tujuan penggunaan, kebutuhan stok, kondisi, dan promo; filter/ranking tetap memakai fakta WooCommerce.
+- Nominal hasil LLM hanya diterima jika terdapat pada pesan pelanggan. Nominal dari goal lama hanya boleh diterima ketika relasi turn adalah `follow_up` atau `clarification_answer`.
 - `harga 7 jutaan` dan `harga sekitar 7 juta` diperlakukan sebagai target harga, lalu kandidat terdekat diprioritaskan.
 - Nominal yang langsung mengikuti permintaan rekomendasi, misalnya `rekomen robot 19 jutaan` atau `rekomendasiin robot 6 jutaan`, juga diperlakukan sebagai target harga meskipun kata `harga` tidak ditulis.
 - `budget sekitar 12 jutaan` dan `dana kisaran 12 juta` diperlakukan sebagai target mendekati Rp12 juta sekaligus batas maksimum Rp12 juta, sehingga produk yang jauh lebih murah tidak menang hanya karena promo/popularitas.
@@ -105,12 +107,14 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 ### Do Not Break
 
 - Jangan mengubah semua frasa nominal menjadi target harga; kata `budget`, batas atas/bawah, dan rentang tetap memakai constraint lama.
+- Jangan menerima nominal baru yang hanya muncul dari output LLM dan tidak ada pada pesan atau goal follow-up terverifikasi.
 - Jangan mewariskan konteks rekomendasi ke pertanyaan yang jelas mengganti intent, misalnya `kapan restock ya`.
 - Jangan melonggarkan filter stok, kondisi, promo, hadiah, atau metadata produk untuk mengisi jumlah kartu.
 
 ### Important Files
 
 - `lib/chatbot/productRecommendation.js`
+- `lib/chatbot/semanticRouter.js`
 - `lib/chatbot/conversationGoal.js`
 - `tests/productRecommendationReasoning.test.js`
 - `tests/conversationGoal.test.js`
@@ -120,7 +124,7 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 
 - `npm test`
 - `npm run benchmark:coverage-replay`
-- Bukti 2026-10-05: 385/385 test lulus dan replay 9/9 turn lulus.
+- Bukti 2026-10-05: 390/390 test lulus, replay 9/9 turn lulus, dan benchmark pelanggan 26/26 turn lulus.
 
 ## Product Restock Schedule
 
