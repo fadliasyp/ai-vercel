@@ -12,6 +12,9 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Fixed
 
+- Fixed casual recommendation language being interpreted inconsistently between the LLM router and local grounding stages. Shared normalization now covers `rekomen`, `pilihin`, `mnurut lu`, `jtan/jtaan`, `sd`, and abbreviated follow-up wrappers.
+- Kept ready stock and display/gift/collection wording as recommendation constraints when the customer is asking which product to choose, instead of replacing the main intent with stock availability.
+- Added inverse intent cases so ordinary price and stock questions remain outside recommendation.
 - Fixed recommendation messages that state an earlier range and then a newer alternative, such as `antara 5 sampai 8 juta ... kalau yang 3 jutaan ada?`. The latest explicit amount is now a target price while the earlier purpose remains active; genuinely explicit maximum-budget wording is unchanged.
 - Fixed generic recommendation requests such as `Cari robot antara 5 sampai 8 juta buat pajangan dong` being rejected as an unavailable named product even though the LLM correctly returned an empty `product_names` list.
 - Recommendation catalog guards now use trusted semantic product entities first, while the local fallback ignores range words such as `antara`, `sampai`, `sekitar`, and `kisaran`. Explicit unavailable product names remain protected from unrelated substitutions.
@@ -23,6 +26,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
+- Added a data-driven language matrix and follow-up regressions. All 397 local tests pass, answer-coverage replay passes 9/9 turns, and the customer conversation benchmark passes 26/26 turns with 135 assertions (100%).
 - Added parser, ranking, and `/api/ask` regressions for latest-price correction, including a deliberately incorrect LLM `maximum` result. All 393 local tests pass, answer-coverage replay passes 9/9 turns, and customer conversation benchmark passes 26/26 turns.
 - Added exact endpoint regressions for generic Rp5-Rp8 million display recommendations and the inverse unavailable-named-product case. All 391 local tests pass, answer-coverage replay passes 9/9 turns, and customer conversation benchmark passes 26/26 turns.
 - Added semantic-contract, grounding, follow-up inheritance, negated-budget, ranking, and `/api/ask` regressions. All 390 local tests pass, answer-coverage replay passes 9/9 turns, and customer conversation benchmark passes 26/26 turns.

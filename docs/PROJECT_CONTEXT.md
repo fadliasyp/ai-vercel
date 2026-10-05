@@ -35,6 +35,8 @@ Status project: **aktif dikembangkan**.
 - Rekomendasi membedakan target harga seperti `harga 7 jutaan` dan `rekomen robot 19 jutaan` dari batas budget; target harga hanya menerima kandidat dalam toleransi 20%, sedangkan batas/rentang tetap menjadi filter keras. Frasa `budget sekitar/kisaran X` memakai X sebagai target sekaligus batas maksimum.
 - Rekomendasi generik dengan rentang/tujuan memakai `product_names` terstruktur untuk membedakannya dari pencarian nama produk. Kata seperti `antara`, `sampai`, dan `pajangan` tidak boleh memicu pesan produk tidak tersedia.
 - Goal rekomendasi aktif melengkapi follow-up nominal singkat maupun berbungkus percakapan: `yg 3 jutaan` dan `Kalau yang 6 jutaan ada apa aja?` menjadi target harga baru, sedangkan `3 juta` menjadi batas budget; pergantian intent eksplisit tetap tidak diwarisi. Koreksi harga paling akhir dalam satu pesan juga mengalahkan rentang sebelumnya tanpa menghapus tujuan penggunaan.
+- Normalisasi rekomendasi memahami slang/singkatan seperti `rekomen`, `pilihin`, `mnurut lu`, `klo/kl`, `jtan/jtaan`, dan `sd`; matriks regression juga memuat kasus kebalikan agar harga atau stok biasa tidak salah menjadi rekomendasi.
+- Pada permintaan memilih produk, kebutuhan ready stock dan tujuan seperti display/kado/koleksi tetap menjadi constraint rekomendasi, bukan pengganti intent utama.
 - Goal rekomendasi menyimpan target harga, mode harga, dan tujuan penggunaan agar LLM dapat menyelesaikan follow-up alami tanpa memaksakan constraint lama ke `new_topic`.
 - Produk fokus mendukung follow-up atribut alami seperti `stoknya`, `harganya`, `kondisinya`, dan `bahannya`; nama produk eksplisit serta produk halaman tetap memiliki prioritas lebih tinggi.
 - Kebijakan pembayaran, COD, packing, asuransi, retur/refund, jam/lokasi toko, dan pengiriman internasional.
@@ -151,7 +153,7 @@ Status project: **aktif dikembangkan**.
 Pada 2026-10-06:
 
 - Koreksi `antara 5 sampai 8 juta ... kalau yang 3 jutaan ada?` menghasilkan target Rp3 juta dan mempertahankan tujuan pajangan, termasuk ketika output LLM disimulasikan keliru sebagai batas maksimum.
-- `npm test`: 393/393 lulus; coverage replay: 9/9 turn; benchmark pelanggan deterministik: 26/26 turn.
+- `npm test`: 397/397 lulus; coverage replay: 9/9 turn; benchmark pelanggan deterministik: 26/26 turn dengan 135 assertion (100%).
 - Benchmark konteks lokal tidak dinilai lulus/gagal untuk perubahan ini karena fetch WooCommerce eksternal tidak tersedia pada saat verifikasi.
 
 Pada 2026-09-15:

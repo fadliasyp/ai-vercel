@@ -175,7 +175,7 @@
           "question": "yang ready dan paling cocok buat display yang mana?",
           "expect": {
             "scope": "in_scope",
-            "explicit_intent": "stock_availability",
+            "explicit_intent": "recommendation",
             "signals": { "recommendation": true }
           }
         }

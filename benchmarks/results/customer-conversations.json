@@ -823,7 +823,7 @@
         "entities": {
           "store_name": "",
           "product_terms": [
-            "pesanan getter robo baru sampai"
+            "pesanan getter robo baru tapi"
           ],
           "categories": [],
           "brands": [],
@@ -989,7 +989,7 @@
         "entities": {
           "store_name": "",
           "product_terms": [
-            "suami suka 80an rekomendasikan sekitar"
+            "suami suka 80an rekomendasikan"
           ],
           "categories": [],
           "brands": [],
@@ -1033,7 +1033,7 @@
       "failures": [],
       "observation": {
         "scope": "in_scope",
-        "explicit_intent": "stock_availability",
+        "explicit_intent": "recommendation",
         "customer_state": "neutral",
         "compound": {
           "compound": true,

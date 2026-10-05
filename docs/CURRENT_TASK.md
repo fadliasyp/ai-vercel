@@ -2,10 +2,15 @@
 
 ## Status
 
-Belum ada task aktif. Koreksi harga terbaru dalam rekomendasi selesai lokal dan menunggu deployment serta uji production manual.
+Belum ada task aktif. Hardening bahasa sehari-hari pada rekomendasi selesai lokal dan menunggu deployment serta smoke production terarah.
 
 ## Current Progress
 
+- Menambahkan matriks regression berbasis data untuk variasi rekomendasi sehari-hari: `rekomen`, `pilihin`, `mnurut lu`, `pengen`, `jtan/jtaan`, `sd`, nominal dengan spasi, tujuan pajangan/kado/koleksi, dan syarat ready stock.
+- Normalisasi harga bersama kini memahami unit informal serta typo ringan tanpa mengubah model number menjadi nominal.
+- Intent rekomendasi mempertahankan stok dan tujuan penggunaan sebagai constraint. Kalimat `yang ready dan paling cocok buat display yang mana?` tidak lagi turun menjadi cek stok saja.
+- Follow-up singkat `klo yg 4jtan ada gak?` dan `kl yg 6 jtaan aja` tetap mewarisi goal rekomendasi, sedangkan contoh harga/stok non-rekomendasi tetap dilindungi oleh inverse tests.
+- Verifikasi akhir: 397/397 test lulus, coverage replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%).
 - Memperbaiki pesan rekomendasi yang memuat rentang lama lalu alternatif baru, misalnya `Cari robot antara 5 sampe 8 juta buat pajangan. Kalau yang 3 jutaan ada?`.
 - Structured LLM prompt kini mewajibkan constraint harga eksplisit paling akhir menggantikan constraint lama sambil mempertahankan tujuan seperti `pajangan`.
 - Validator grounding membedakan target `kalau yang 3 jutaan` dari batas `maksimal/budget 3 juta`, sehingga produk Rp650 ribu atau Rp1,5 juta tidak lolos sebagai rekomendasi Rp3 jutaan.
@@ -104,16 +109,19 @@ Belum ada task aktif. Koreksi harga terbaru dalam rekomendasi selesai lokal dan 
 
 ## Active Task
 
-- Belum ada task aktif; tahap pertama rekomendasi LLM-first siap di-deploy dan diuji manual pada production.
+- Belum ada task aktif; hardening rekomendasi bahasa sehari-hari siap di-deploy dan diuji dengan smoke production terarah.
 
 ## Last Completed Task
 
-- Task: tahap pertama rekomendasi LLM-first yang tetap data-grounded.
-- Tanggal selesai: 2026-10-05.
-- Goal: memakai pemahaman LLM untuk constraint rekomendasi dinamis tanpa memberi LLM wewenang mengarang fakta katalog.
+- Task: hardening pemahaman bahasa sehari-hari untuk rekomendasi LLM-first yang tetap data-grounded.
+- Tanggal selesai: 2026-10-06.
+- Goal: mencegah slang, singkatan, typo harga, tujuan penggunaan, dan syarat stok mengubah intent atau constraint rekomendasi.
 
 ## Completed
 
+- Menambahkan `tests/recommendationLanguageMatrix.test.js` agar variasi bahasa dan kasus kebalikannya diuji otomatis oleh `npm test`.
+- Memusatkan normalisasi nominal informal pada parser harga bersama dan menyelaraskan explicit intent fallback dengan kontrak semantic router.
+- Menjaga LLM sebagai pemahaman utama pada mode aktif, dengan parser/validator lokal sebagai grounding dan fallback yang tidak boleh membelokkan intent tepercaya.
 - Memperbaiki follow-up sehari-hari `Kalau yang 6 jutaan ada apa aja?` agar tetap mewarisi intent rekomendasi dan memakai Rp6 juta sebagai target harga.
 - Mempertahankan variasi lama `yg 3 jutaan dong` serta bentuk budget eksplisit, dan mengganti kasus benchmark konteks agar memakai bentuk percakapan alami.
 - Memperbaiki kalimat alami `budget sekitar 12 jutaan` agar Rp12 juta menjadi target rekomendasi sekaligus batas maksimum, bukan plafon longgar yang memenangkan produk jauh lebih murah.
@@ -140,6 +148,8 @@ Belum ada task aktif. Koreksi harga terbaru dalam rekomendasi selesai lokal dan 
 
 ## Findings
 
+- Akar pola bug berulang adalah perbedaan kosakata antara semantic prompt, explicit intent fallback, parser harga, dan resolver follow-up. Satu kalimat dapat dipahami LLM tetapi berubah pada tahap lokal berikutnya.
+- Matriks baru menguji keluarga bahasa, bukan hanya kalimat laporan. Stok pada permintaan pemilihan produk sekarang diperlakukan sebagai constraint rekomendasi, bukan intent utama.
 - Resolver sebelumnya hanya mengenali follow-up yang seluruh pesannya berbentuk `yang/yg + nominal`; pembuka `kalau` dan penutup `ada apa aja` membuat konteks rekomendasi terlepas lalu intent jatuh ke `price_promo`.
 - Setelah perbaikan, sequence dua turn laporan menghasilkan intent `recommendation`, target Rp6 juta, dan hanya produk fixture Rp4,8-Rp7,2 juta; seluruh suite tetap lulus 385/385 dan coverage replay 9/9.
 - Akar laporan rekomendasi Rp12 juta adalah `extractRecommendationNeeds`: parser umum menemukan `budgetMax`, tetapi `targetPrice` sebelumnya hanya dibuat jika pelanggan memakai kata `harga`.
@@ -157,6 +167,13 @@ Belum ada task aktif. Koreksi harga terbaru dalam rekomendasi selesai lokal dan 
 
 ## Files Modified
 
+- `lib/chatbot/intentFusion.js`
+- `lib/chatbot/textNormalization.js`
+- `lib/chatbot/semanticRouter.js`
+- `tests/recommendationLanguageMatrix.test.js`
+- `tests/semanticRouter.test.js`
+- `benchmarks/customer-conversations.json`
+- `benchmarks/results/customer-conversations.json`
 - `lib/chatbot/conversationGoal.js`
 - `tests/conversationGoal.test.js`
 - `lib/chatbot/productRecommendation.js`
@@ -197,11 +214,9 @@ Belum ada task aktif. Koreksi harga terbaru dalam rekomendasi selesai lokal dan 
 
 ## Next Steps
 
-1. Lakukan pengujian manual terarah pada percakapan 3-5 turn: follow-up produk, pergantian topik, pertanyaan majemuk, dan interupsi flow transaksi.
-2. Deploy perubahan pool Google ke Vercel tanpa menambahkan `gemma-4-31b-it` pada environment override bila perubahan tersebut memang belum ter-deploy.
-3. Paksa satu smoke semantic/composer production saat Groq tidak diprioritaskan atau gunakan konfigurasi test yang aman; pastikan metadata model menunjukkan salah satu model Google baru dan response tetap valid.
-4. Pantau latency, `attemptedModels`, HTTP 429/5xx, dan konsumsi quota sebelum uji pengguna ramai.
-5. Pertahankan rate limiting umum, batas upload gambar, dan monitoring quota sebagai hardening berikutnya.
+1. Deploy perubahan source ke Vercel.
+2. Jalankan smoke production terarah untuk rekomendasi target, rentang, dan follow-up singkat; pengujian variasi bahasa selebihnya sudah ditanggung matriks otomatis.
+3. Pantau metadata intent/provider, latency, HTTP 429/5xx, dan konsumsi quota sebelum uji pengguna ramai.
 
 ## Blockers
 
