@@ -87,7 +87,7 @@ Belum ada task aktif. Tahap pertama penguatan percakapan berkelanjutan selesai l
 
 ## Active Task
 
-- Belum ada task aktif; tahap berikutnya adalah deployment dan benchmark konteks live.
+- Belum ada task aktif; tahap berikutnya adalah menjalankan ulang benchmark konteks live dengan data produk production yang sudah dikoreksi.
 
 ## Last Completed Task
 
@@ -97,6 +97,9 @@ Belum ada task aktif. Tahap pertama penguatan percakapan berkelanjutan selesai l
 
 ## Completed
 
+- Mengoreksi dua kasus `benchmark:context` yang memakai nama fixture lokal `Action Toys Ideon`; keduanya kini memakai nama katalog production `Soul of Chogokin GX-92 Ideon Full Action`.
+- Menambahkan `optionNames` pada laporan smoke agar kandidat klarifikasi yang salah atau ambigu langsung terlihat.
+- Memastikan hasil lama pada kasus pending ongkir sebenarnya sudah berpindah ke intent stok dan relasi `new_topic`; kegagalan berasal dari ekspektasi produk benchmark, bukan karena chatbot masih menunggu kecamatan.
 - Membuat `docs/PANDUAN_TEKNIS_INTENT_ML_DAN_ALUR_CHATBOT.md`.
 - Mendokumentasikan pipeline training historis TF-IDF + Logistic Regression dan inference model aktif.
 - Mendokumentasikan request frontend, normalisasi, hybrid decision, semantic fusion, commerce grounding, coverage, response, dan renderer.
@@ -116,6 +119,9 @@ Belum ada task aktif. Tahap pertama penguatan percakapan berkelanjutan selesai l
 
 ## Findings
 
+- Respons lama `cek ongkir ke Tangerang -> Action Toys Ideon masih ready?` sudah berhasil memutus pending ongkir: intent akhir `stock_availability` dan relasi LLM `new_topic`.
+- Katalog production tidak memiliki nama exact `Action Toys Ideon`; query tersebut menghasilkan tiga opsi yang hanya cocok pada `Action Toys`. Nama Ideon production yang terverifikasi adalah `Soul of Chogokin GX-92 Ideon Full Action`.
+- Setelah koreksi benchmark, verifikasi lokal lulus 384/384 test, coverage replay 9/9 turn, dan `node --check scripts/smoke-ask.js`. Rerun enam kasus ke endpoint production belum dijalankan ulang.
 - Runtime Intent ML aktif memakai `intent_model_tfidf_logreg_training_13.joblib` dan metadata terverifikasi.
 - Notebook, script pembangun notebook, dataset training/hard test, kontrak label, checksum, dan dependency model 13 intent tersedia di repository `intent-ml-api`.
 - Metadata model mencakup evaluasi 13 intent; metrik classifier tetap tidak mewakili kualitas chatbot end-to-end.
@@ -124,6 +130,7 @@ Belum ada task aktif. Tahap pertama penguatan percakapan berkelanjutan selesai l
 
 ## Files Modified
 
+- `scripts/smoke-ask.js`
 - `lib/chatbot/conversationGoal.js`
 - `tests/conversationGoal.test.js`
 - `lib/chatbot/productRecommendation.js`

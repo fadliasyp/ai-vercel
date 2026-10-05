@@ -16,6 +16,8 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Fixed
 
+- Corrected two context benchmark cases that referenced the local-only fixture name `Action Toys Ideon`. Live validation confirmed the production catalog name is `Soul of Chogokin GX-92 Ideon Full Action`; the stale fixture name caused safe product clarification to be reported as a context failure even though the intent and topic switch were correct.
+- Added product option names to smoke benchmark reports so an ambiguous or incorrect catalog match can be diagnosed directly from the saved result.
 - Fixed `yang kedua stoknya berapa?` being classified as price/promotion because the generic word `berapa` outranked the explicit `stoknya` signal.
 - Resolved focused-product possessives such as `stoknya`, `harganya`, `kondisinya`, and `bahannya` before routing, while preserving explicit new products and WooCommerce page context.
 - Fixed terse recommendation follow-ups such as `yg 3 jutaan` being routed as a standalone price/product search. The conversation resolver now expands them from the active recommendation goal before local and LLM routing, while explicit topic changes remain untouched.
@@ -48,6 +50,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
+- Reverified 384/384 local tests, 9/9 answer-coverage replay turns, smoke-script syntax, and a clean diff check after correcting the live context benchmark data. The revised six-case production rerun remains pending.
 - Verified 384/384 local tests, 26/26 deterministic customer-conversation turns, and 9/9 answer-coverage replay turns after the first continuity-hardening stage.
 - Verified 383/383 local tests and 9/9 answer-coverage replay turns after the contextual recommendation follow-up fix.
 - Verified target-price ranking directly and through the `/api/ask` regression fixture: Rp7 million and Rp4 million requests return different relevant product groups.

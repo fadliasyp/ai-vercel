@@ -290,10 +290,10 @@ const CASES = [
     id: "context_explicit_product_switch",
     questions: [
       "Mau tanya bahan Jumbo Machinder Mazinger Z",
-      "Kalau Action Toys Ideon harganya berapa?",
+      "Kalau Soul of Chogokin GX-92 Ideon Full Action harganya berapa?",
     ],
     expectedIntent: "price_promo",
-    expectedProductName: "Action Toys Ideon",
+    expectedProductName: "Soul of Chogokin GX-92 Ideon Full Action",
     minProducts: 1,
   },
   {
@@ -309,10 +309,10 @@ const CASES = [
     id: "context_interrupt_shipping_pending",
     questions: [
       "cek ongkir ke Tangerang",
-      "Action Toys Ideon masih ready?",
+      "Soul of Chogokin GX-92 Ideon Full Action masih ready?",
     ],
     expectedIntent: "stock_availability",
-    expectedProductName: "Action Toys Ideon",
+    expectedProductName: "Soul of Chogokin GX-92 Ideon Full Action",
     minProducts: 1,
   },
 ];
@@ -668,6 +668,9 @@ async function main() {
       const optionCount = Array.isArray(response.payload?.options)
         ? response.payload.options.length
         : 0;
+      const optionNames = (response.payload?.options || [])
+        .map((option) => option?.product_name || option?.label || "")
+        .filter(Boolean);
       const optionCountValid =
         testCase.minOptions == null || optionCount >= testCase.minOptions;
       const actionCount = Array.isArray(response.payload?.actions)
@@ -791,6 +794,7 @@ async function main() {
         type: response.payload?.type || null,
         productCount,
         optionCount,
+        optionNames,
         optionCountValid,
         actionCount,
         actionCountValid,
