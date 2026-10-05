@@ -80,6 +80,28 @@ test("inherits terse price refinements from an active recommendation", () => {
     max: 3000000,
   });
 
+  const naturalTargetPrice = resolveConversationTurn(
+    "Kalau yang 6 jutaan ada apa aja?",
+    {
+      activeGoal: { intent: "recommendation", category: "robot" },
+    },
+  );
+  assert.equal(
+    naturalTargetPrice.question,
+    "rekomendasi robot harga 6 jutaan",
+  );
+  assert.deepEqual(naturalTargetPrice.correction, {
+    type: "price_target",
+    min: null,
+    max: 6000000,
+  });
+  assert.equal(
+    resolveConversationTurn("yg 3 jutaan dong", {
+      activeGoal: { intent: "recommendation", category: "robot" },
+    }).question,
+    "rekomendasi robot harga 3 jutaan",
+  );
+
   const budget = resolveConversationTurn("3 juta", {
     activeGoal: { intent: "recommendation", category: "chogokin" },
   });

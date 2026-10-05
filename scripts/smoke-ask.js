@@ -260,7 +260,7 @@ const CASES = [
     id: "context_recommendation_price_refinement",
     questions: [
       "Rekomendasi robot yang harga 12 jutaan",
-      "yg 3 jutaan",
+      "Kalau yang 3 jutaan ada apa aja?",
     ],
     expectedIntent: "recommendation",
     minProducts: 1,

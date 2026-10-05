@@ -97,6 +97,8 @@ Belum ada task aktif. Tahap pertama penguatan percakapan berkelanjutan selesai l
 
 ## Completed
 
+- Memperbaiki follow-up sehari-hari `Kalau yang 6 jutaan ada apa aja?` agar tetap mewarisi intent rekomendasi dan memakai Rp6 juta sebagai target harga.
+- Mempertahankan variasi lama `yg 3 jutaan dong` serta bentuk budget eksplisit, dan mengganti kasus benchmark konteks agar memakai bentuk percakapan alami.
 - Memperbaiki kalimat alami `budget sekitar 12 jutaan` agar Rp12 juta menjadi target rekomendasi sekaligus batas maksimum, bukan plafon longgar yang memenangkan produk jauh lebih murah.
 - Menambahkan regression parser/ranking dan endpoint untuk kalimat persis laporan pengguna; `budget maksimal`, batas bawah/atas, dan rentang harga tetap memakai perilaku lama.
 - Mengoreksi dua kasus `benchmark:context` yang memakai nama fixture lokal `Action Toys Ideon`; keduanya kini memakai nama katalog production `Soul of Chogokin GX-92 Ideon Full Action`.
@@ -121,6 +123,8 @@ Belum ada task aktif. Tahap pertama penguatan percakapan berkelanjutan selesai l
 
 ## Findings
 
+- Resolver sebelumnya hanya mengenali follow-up yang seluruh pesannya berbentuk `yang/yg + nominal`; pembuka `kalau` dan penutup `ada apa aja` membuat konteks rekomendasi terlepas lalu intent jatuh ke `price_promo`.
+- Setelah perbaikan, sequence dua turn laporan menghasilkan intent `recommendation`, target Rp6 juta, dan hanya produk fixture Rp4,8-Rp7,2 juta; seluruh suite tetap lulus 385/385 dan coverage replay 9/9.
 - Akar laporan rekomendasi Rp12 juta adalah `extractRecommendationNeeds`: parser umum menemukan `budgetMax`, tetapi `targetPrice` sebelumnya hanya dibuat jika pelanggan memakai kata `harga`.
 - Setelah perbaikan, kalimat laporan menghasilkan `targetPrice: 12000000` dan `budgetMax: 12000000`; regression endpoint hanya mengembalikan produk fixture pada Rp9,6-Rp12 juta.
 - Seluruh suite lulus 385/385 dan coverage replay lulus 9/9 turn.
@@ -136,6 +140,8 @@ Belum ada task aktif. Tahap pertama penguatan percakapan berkelanjutan selesai l
 
 ## Files Modified
 
+- `lib/chatbot/conversationGoal.js`
+- `tests/conversationGoal.test.js`
 - `lib/chatbot/productRecommendation.js`
 - `tests/productRecommendationReasoning.test.js`
 - `tests/askRouting.test.js`

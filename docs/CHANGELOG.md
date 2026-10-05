@@ -16,6 +16,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Fixed
 
+- Fixed natural recommendation follow-ups such as `Kalau yang 6 jutaan ada apa aja?` losing the active recommendation goal and being routed as a standalone price/promotion search. Conversational wrappers are now removed before the existing budget parser runs, while terse forms such as `yg 3 jutaan dong` and explicit budget forms retain their previous behavior.
 - Fixed natural recommendation requests such as `budget sekitar 12 jutaan` being treated only as a loose maximum, which allowed Rp1.5-Rp3.5 million products to outrank products near Rp12 million. Approximate budget wording now supplies both a target price and a hard maximum, while explicit maximum/minimum/range constraints keep their previous behavior.
 - Corrected two context benchmark cases that referenced the local-only fixture name `Action Toys Ideon`. Live validation confirmed the production catalog name is `Soul of Chogokin GX-92 Ideon Full Action`; the stale fixture name caused safe product clarification to be reported as a context failure even though the intent and topic switch were correct.
 - Added product option names to smoke benchmark reports so an ambiguous or incorrect catalog match can be diagnosed directly from the saved result.
@@ -51,6 +52,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
+- Verified the exact two-turn sequence `budget sekitar 12 jutaan` -> `Kalau yang 6 jutaan ada apa aja?` through the conversation resolver and `/api/ask`; the response remains `recommendation` and fixture prices stay within Rp4.8-Rp7.2 million. Full tests pass 385/385 and coverage replay passes 9/9 turns.
 - Verified the exact reported `budget sekitar 12 jutaan` sentence through recommendation parsing and the `/api/ask` routing fixture; the full suite passes 385/385 and answer-coverage replay passes 9/9 turns.
 - Reverified 384/384 local tests, 9/9 answer-coverage replay turns, smoke-script syntax, and a clean diff check after correcting the live context benchmark data.
 - Verified the revised production context benchmark passes 6/6 cases, including explicit product switching and interruption of a pending shipping clarification.

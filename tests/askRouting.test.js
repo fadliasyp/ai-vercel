@@ -429,10 +429,11 @@ test("routes real customer turns without stale products or fallback collisions",
       ),
     );
 
+    const approximateBudgetSession = `approximate_budget_12m_${Date.now()}`;
     const approximateBudgetRecommendation = await ask(
       "Bang, rekomendasiin robot yang bagus dong, budget sekitar 12 jutaan",
       null,
-      { sessionId: `approximate_budget_12m_${Date.now()}` },
+      { sessionId: approximateBudgetSession },
     );
     assert.equal(approximateBudgetRecommendation.intent, "recommendation");
     assert.equal(approximateBudgetRecommendation.type, "products");
@@ -447,6 +448,22 @@ test("routes real customer turns without stale products or fallback collisions",
       approximateBudgetRecommendation.reasoning_text,
       /Rp\s*12\.000\.000/,
     );
+
+    const naturalBudgetFollowUp = await ask(
+      "Kalau yang 6 jutaan ada apa aja?",
+      null,
+      { sessionId: approximateBudgetSession },
+    );
+    assert.equal(naturalBudgetFollowUp.intent, "recommendation");
+    assert.equal(naturalBudgetFollowUp.type, "products");
+    assert.ok(naturalBudgetFollowUp.products.length > 0);
+    assert.ok(
+      naturalBudgetFollowUp.products.every((item) => {
+        const price = Number(item.numericPrice || 0);
+        return price >= 4800000 && price <= 7200000;
+      }),
+    );
+    assert.match(naturalBudgetFollowUp.reasoning_text, /Rp\s*6\.000\.000/);
 
     const sevenMillionRecommendation = await ask(
       "Rekomendasi dong yg harga 7 jutaan",
