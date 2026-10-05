@@ -94,25 +94,30 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 
 - `harga 7 jutaan` dan `harga sekitar 7 juta` diperlakukan sebagai target harga, lalu kandidat terdekat diprioritaskan.
 - `budget maksimal 7 juta`, `di bawah 7 juta`, dan rentang `5 juta sampai 7 juta` tetap menjadi batas keras.
+- Setelah hasil rekomendasi, follow-up singkat seperti `yg 3 jutaan` diwarisi sebagai target harga baru untuk rekomendasi yang sama; pelanggan tidak perlu mengulang kata `rekomendasi robot`.
+- Nominal polos seperti `3 juta` tetap diwarisi sebagai batas budget, bukan target harga.
 - Target harga yang berbeda harus menghasilkan kelompok kandidat yang relevan dengan target tersebut, bukan selalu daftar rekomendasi generik yang sama.
 - Promo, penjualan, dan rating hanya meranking kandidat yang relevan; sinyal tersebut tidak boleh mengalahkan target harga hingga menghasilkan produk yang jauh lebih murah.
 
 ### Do Not Break
 
 - Jangan mengubah semua frasa nominal menjadi target harga; kata `budget`, batas atas/bawah, dan rentang tetap memakai constraint lama.
+- Jangan mewariskan konteks rekomendasi ke pertanyaan yang jelas mengganti intent, misalnya `kapan restock ya`.
 - Jangan melonggarkan filter stok, kondisi, promo, hadiah, atau metadata produk untuk mengisi jumlah kartu.
 
 ### Important Files
 
 - `lib/chatbot/productRecommendation.js`
+- `lib/chatbot/conversationGoal.js`
 - `tests/productRecommendationReasoning.test.js`
+- `tests/conversationGoal.test.js`
 - `tests/askRouting.test.js`
 
 ### Verification
 
 - `npm test`
 - `npm run benchmark:coverage-replay`
-- Bukti 2026-10-05: 382/382 test lulus dan replay 9/9 turn lulus.
+- Bukti 2026-10-05: 383/383 test lulus dan replay 9/9 turn lulus.
 
 ## Product Restock Schedule
 

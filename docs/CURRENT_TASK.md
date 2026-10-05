@@ -2,11 +2,14 @@
 
 ## Status
 
-Belum ada task aktif. Perbaikan rekomendasi berdasarkan target harga selesai lokal dan menunggu deployment serta uji manual production.
+Belum ada task aktif. Perbaikan follow-up rekomendasi singkat selesai lokal dan menunggu deployment serta uji manual production.
 
 ## Current Progress
 
 - Frasa rekomendasi seperti `harga 7 jutaan` dan `harga sekitar 7 juta` sekarang menjadi target harga, bukan batas maksimum generik.
+- Follow-up `yg 3 jutaan` setelah rekomendasi kini dilengkapi dari goal aktif menjadi permintaan rekomendasi target Rp3 juta sebelum local/LLM routing.
+- Follow-up nominal tanpa `yang/yg`, misalnya `3 juta`, tetap menjadi batas budget; pertanyaan intent baru seperti `kapan restock ya` tidak ditulis ulang.
+- Regression dua turn Rp12 juta lalu Rp3 juta lulus, seluruh suite lulus 383/383, dan coverage replay lulus 9/9 turn.
 - Kandidat di sekitar target (toleransi 20%) diprioritaskan; sinyal promo/penjualan tidak lagi dapat memenangkan produk yang jauh dari target bila kandidat dekat tersedia.
 - Frasa budget eksplisit dan rentang tetap memakai filter keras lama.
 - Regression endpoint membuktikan target Rp7 juta dan Rp4 juta menghasilkan kelompok produk berbeda.
@@ -84,9 +87,9 @@ Belum ada task aktif. Perbaikan rekomendasi berdasarkan target harga selesai lok
 
 ## Last Completed Task
 
-- Task: memperbaiki rekomendasi target harga yang terlalu murah dan berulang.
+- Task: memperbaiki follow-up rekomendasi singkat yang kehilangan konteks dan salah intent.
 - Tanggal selesai: 2026-10-05.
-- Goal: membedakan target harga dari batas budget tanpa mengubah filter rekomendasi lain.
+- Goal: mempertahankan goal rekomendasi pada `yg 3 jutaan` tanpa menangkap pergantian topik atau merusak filter lama.
 
 ## Completed
 
@@ -117,6 +120,8 @@ Belum ada task aktif. Perbaikan rekomendasi berdasarkan target harga selesai lok
 
 ## Files Modified
 
+- `lib/chatbot/conversationGoal.js`
+- `tests/conversationGoal.test.js`
 - `lib/chatbot/productRecommendation.js`
 - `tests/productRecommendationReasoning.test.js`
 - `README.md`

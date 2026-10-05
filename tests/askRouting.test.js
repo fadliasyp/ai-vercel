@@ -455,6 +455,31 @@ test("routes real customer turns without stale products or fallback collisions",
       ),
     );
 
+    const contextualPriceSession = `contextual_target_price_${Date.now()}`;
+    const twelveMillionRecommendation = await ask(
+      "Rekomendasi robot yang harga 12 jutaan",
+      null,
+      { sessionId: contextualPriceSession },
+    );
+    const threeMillionRecommendation = await ask("yg 3 jutaan", null, {
+      sessionId: contextualPriceSession,
+    });
+    assert.equal(twelveMillionRecommendation.intent, "recommendation");
+    assert.equal(threeMillionRecommendation.intent, "recommendation");
+    assert.equal(threeMillionRecommendation.type, "products");
+    assert.ok(
+      threeMillionRecommendation.products.every((item) => {
+        const price = Number(item.numericPrice || 0);
+        return price >= 2400000 && price <= 3600000;
+      }),
+    );
+    assert.ok(
+      productNames(threeMillionRecommendation).every(
+        (name) => !productNames(twelveMillionRecommendation).includes(name),
+      ),
+    );
+    assert.match(threeMillionRecommendation.reasoning_text, /Rp\s*3\.000\.000/);
+
     const internationalQuestion =
       "Ini Voltes V Legacy ukurannya berapa cm ya tingginya? Kalau kirim ke Malaysia ongkirnya berapa dan total harganya jadi berapa USD?";
     const productChoice = await ask(internationalQuestion);

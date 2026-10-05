@@ -68,6 +68,36 @@ test("uses the corrected value and ignores the rejected budget", () => {
   );
 });
 
+test("inherits terse price refinements from an active recommendation", () => {
+  const targetPrice = resolveConversationTurn("yg 3 jutaan", {
+    activeGoal: { intent: "recommendation", category: "robot" },
+  });
+
+  assert.equal(targetPrice.question, "rekomendasi robot harga 3 jutaan");
+  assert.deepEqual(targetPrice.correction, {
+    type: "price_target",
+    min: null,
+    max: 3000000,
+  });
+
+  const budget = resolveConversationTurn("3 juta", {
+    activeGoal: { intent: "recommendation", category: "chogokin" },
+  });
+  assert.equal(budget.question, "rekomendasi chogokin budget 3 juta");
+  assert.deepEqual(budget.correction, {
+    type: "budget",
+    min: null,
+    max: 3000000,
+  });
+
+  assert.equal(
+    resolveConversationTurn("kapan restock ya", {
+      activeGoal: { intent: "recommendation", category: "robot" },
+    }).changed,
+    false,
+  );
+});
+
 test("uses the corrected product and keeps the active intent", () => {
   const result = resolveConversationTurn(
     "bukan yang pertama, maksudnya yang kedua",

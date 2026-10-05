@@ -15,6 +15,8 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Fixed
 
+- Fixed terse recommendation follow-ups such as `yg 3 jutaan` being routed as a standalone price/product search. The conversation resolver now expands them from the active recommendation goal before local and LLM routing, while explicit topic changes remain untouched.
+- Added a two-turn endpoint regression proving a Rp12 million recommendation can be refined to Rp3 million without repeating the previous product group.
 - Fixed recommendation requests such as `harga 7 jutaan` being treated as a generic maximum budget, which allowed much cheaper high-promo products to dominate and made different price-target questions repeat the same list.
 - Added target-price proximity filtering and scoring while preserving explicit maximum, minimum, and range budget constraints.
 - Kept `gemma-4-31b-it` out of the default pool after live recovery showed that a valid response took about 115 seconds, beyond the Vercel function's 90-second limit; the model remains opt-in through the existing environment model lists.
@@ -43,6 +45,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
+- Verified 383/383 local tests and 9/9 answer-coverage replay turns after the contextual recommendation follow-up fix.
 - Verified target-price ranking directly and through the `/api/ask` regression fixture: Rp7 million and Rp4 million requests return different relevant product groups.
 - Verified 382/382 local tests and 9/9 answer-coverage replay turns after the recommendation target-price fix.
 - Verified live JSON responses through the chatbot adapter for `gemini-3.8-flash`, `gemini-3.7-flash`, and `gemma-4-26b-a4b-it`.
