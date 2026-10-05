@@ -149,3 +149,38 @@ test("keeps explicit recommendation budgets as hard limits", () => {
   assert.equal(rangeNeeds.budgetMin, 5000000);
   assert.equal(rangeNeeds.budgetMax, 7000000);
 });
+
+test("treats an approximate budget as a price target and maximum", () => {
+  const needs = extractRecommendationNeeds(
+    "Bang, rekomendasiin robot yang bagus dong, budget sekitar 12 jutaan",
+  );
+  const recommendations = pickRecommendedProducts(
+    [
+      {
+        id: 1,
+        name: "Promo jauh lebih murah",
+        numericPrice: 3000000,
+        stock: "instock",
+        discountPercent: 25,
+      },
+      {
+        id: 2,
+        name: "Dekat target",
+        numericPrice: 10000000,
+        stock: "instock",
+      },
+      {
+        id: 3,
+        name: "Di atas budget",
+        numericPrice: 13000000,
+        stock: "instock",
+      },
+    ],
+    needs,
+    3,
+  );
+
+  assert.equal(needs.targetPrice, 12000000);
+  assert.equal(needs.budgetMax, 12000000);
+  assert.deepEqual(recommendations.map((product) => product.id), [2]);
+});

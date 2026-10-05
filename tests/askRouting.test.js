@@ -429,6 +429,25 @@ test("routes real customer turns without stale products or fallback collisions",
       ),
     );
 
+    const approximateBudgetRecommendation = await ask(
+      "Bang, rekomendasiin robot yang bagus dong, budget sekitar 12 jutaan",
+      null,
+      { sessionId: `approximate_budget_12m_${Date.now()}` },
+    );
+    assert.equal(approximateBudgetRecommendation.intent, "recommendation");
+    assert.equal(approximateBudgetRecommendation.type, "products");
+    assert.ok(approximateBudgetRecommendation.products.length > 0);
+    assert.ok(
+      approximateBudgetRecommendation.products.every((item) => {
+        const price = Number(item.numericPrice || 0);
+        return price >= 9600000 && price <= 12000000;
+      }),
+    );
+    assert.match(
+      approximateBudgetRecommendation.reasoning_text,
+      /Rp\s*12\.000\.000/,
+    );
+
     const sevenMillionRecommendation = await ask(
       "Rekomendasi dong yg harga 7 jutaan",
       null,

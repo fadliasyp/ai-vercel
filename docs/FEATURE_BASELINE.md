@@ -93,6 +93,7 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 ### Correct Behavior
 
 - `harga 7 jutaan` dan `harga sekitar 7 juta` diperlakukan sebagai target harga, lalu kandidat terdekat diprioritaskan.
+- `budget sekitar 12 jutaan` dan `dana kisaran 12 juta` diperlakukan sebagai target mendekati Rp12 juta sekaligus batas maksimum Rp12 juta, sehingga produk yang jauh lebih murah tidak menang hanya karena promo/popularitas.
 - `budget maksimal 7 juta`, `di bawah 7 juta`, dan rentang `5 juta sampai 7 juta` tetap menjadi batas keras.
 - Setelah hasil rekomendasi, follow-up singkat seperti `yg 3 jutaan` diwarisi sebagai target harga baru untuk rekomendasi yang sama; pelanggan tidak perlu mengulang kata `rekomendasi robot`.
 - Nominal polos seperti `3 juta` tetap diwarisi sebagai batas budget, bukan target harga.
@@ -117,7 +118,7 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 
 - `npm test`
 - `npm run benchmark:coverage-replay`
-- Bukti 2026-10-05: 383/383 test lulus dan replay 9/9 turn lulus.
+- Bukti 2026-10-05: 385/385 test lulus dan replay 9/9 turn lulus.
 
 ## Product Restock Schedule
 

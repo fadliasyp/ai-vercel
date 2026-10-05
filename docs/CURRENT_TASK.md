@@ -87,7 +87,7 @@ Belum ada task aktif. Tahap pertama penguatan percakapan berkelanjutan selesai l
 
 ## Active Task
 
-- Belum ada task aktif; tahap berikutnya adalah menjalankan ulang benchmark konteks live dengan data produk production yang sudah dikoreksi.
+- Belum ada task aktif; perbaikan rekomendasi budget perkiraan siap di-deploy dan diuji ulang pada production.
 
 ## Last Completed Task
 
@@ -97,6 +97,8 @@ Belum ada task aktif. Tahap pertama penguatan percakapan berkelanjutan selesai l
 
 ## Completed
 
+- Memperbaiki kalimat alami `budget sekitar 12 jutaan` agar Rp12 juta menjadi target rekomendasi sekaligus batas maksimum, bukan plafon longgar yang memenangkan produk jauh lebih murah.
+- Menambahkan regression parser/ranking dan endpoint untuk kalimat persis laporan pengguna; `budget maksimal`, batas bawah/atas, dan rentang harga tetap memakai perilaku lama.
 - Mengoreksi dua kasus `benchmark:context` yang memakai nama fixture lokal `Action Toys Ideon`; keduanya kini memakai nama katalog production `Soul of Chogokin GX-92 Ideon Full Action`.
 - Menambahkan `optionNames` pada laporan smoke agar kandidat klarifikasi yang salah atau ambigu langsung terlihat.
 - Memastikan hasil lama pada kasus pending ongkir sebenarnya sudah berpindah ke intent stok dan relasi `new_topic`; kegagalan berasal dari ekspektasi produk benchmark, bukan karena chatbot masih menunggu kecamatan.
@@ -119,9 +121,13 @@ Belum ada task aktif. Tahap pertama penguatan percakapan berkelanjutan selesai l
 
 ## Findings
 
+- Akar laporan rekomendasi Rp12 juta adalah `extractRecommendationNeeds`: parser umum menemukan `budgetMax`, tetapi `targetPrice` sebelumnya hanya dibuat jika pelanggan memakai kata `harga`.
+- Setelah perbaikan, kalimat laporan menghasilkan `targetPrice: 12000000` dan `budgetMax: 12000000`; regression endpoint hanya mengembalikan produk fixture pada Rp9,6-Rp12 juta.
+- Seluruh suite lulus 385/385 dan coverage replay lulus 9/9 turn.
 - Respons lama `cek ongkir ke Tangerang -> Action Toys Ideon masih ready?` sudah berhasil memutus pending ongkir: intent akhir `stock_availability` dan relasi LLM `new_topic`.
 - Katalog production tidak memiliki nama exact `Action Toys Ideon`; query tersebut menghasilkan tiga opsi yang hanya cocok pada `Action Toys`. Nama Ideon production yang terverifikasi adalah `Soul of Chogokin GX-92 Ideon Full Action`.
-- Setelah koreksi benchmark, verifikasi lokal lulus 384/384 test, coverage replay 9/9 turn, dan `node --check scripts/smoke-ask.js`. Rerun enam kasus ke endpoint production belum dijalankan ulang.
+- Setelah koreksi benchmark, verifikasi lokal lulus 384/384 test, coverage replay 9/9 turn, dan `node --check scripts/smoke-ask.js`.
+- Benchmark konteks terhadap endpoint production lulus 6/6 kasus, termasuk pergantian produk eksplisit dan pertanyaan produk baru ketika klarifikasi ongkir masih pending.
 - Runtime Intent ML aktif memakai `intent_model_tfidf_logreg_training_13.joblib` dan metadata terverifikasi.
 - Notebook, script pembangun notebook, dataset training/hard test, kontrak label, checksum, dan dependency model 13 intent tersedia di repository `intent-ml-api`.
 - Metadata model mencakup evaluasi 13 intent; metrik classifier tetap tidak mewakili kualitas chatbot end-to-end.
@@ -130,6 +136,9 @@ Belum ada task aktif. Tahap pertama penguatan percakapan berkelanjutan selesai l
 
 ## Files Modified
 
+- `lib/chatbot/productRecommendation.js`
+- `tests/productRecommendationReasoning.test.js`
+- `tests/askRouting.test.js`
 - `scripts/smoke-ask.js`
 - `lib/chatbot/conversationGoal.js`
 - `tests/conversationGoal.test.js`
@@ -165,7 +174,7 @@ Belum ada task aktif. Tahap pertama penguatan percakapan berkelanjutan selesai l
 
 ## Next Steps
 
-1. Deploy perubahan konteks ke Vercel, lalu jalankan `npm run benchmark:context -- --endpoint https://ai-vercel-ten-sigma.vercel.app/api/ask`.
+1. Lakukan pengujian manual terarah pada percakapan 3-5 turn: follow-up produk, pergantian topik, pertanyaan majemuk, dan interupsi flow transaksi.
 2. Deploy perubahan pool Google ke Vercel tanpa menambahkan `gemma-4-31b-it` pada environment override bila perubahan tersebut memang belum ter-deploy.
 3. Paksa satu smoke semantic/composer production saat Groq tidak diprioritaskan atau gunakan konfigurasi test yang aman; pastikan metadata model menunjukkan salah satu model Google baru dan response tetap valid.
 4. Pantau latency, `attemptedModels`, HTTP 429/5xx, dan konsumsi quota sebelum uji pengguna ramai.

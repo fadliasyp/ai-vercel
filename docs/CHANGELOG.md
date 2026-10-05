@@ -16,6 +16,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Fixed
 
+- Fixed natural recommendation requests such as `budget sekitar 12 jutaan` being treated only as a loose maximum, which allowed Rp1.5-Rp3.5 million products to outrank products near Rp12 million. Approximate budget wording now supplies both a target price and a hard maximum, while explicit maximum/minimum/range constraints keep their previous behavior.
 - Corrected two context benchmark cases that referenced the local-only fixture name `Action Toys Ideon`. Live validation confirmed the production catalog name is `Soul of Chogokin GX-92 Ideon Full Action`; the stale fixture name caused safe product clarification to be reported as a context failure even though the intent and topic switch were correct.
 - Added product option names to smoke benchmark reports so an ambiguous or incorrect catalog match can be diagnosed directly from the saved result.
 - Fixed `yang kedua stoknya berapa?` being classified as price/promotion because the generic word `berapa` outranked the explicit `stoknya` signal.
@@ -50,7 +51,9 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
-- Reverified 384/384 local tests, 9/9 answer-coverage replay turns, smoke-script syntax, and a clean diff check after correcting the live context benchmark data. The revised six-case production rerun remains pending.
+- Verified the exact reported `budget sekitar 12 jutaan` sentence through recommendation parsing and the `/api/ask` routing fixture; the full suite passes 385/385 and answer-coverage replay passes 9/9 turns.
+- Reverified 384/384 local tests, 9/9 answer-coverage replay turns, smoke-script syntax, and a clean diff check after correcting the live context benchmark data.
+- Verified the revised production context benchmark passes 6/6 cases, including explicit product switching and interruption of a pending shipping clarification.
 - Verified 384/384 local tests, 26/26 deterministic customer-conversation turns, and 9/9 answer-coverage replay turns after the first continuity-hardening stage.
 - Verified 383/383 local tests and 9/9 answer-coverage replay turns after the contextual recommendation follow-up fix.
 - Verified target-price ranking directly and through the `/api/ask` regression fixture: Rp7 million and Rp4 million requests return different relevant product groups.
