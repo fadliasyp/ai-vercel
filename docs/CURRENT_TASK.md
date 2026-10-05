@@ -2,10 +2,15 @@
 
 ## Status
 
-Ekspansi fallback text Google selesai lokal dan menunggu deployment serta smoke production endpoint chatbot.
+Belum ada task aktif. Perbaikan rekomendasi berdasarkan target harga selesai lokal dan menunggu deployment serta uji manual production.
 
 ## Current Progress
 
+- Frasa rekomendasi seperti `harga 7 jutaan` dan `harga sekitar 7 juta` sekarang menjadi target harga, bukan batas maksimum generik.
+- Kandidat di sekitar target (toleransi 20%) diprioritaskan; sinyal promo/penjualan tidak lagi dapat memenangkan produk yang jauh dari target bila kandidat dekat tersedia.
+- Frasa budget eksplisit dan rentang tetap memakai filter keras lama.
+- Regression endpoint membuktikan target Rp7 juta dan Rp4 juta menghasilkan kelompok produk berbeda.
+- Seluruh regression suite lulus 382/382 dan coverage replay lulus 9/9 turn.
 - Tahap 1 selesai secara lokal: migrasi Groq Qwen dari `qwen/qwen3.6-27b` ke `qwen/qwen3.8-27b`.
 - Default fallback source, konfigurasi `.env` lokal, dan regression fixture sudah diperbarui.
 - Smoke test naturalizer aktual berhasil memakai `qwen/qwen3.8-27b` dengan status `success`.
@@ -75,14 +80,13 @@ Ekspansi fallback text Google selesai lokal dan menunggu deployment serta smoke 
 
 ## Active Task
 
-- Task: menambah tiga fallback text Google yang kompatibel dan hemat tanpa memperbesar retry per request.
-- Status: implementasi, regression, replay, dan smoke model lokal/live selesai; belum di-deploy dan belum diverifikasi melalui endpoint production.
+- Belum ada task aktif.
 
 ## Last Completed Task
 
-- Task: menghentikan burst request otomatis dari crawler Meta tanpa mengubah perilaku chatbot pelanggan.
-- Tanggal selesai: 2026-09-30.
-- Goal: mencegah `meta-externalagent` mencapai session, database, intent ML, katalog, dan provider LLM.
+- Task: memperbaiki rekomendasi target harga yang terlalu murah dan berulang.
+- Tanggal selesai: 2026-10-05.
+- Goal: membedakan target harga dari batas budget tanpa mengubah filter rekomendasi lain.
 
 ## Completed
 
@@ -113,6 +117,8 @@ Ekspansi fallback text Google selesai lokal dan menunggu deployment serta smoke 
 
 ## Files Modified
 
+- `lib/chatbot/productRecommendation.js`
+- `tests/productRecommendationReasoning.test.js`
 - `README.md`
 - `docs/PANDUAN_TEKNIS_INTENT_ML_DAN_ALUR_CHATBOT.md`
 - `lib/chatbot/gemini.js`
@@ -143,9 +149,9 @@ Ekspansi fallback text Google selesai lokal dan menunggu deployment serta smoke 
 
 ## Next Steps
 
-1. Deploy perubahan pool Google ke Vercel tanpa menambahkan `gemma-4-31b-it` pada environment override.
-2. Paksa satu smoke semantic/composer production saat Groq tidak diprioritaskan atau gunakan konfigurasi test yang aman; pastikan metadata model menunjukkan salah satu model Google baru dan response tetap valid.
-3. Uji `Dari kemarin nunggu kapan restock sih` dan satu pertanyaan rekomendasi; keduanya harus mengembalikan data katalog, bukan pesan server sibuk.
+1. Deploy perbaikan rekomendasi ke Vercel, lalu uji `harga 7 jutaan`, `harga 4 jutaan`, `budget maksimal 7 juta`, dan satu rentang harga terhadap katalog production.
+2. Deploy perubahan pool Google ke Vercel tanpa menambahkan `gemma-4-31b-it` pada environment override bila perubahan tersebut memang belum ter-deploy.
+3. Paksa satu smoke semantic/composer production saat Groq tidak diprioritaskan atau gunakan konfigurasi test yang aman; pastikan metadata model menunjukkan salah satu model Google baru dan response tetap valid.
 4. Pantau latency, `attemptedModels`, HTTP 429/5xx, dan konsumsi quota sebelum uji pengguna ramai.
 5. Pertahankan rate limiting umum, batas upload gambar, dan monitoring quota sebagai hardening berikutnya.
 

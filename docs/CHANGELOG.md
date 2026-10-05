@@ -15,6 +15,8 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Fixed
 
+- Fixed recommendation requests such as `harga 7 jutaan` being treated as a generic maximum budget, which allowed much cheaper high-promo products to dominate and made different price-target questions repeat the same list.
+- Added target-price proximity filtering and scoring while preserving explicit maximum, minimum, and range budget constraints.
 - Kept `gemma-4-31b-it` out of the default pool after live recovery showed that a valid response took about 115 seconds, beyond the Vercel function's 90-second limit; the model remains opt-in through the existing environment model lists.
 - Migrated the Groq router fallback and local naturalizer model from unavailable `qwen/qwen3.6-27b` to account-verified `qwen/qwen3.8-27b`.
 - Added regression coverage for the current default Groq fallback model.
@@ -41,6 +43,8 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
+- Verified target-price ranking directly and through the `/api/ask` regression fixture: Rp7 million and Rp4 million requests return different relevant product groups.
+- Verified 382/382 local tests and 9/9 answer-coverage replay turns after the recommendation target-price fix.
 - Verified live JSON responses through the chatbot adapter for `gemini-3.8-flash`, `gemini-3.7-flash`, and `gemma-4-26b-a4b-it`.
 - Verified `gemma-4-31b-it` exists and can answer, but its successful probe took about 115 seconds; fast constrained probes returned provider HTTP 500, so it is not production-default evidence.
 - Verified 380/380 local tests and 9/9 answer-coverage replay turns after the Google text fallback expansion.

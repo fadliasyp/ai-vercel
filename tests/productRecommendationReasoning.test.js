@@ -4,6 +4,8 @@ import assert from "node:assert/strict";
 import {
   buildProductOpinionReasoning,
   buildRecommendationReasoning,
+  extractRecommendationNeeds,
+  pickRecommendedProducts,
 } from "../lib/chatbot/productRecommendation.js";
 import { explainBestRuleBased } from "../lib/chatbot/productRanking.js";
 import { humanizeResponse } from "../lib/chatbot/responsePresentation.js";
@@ -80,4 +82,70 @@ test("keeps complete recommendation reasoning outside the short intro", () => {
   assert.equal(response.intro, "Ini rekomendasi terbaik yang aku temukan:");
   assert.equal(response.reasoning_text, reasoning);
   assert.match(response.reasoning_text, /artikulasi terbatas/i);
+});
+
+test("treats a stated product price as a recommendation target, not a maximum budget", () => {
+  const candidates = [
+    {
+      id: 1,
+      name: "Promo murah",
+      numericPrice: 3000000,
+      stock: "instock",
+      discountPercent: 25,
+    },
+    {
+      id: 2,
+      name: "Dekat tujuh",
+      numericPrice: 6250000,
+      stock: "instock",
+    },
+    {
+      id: 3,
+      name: "Tepat tujuh",
+      numericPrice: 7000000,
+      stock: "instock",
+    },
+    {
+      id: 4,
+      name: "Dekat empat",
+      numericPrice: 4200000,
+      stock: "instock",
+    },
+  ];
+  const sevenMillionNeeds = extractRecommendationNeeds(
+    "Rekomendasi dong yang harga 7 jutaan",
+  );
+  const fourMillionNeeds = extractRecommendationNeeds(
+    "Rekomendasi dong yang harga sekitar 4 juta",
+  );
+
+  assert.equal(sevenMillionNeeds.targetPrice, 7000000);
+  assert.equal(sevenMillionNeeds.budgetMax, null);
+  assert.deepEqual(
+    pickRecommendedProducts(candidates, sevenMillionNeeds, 3).map(
+      (product) => product.id,
+    ),
+    [3, 2],
+  );
+  assert.deepEqual(
+    pickRecommendedProducts(candidates, fourMillionNeeds, 3).map(
+      (product) => product.id,
+    ),
+    [4],
+  );
+});
+
+test("keeps explicit recommendation budgets as hard limits", () => {
+  const needs = extractRecommendationNeeds(
+    "Rekomendasi dong dengan budget maksimal 7 juta",
+  );
+  const rangeNeeds = extractRecommendationNeeds(
+    "Rekomendasi dengan harga 5 juta sampai 7 juta",
+  );
+
+  assert.equal(needs.targetPrice, null);
+  assert.equal(needs.budgetMax, 7000000);
+  assert.equal(rangeNeeds.targetPrice, null);
+  assert.equal(rangeNeeds.budgetMin, 5000000);
+  assert.equal(rangeNeeds.budgetMax, 7000000);
 });

@@ -31,6 +31,7 @@ Status project: **aktif dikembangkan**.
 - Pencarian katalog, detail, harga/promo, stok, rekomendasi, dan perbandingan WooCommerce.
 - Jadwal restock per produk dari metadata WPC Product Timer, termasuk daftar semua restock mendatang dan pencarian satu produk.
 - Strength/caveat rekomendasi serta perbandingan dapat memakai deskripsi produk WooCommerce.
+- Rekomendasi membedakan target harga seperti `harga 7 jutaan` dari batas budget; target harga memprioritaskan kandidat terdekat, sedangkan batas/rentang tetap menjadi filter keras.
 - Kebijakan pembayaran, COD, packing, asuransi, retur/refund, jam/lokasi toko, dan pengiriman internasional.
 - Ongkir domestik melalui endpoint WordPress custom dengan pemilihan kota/kecamatan.
 - Verifikasi status pesanan dengan Order ID plus email/telepon billing.

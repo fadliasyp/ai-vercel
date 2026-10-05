@@ -429,6 +429,32 @@ test("routes real customer turns without stale products or fallback collisions",
       ),
     );
 
+    const sevenMillionRecommendation = await ask(
+      "Rekomendasi dong yg harga 7 jutaan",
+      null,
+      { sessionId: `target_price_7m_${Date.now()}` },
+    );
+    assert.equal(sevenMillionRecommendation.intent, "recommendation");
+    assert.equal(sevenMillionRecommendation.type, "products");
+    assert.deepEqual(productNames(sevenMillionRecommendation), [
+      "Jumbo Machinder Mazinger Z",
+      "Fewture Getter Set 1,2,3 Black Version",
+    ]);
+    assert.match(sevenMillionRecommendation.reasoning_text, /Rp\s*7\.000\.000/);
+
+    const fourMillionRecommendation = await ask(
+      "Rekomendasi dong yg harga 4 jutaan",
+      null,
+      { sessionId: `target_price_4m_${Date.now()}` },
+    );
+    assert.equal(fourMillionRecommendation.intent, "recommendation");
+    assert.equal(fourMillionRecommendation.type, "products");
+    assert.ok(
+      productNames(fourMillionRecommendation).every(
+        (name) => !productNames(sevenMillionRecommendation).includes(name),
+      ),
+    );
+
     const internationalQuestion =
       "Ini Voltes V Legacy ukurannya berapa cm ya tingginya? Kalau kirim ke Malaysia ongkirnya berapa dan total harganya jadi berapa USD?";
     const productChoice = await ask(internationalQuestion);

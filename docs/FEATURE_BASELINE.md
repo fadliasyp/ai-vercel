@@ -80,6 +80,40 @@ Memecah permintaan majemuk menjadi goal/facet, merencanakan jawaban, lalu mendet
 - `npm run benchmark:coverage-replay`
 - Bukti 2026-09-01: 9/9 turn lulus, coverage 59,4% ke 88,9%.
 
+## Recommendation Price Intent
+
+### Status
+
+STABLE (local ranking dan endpoint regression scope)
+
+### Function
+
+Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran yang benar.
+
+### Correct Behavior
+
+- `harga 7 jutaan` dan `harga sekitar 7 juta` diperlakukan sebagai target harga, lalu kandidat terdekat diprioritaskan.
+- `budget maksimal 7 juta`, `di bawah 7 juta`, dan rentang `5 juta sampai 7 juta` tetap menjadi batas keras.
+- Target harga yang berbeda harus menghasilkan kelompok kandidat yang relevan dengan target tersebut, bukan selalu daftar rekomendasi generik yang sama.
+- Promo, penjualan, dan rating hanya meranking kandidat yang relevan; sinyal tersebut tidak boleh mengalahkan target harga hingga menghasilkan produk yang jauh lebih murah.
+
+### Do Not Break
+
+- Jangan mengubah semua frasa nominal menjadi target harga; kata `budget`, batas atas/bawah, dan rentang tetap memakai constraint lama.
+- Jangan melonggarkan filter stok, kondisi, promo, hadiah, atau metadata produk untuk mengisi jumlah kartu.
+
+### Important Files
+
+- `lib/chatbot/productRecommendation.js`
+- `tests/productRecommendationReasoning.test.js`
+- `tests/askRouting.test.js`
+
+### Verification
+
+- `npm test`
+- `npm run benchmark:coverage-replay`
+- Bukti 2026-10-05: 382/382 test lulus dan replay 9/9 turn lulus.
+
 ## Product Restock Schedule
 
 ### Status
