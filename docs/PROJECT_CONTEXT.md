@@ -33,6 +33,7 @@ Status project: **aktif dikembangkan**.
 - Jadwal restock per produk dari metadata WPC Product Timer, termasuk daftar semua restock mendatang dan pencarian satu produk.
 - Strength/caveat rekomendasi serta perbandingan dapat memakai deskripsi produk WooCommerce.
 - Rekomendasi membedakan target harga seperti `harga 7 jutaan` dan `rekomen robot 19 jutaan` dari batas budget; target harga hanya menerima kandidat dalam toleransi 20%, sedangkan batas/rentang tetap menjadi filter keras. Frasa `budget sekitar/kisaran X` memakai X sebagai target sekaligus batas maksimum.
+- Rekomendasi generik dengan rentang/tujuan memakai `product_names` terstruktur untuk membedakannya dari pencarian nama produk. Kata seperti `antara`, `sampai`, dan `pajangan` tidak boleh memicu pesan produk tidak tersedia.
 - Goal rekomendasi aktif melengkapi follow-up nominal singkat maupun berbungkus percakapan: `yg 3 jutaan` dan `Kalau yang 6 jutaan ada apa aja?` menjadi target harga baru, sedangkan `3 juta` menjadi batas budget; pergantian intent eksplisit tetap tidak diwarisi.
 - Goal rekomendasi menyimpan target harga, mode harga, dan tujuan penggunaan agar LLM dapat menyelesaikan follow-up alami tanpa memaksakan constraint lama ke `new_topic`.
 - Produk fokus mendukung follow-up atribut alami seperti `stoknya`, `harganya`, `kondisinya`, dan `bahannya`; nama produk eksplisit serta produk halaman tetap memiliki prioritas lebih tinggi.

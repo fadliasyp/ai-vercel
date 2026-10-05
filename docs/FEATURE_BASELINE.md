@@ -98,6 +98,7 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 - Nominal yang langsung mengikuti permintaan rekomendasi, misalnya `rekomen robot 19 jutaan` atau `rekomendasiin robot 6 jutaan`, juga diperlakukan sebagai target harga meskipun kata `harga` tidak ditulis.
 - `budget sekitar 12 jutaan` dan `dana kisaran 12 juta` diperlakukan sebagai target mendekati Rp12 juta sekaligus batas maksimum Rp12 juta, sehingga produk yang jauh lebih murah tidak menang hanya karena promo/popularitas.
 - `budget maksimal 7 juta`, `di bawah 7 juta`, dan rentang `5 juta sampai 7 juta` tetap menjadi batas keras.
+- Permintaan generik seperti `Cari robot antara 5 sampai 8 juta buat pajangan` tidak boleh dianggap menyebut nama produk hanya karena mengandung kata rentang atau tujuan penggunaan.
 - Setelah hasil rekomendasi, follow-up seperti `yg 3 jutaan` atau `Kalau yang 6 jutaan ada apa aja?` diwarisi sebagai target harga baru untuk rekomendasi yang sama; pelanggan tidak perlu mengulang kata `rekomendasi robot`.
 - Nominal polos seperti `3 juta` tetap diwarisi sebagai batas budget, bukan target harga.
 - Target harga yang berbeda harus menghasilkan kelompok kandidat yang relevan dengan target tersebut, bukan selalu daftar rekomendasi generik yang sama.
@@ -108,6 +109,7 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 
 - Jangan mengubah semua frasa nominal menjadi target harga; kata `budget`, batas atas/bawah, dan rentang tetap memakai constraint lama.
 - Jangan menerima nominal baru yang hanya muncul dari output LLM dan tidak ada pada pesan atau goal follow-up terverifikasi.
+- Jangan melewati guard produk untuk nama produk eksplisit yang tidak tersedia; pengecualian guard hanya berlaku ketika structured understanding tepercaya menyatakan `product_names` kosong.
 - Jangan mewariskan konteks rekomendasi ke pertanyaan yang jelas mengganti intent, misalnya `kapan restock ya`.
 - Jangan melonggarkan filter stok, kondisi, promo, hadiah, atau metadata produk untuk mengisi jumlah kartu.
 
@@ -124,7 +126,7 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 
 - `npm test`
 - `npm run benchmark:coverage-replay`
-- Bukti 2026-10-05: 390/390 test lulus, replay 9/9 turn lulus, dan benchmark pelanggan 26/26 turn lulus.
+- Bukti 2026-10-06: 391/391 test lulus, replay 9/9 turn lulus, dan benchmark pelanggan 26/26 turn lulus.
 
 ## Product Restock Schedule
 

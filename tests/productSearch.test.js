@@ -46,6 +46,13 @@ test("does not return an unrelated ready product for an unknown robot", () => {
   );
 });
 
+test("does not treat generic recommendation constraints as a product name", () => {
+  const question = "Cari robot antara 5 sampai 8 juta buat pajangan dong";
+
+  assert.deepEqual(extractProductSearchTokens(question), []);
+  assert.equal(hasSpecificProductSearchTerms(question), false);
+});
+
 test("finds a catalog product from a specific robot name", () => {
   const result = findBestSingleProductMatch(
     "cari barang Voltes V",

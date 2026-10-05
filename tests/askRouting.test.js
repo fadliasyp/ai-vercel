@@ -913,6 +913,76 @@ test("routes real customer turns without stale products or fallback collisions",
 
     semanticRoute = {
       ...semanticRoute,
+      entities: {
+        ...semanticRoute.entities,
+        budget_min: 5000000,
+        budget_max: 8000000,
+      },
+      recommendation_request: {
+        price_mode: "range",
+        target_price: null,
+        budget_min: 5000000,
+        budget_max: 8000000,
+        purposes: ["display"],
+        stock: null,
+        condition: null,
+        promo_only: false,
+      },
+      requires_product: false,
+      interpretation:
+        "Pelanggan mencari robot untuk pajangan pada rentang lima sampai delapan juta.",
+    };
+
+    const genericRangeRecommendation = await ask(
+      "Cari robot antara 5 sampai 8 juta buat pajangan dong",
+      null,
+      { sessionId: `semantic_range_recommendation_${Date.now()}` },
+    );
+    assert.equal(genericRangeRecommendation.intent, "recommendation");
+    assert.equal(genericRangeRecommendation.type, "products");
+    assert.ok(genericRangeRecommendation.products.length > 0);
+    assert.ok(
+      genericRangeRecommendation.products.every((item) => {
+        const price = Number(item.numericPrice || 0);
+        return price >= 5000000 && price <= 8000000;
+      }),
+    );
+
+    semanticRoute = {
+      ...semanticRoute,
+      entities: {
+        ...semanticRoute.entities,
+        product_names: ["Robot Ultraman Galactic"],
+        budget_min: null,
+        budget_max: null,
+      },
+      recommendation_request: {
+        price_mode: "none",
+        target_price: null,
+        budget_min: null,
+        budget_max: null,
+        purposes: [],
+        stock: null,
+        condition: null,
+        promo_only: false,
+      },
+      requires_product: true,
+      interpretation:
+        "Pelanggan mencari produk bernama Robot Ultraman Galactic.",
+    };
+
+    const unknownNamedRecommendation = await ask(
+      "Ada Robot Ultraman Galactic yang bisa direkomendasikan?",
+      null,
+      { sessionId: `semantic_unknown_recommendation_${Date.now()}` },
+    );
+    assert.equal(unknownNamedRecommendation.intent, "recommendation");
+    assert.equal(unknownNamedRecommendation.type, "text");
+    assert.match(unknownNamedRecommendation.message, /belum ada di katalog/i);
+    assert.equal(unknownNamedRecommendation.products, undefined);
+
+    semanticRoute = {
+      ...semanticRoute,
       intent: "recommendation",
       intents: ["recommendation"],
       goals: ["recommendation"],

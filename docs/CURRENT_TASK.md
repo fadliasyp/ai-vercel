@@ -12,7 +12,10 @@ Belum ada task aktif. Tahap pertama rekomendasi LLM-first selesai lokal dan menu
 - Goal percakapan menyimpan target harga, mode harga, dan tujuan rekomendasi untuk turn lanjutan.
 - Fallback lokal memperbaiki negasi `jangan lebih dari 6 juta` sebagai batas maksimum dan rentang `di atas 6 juta tapi jangan lebih dari 8 juta`.
 - Regression endpoint membuktikan `Modal gue 10 jutaan, enaknya ambil robot apa?` hanya menghasilkan fixture Rp10 juta.
-- Verifikasi tahap ini: 390/390 test, coverage replay 9/9 turn, dan benchmark pelanggan 26/26 turn lulus.
+- Memperbaiki laporan production `Cari robot antara 5 sampai 8 juta buat pajangan dong`: LLM sudah benar, tetapi guard produk lokal salah menganggap kata rentang `antara`/`sampai` sebagai nama produk.
+- Guard rekomendasi kini memakai `entities.product_names` dari semantic understanding tepercaya untuk membedakan rekomendasi generik dan permintaan produk eksplisit; fallback lokal juga mengabaikan kata constraint harga.
+- Regression kebalikan memastikan nama produk eksplisit yang benar-benar tidak ada tetap ditolak dan tidak diganti produk lain.
+- Verifikasi tahap ini: 391/391 test, coverage replay 9/9 turn, dan benchmark pelanggan 26/26 turn lulus.
 - Frasa rekomendasi seperti `harga 7 jutaan` dan `harga sekitar 7 juta` sekarang menjadi target harga, bukan batas maksimum generik.
 - Frasa tanpa kata `harga`, termasuk laporan persis `rekomen cok robot 19 jutaan`, sekarang menjadi target harga selama intent rekomendasi disebut eksplisit.
 - Target harga memakai filter toleransi 20%; jika tidak ada kandidat dekat, sistem tidak lagi kembali ke produk murah yang tidak relevan.

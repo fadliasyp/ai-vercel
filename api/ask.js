@@ -6243,11 +6243,20 @@ export default async function handler(req, res) {
         rawQuestion,
         list,
       );
+      const hasTrustedRecommendationUnderstanding = Boolean(
+        groqRoute?.intent === "recommendation" &&
+          Number(groqRoute.confidence || 0) >= minSemanticConfidence &&
+          groqRoute.recommendation_request,
+      );
+      const hasExplicitNamedProductRequest =
+        hasTrustedRecommendationUnderstanding
+          ? (groqRoute.entities?.product_names || []).length > 0
+          : hasSpecificProductSearchTerms(rawQuestion);
 
       if (
         isExplicitCatalogRequest &&
         !hasStructuredCatalogPreference &&
-        hasSpecificProductSearchTerms(rawQuestion) &&
+        hasExplicitNamedProductRequest &&
         ["no_catalog_match", "partial_query_match"].includes(
           requestedProductMatch.reason,
         )
