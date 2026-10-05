@@ -277,6 +277,45 @@ test("uses grounded LLM recommendation constraints for conversational wording", 
   assert.equal(needs.readyOnly, true);
 });
 
+test("explicit approximate target corrects an LLM maximum classification", () => {
+  const needs = extractRecommendationNeeds(
+    "Bang, rekomen robot yang bagus dong, sekitar 7 jutaan.",
+    {
+      intent: "recommendation",
+      confidence: 0.92,
+      topic_relation: "new_topic",
+      recommendation_request: {
+        price_mode: "maximum",
+        target_price: null,
+        budget_min: null,
+        budget_max: 7000000,
+        purposes: [],
+        stock: null,
+        condition: null,
+        promo_only: false,
+      },
+    },
+  );
+  const recommendations = pickRecommendedProducts(
+    [
+      { id: 1, name: "Tiga juta", numericPrice: 3000000 },
+      { id: 2, name: "Enam setengah juta", numericPrice: 6500000 },
+      { id: 3, name: "Tujuh juta", numericPrice: 7000000 },
+      { id: 4, name: "Enam ratus ribu", numericPrice: 650000 },
+    ],
+    needs,
+    3,
+  );
+
+  assert.equal(needs.priceMode, "target");
+  assert.equal(needs.targetPrice, 7000000);
+  assert.equal(needs.budgetMax, null);
+  assert.deepEqual(
+    recommendations.map((product) => product.id),
+    [3, 2],
+  );
+});
+
 test("accepts an LLM maximum for negated wording and rejects invented money", () => {
   const maximumNeeds = extractRecommendationNeeds(
     "Yang bagus, tapi jangan lebih dari 6 juta",

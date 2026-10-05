@@ -118,6 +118,14 @@ test("inherits terse price refinements from an active recommendation", () => {
     }).changed,
     false,
   );
+
+  assert.equal(
+    resolveConversationTurn(
+      "Bang, rekomen robot yang bagus dong, sekitar 7 jutaan.",
+      { activeGoal: { intent: "recommendation", category: "robot" } },
+    ).question,
+    "Bang, rekomen robot yang bagus dong, sekitar 7 jutaan.",
+  );
 });
 
 test("uses the corrected product and keeps the active intent", () => {

@@ -12,6 +12,8 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Fixed
 
+- Fixed the exact production case `Bang, rekomen robot yang bagus dong, sekitar 7 jutaan.` returning Rp650 thousand and Rp3 million products. Explicit approximate-price wording now corrects an LLM `maximum` misclassification to a target before ranking.
+- Prevented an existing recommendation goal from rewriting a complete new recommendation request into `rekomendasi robot budget ...`; only terse budget refinements are expanded from context.
 - Fixed casual recommendation language being interpreted inconsistently between the LLM router and local grounding stages. Shared normalization now covers `rekomen`, `pilihin`, `mnurut lu`, `jtan/jtaan`, `sd`, and abbreviated follow-up wrappers.
 - Kept ready stock and display/gift/collection wording as recommendation constraints when the customer is asking which product to choose, instead of replacing the main intent with stock availability.
 - Added inverse intent cases so ordinary price and stock questions remain outside recommendation.
@@ -26,6 +28,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
+- Added unit and full `/api/ask` regressions using the production question and a deliberately wrong Groq-shaped `maximum` result. All 399 local tests pass; only products within the Rp5.6-Rp8.4 million target window survive.
 - Added a data-driven language matrix and follow-up regressions. All 397 local tests pass, answer-coverage replay passes 9/9 turns, and the customer conversation benchmark passes 26/26 turns with 135 assertions (100%).
 - Added parser, ranking, and `/api/ask` regressions for latest-price correction, including a deliberately incorrect LLM `maximum` result. All 393 local tests pass, answer-coverage replay passes 9/9 turns, and customer conversation benchmark passes 26/26 turns.
 - Added exact endpoint regressions for generic Rp5-Rp8 million display recommendations and the inverse unavailable-named-product case. All 391 local tests pass, answer-coverage replay passes 9/9 turns, and customer conversation benchmark passes 26/26 turns.

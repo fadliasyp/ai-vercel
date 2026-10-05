@@ -10,7 +10,10 @@ Belum ada task aktif. Hardening bahasa sehari-hari pada rekomendasi selesai loka
 - Normalisasi harga bersama kini memahami unit informal serta typo ringan tanpa mengubah model number menjadi nominal.
 - Intent rekomendasi mempertahankan stok dan tujuan penggunaan sebagai constraint. Kalimat `yang ready dan paling cocok buat display yang mana?` tidak lagi turun menjadi cek stok saja.
 - Follow-up singkat `klo yg 4jtan ada gak?` dan `kl yg 6 jtaan aja` tetap mewarisi goal rekomendasi, sedangkan contoh harga/stok non-rekomendasi tetap dilindungi oleh inverse tests.
-- Verifikasi akhir: 397/397 test lulus, coverage replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%).
+- Log production membuktikan Groq dapat mengklasifikasikan `sekitar 7 jutaan` sebagai maksimum. Grounding lokal kini mengoreksi konflik tersebut menjadi target Rp7 juta sebelum filter/ranking berjalan.
+- Resolver konteks tidak lagi menambahkan awalan `rekomendasi robot budget` pada pertanyaan rekomendasi baru yang sudah lengkap hanya karena goal sebelumnya juga rekomendasi.
+- Regression endpoint memakai pertanyaan dan kesalahan semantic persis dari log production; hanya fixture Rp6,25-Rp7 juta yang lolos, sedangkan Rp3 juta dan Rp650 ribu ditolak.
+- Verifikasi akhir: 399/399 test lulus, coverage replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%).
 - Memperbaiki pesan rekomendasi yang memuat rentang lama lalu alternatif baru, misalnya `Cari robot antara 5 sampe 8 juta buat pajangan. Kalau yang 3 jutaan ada?`.
 - Structured LLM prompt kini mewajibkan constraint harga eksplisit paling akhir menggantikan constraint lama sambil mempertahankan tujuan seperti `pajangan`.
 - Validator grounding membedakan target `kalau yang 3 jutaan` dari batas `maksimal/budget 3 juta`, sehingga produk Rp650 ribu atau Rp1,5 juta tidak lolos sebagai rekomendasi Rp3 jutaan.
@@ -150,6 +153,7 @@ Belum ada task aktif. Hardening bahasa sehari-hari pada rekomendasi selesai loka
 
 - Akar pola bug berulang adalah perbedaan kosakata antara semantic prompt, explicit intent fallback, parser harga, dan resolver follow-up. Satu kalimat dapat dipahami LLM tetapi berubah pada tahap lokal berikutnya.
 - Matriks baru menguji keluarga bahasa, bukan hanya kalimat laporan. Stok pada permintaan pemilihan produk sekarang diperlakukan sebagai constraint rekomendasi, bukan intent utama.
+- Pada laporan `sekitar 7 jutaan`, semantic prompt sebenarnya sudah benar tetapi Groq tetap menghasilkan mode `maximum`; validator lama hanya memeriksa bahwa angka Rp7 juta grounded, bukan bahwa makna `maximum` benar. Konflik mode kini dikoreksi dari teks eksplisit sebelum ranking.
 - Resolver sebelumnya hanya mengenali follow-up yang seluruh pesannya berbentuk `yang/yg + nominal`; pembuka `kalau` dan penutup `ada apa aja` membuat konteks rekomendasi terlepas lalu intent jatuh ke `price_promo`.
 - Setelah perbaikan, sequence dua turn laporan menghasilkan intent `recommendation`, target Rp6 juta, dan hanya produk fixture Rp4,8-Rp7,2 juta; seluruh suite tetap lulus 385/385 dan coverage replay 9/9.
 - Akar laporan rekomendasi Rp12 juta adalah `extractRecommendationNeeds`: parser umum menemukan `budgetMax`, tetapi `targetPrice` sebelumnya hanya dibuat jika pelanggan memakai kata `harga`.

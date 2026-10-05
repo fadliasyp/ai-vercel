@@ -900,16 +900,58 @@ test("routes real customer turns without stale products or fallback collisions",
       clarification_question: null,
     };
 
+    const semanticRecommendationSession = `semantic_recommendation_${Date.now()}`;
     const llmRecommendation = await ask(
       "Modal gue 10 jutaan, enaknya ambil robot apa?",
       null,
-      { sessionId: `semantic_recommendation_${Date.now()}` },
+      { sessionId: semanticRecommendationSession },
     );
     assert.equal(llmRecommendation.intent, "recommendation");
     assert.deepEqual(productNames(llmRecommendation), [
       "Comparison Robot Alpha",
     ]);
     assert.match(llmRecommendation.reasoning_text, /Rp\s*10\.000\.000/i);
+
+    semanticRoute = {
+      ...semanticRoute,
+      entities: {
+        ...semanticRoute.entities,
+        budget_min: null,
+        budget_max: 7000000,
+      },
+      recommendation_request: {
+        price_mode: "maximum",
+        target_price: null,
+        budget_min: null,
+        budget_max: 7000000,
+        purposes: [],
+        stock: null,
+        condition: null,
+        promo_only: false,
+      },
+      interpretation: "Pelanggan meminta robot dengan budget maksimal tujuh juta.",
+    };
+
+    const correctedApproximateTarget = await ask(
+      "Bang, rekomen robot yang bagus dong, sekitar 7 jutaan.",
+      null,
+      { sessionId: semanticRecommendationSession },
+    );
+    assert.equal(correctedApproximateTarget.intent, "recommendation");
+    assert.deepEqual(productNames(correctedApproximateTarget), [
+      "Jumbo Machinder Mazinger Z",
+      "Fewture Getter Set 1,2,3 Black Version",
+    ]);
+    assert.ok(
+      correctedApproximateTarget.products.every((item) => {
+        const price = Number(item.numericPrice || 0);
+        return price >= 5600000 && price <= 8400000;
+      }),
+    );
+    assert.match(
+      correctedApproximateTarget.reasoning_text,
+      /Rp\s*7\.000\.000/i,
+    );
 
     semanticRoute = {
       ...semanticRoute,

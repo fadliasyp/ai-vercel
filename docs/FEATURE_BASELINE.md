@@ -102,6 +102,8 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 - Setelah hasil rekomendasi, follow-up seperti `yg 3 jutaan` atau `Kalau yang 6 jutaan ada apa aja?` diwarisi sebagai target harga baru untuk rekomendasi yang sama; pelanggan tidak perlu mengulang kata `rekomendasi robot`.
 - Dalam satu pesan yang menyebut rentang lama lalu alternatif baru, misalnya `antara 5 sampai 8 juta ... kalau yang 3 jutaan ada?`, harga eksplisit paling akhir menjadi target baru dan tujuan penggunaan sebelumnya tetap dipertahankan.
 - Variasi sehari-hari seperti `rekomen`, `pilihin`, `mnurut lu`, `pengen`, `7jtan/jtaan`, dan rentang `3 sd 6 juta` harus menghasilkan constraint rekomendasi yang sama dengan bentuk bakunya.
+- Frasa rekomendasi `sekitar/kisaran X` tanpa kata `budget` adalah target harga, bahkan bila LLM keliru mengembalikannya sebagai batas maksimum. Grounding lokal harus mengoreksi mode sebelum katalog diranking.
+- Pertanyaan rekomendasi baru yang sudah lengkap tidak boleh ditulis ulang sebagai budget follow-up hanya karena goal sebelumnya juga rekomendasi.
 - Pada kalimat pemilihan seperti `yang ready dan paling cocok buat display yang mana?`, ready stock dan display adalah constraint rekomendasi; keduanya tidak boleh mengganti intent utama menjadi cek stok.
 - Follow-up berbungkus singkatan seperti `klo yg 4jtan ada gak?` tetap menjadi refinement target harga selama goal rekomendasi aktif.
 - Nominal polos seperti `3 juta` tetap diwarisi sebagai batas budget, bukan target harga.
@@ -130,7 +132,7 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 
 - `npm test`
 - `npm run benchmark:coverage-replay`
-- Bukti 2026-10-06: 397/397 test lulus, replay 9/9 turn lulus, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus.
+- Bukti 2026-10-06: 399/399 test lulus, replay 9/9 turn lulus, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus.
 
 ## Product Restock Schedule
 
