@@ -465,6 +465,22 @@ test("routes real customer turns without stale products or fallback collisions",
     );
     assert.match(naturalBudgetFollowUp.reasoning_text, /Rp\s*6\.000\.000/);
 
+    const bareTargetRecommendation = await ask(
+      "rekomen cok robot 6 jutaan",
+      null,
+      { sessionId: `bare_target_6m_${Date.now()}` },
+    );
+    assert.equal(bareTargetRecommendation.intent, "recommendation");
+    assert.equal(bareTargetRecommendation.type, "products");
+    assert.ok(bareTargetRecommendation.products.length > 0);
+    assert.ok(
+      bareTargetRecommendation.products.every((item) => {
+        const price = Number(item.numericPrice || 0);
+        return price >= 4800000 && price <= 7200000;
+      }),
+    );
+    assert.match(bareTargetRecommendation.reasoning_text, /Rp\s*6\.000\.000/);
+
     const sevenMillionRecommendation = await ask(
       "Rekomendasi dong yg harga 7 jutaan",
       null,

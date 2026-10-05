@@ -7,6 +7,15 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 ### Added
 
 - Added `npm run benchmark:context` with six multi-turn gates covering recommendation price refinement, ordinal selection, focused-product pronouns, explicit product switches, restock topic switches, and interruption of pending shipping questions.
+
+### Fixed
+
+- Fixed bare recommendation amounts such as `rekomen cok robot 19 jutaan` not becoming a target price when the customer omitted the word `harga`.
+- Removed the distant-product fallback for target-price recommendations. When no product is within 20% of the requested target, the system now returns no matching candidate instead of unrelated Rp1.5-Rp3.5 million products.
+
+### Verification
+
+- Added parser, ranking, and `/api/ask` regression coverage for conversational recommendation targets. All 386 local tests pass and answer-coverage replay passes 9/9 turns.
 - Added `gemini-3.8-flash`, `gemini-3.7-flash`, and `gemma-4-26b-a4b-it` to the bounded Google text fallback pools without adding them to vision or increasing the three-attempt cap.
 - Added per-model Google generation config: low thinking and no legacy sampling parameters for Gemini 3.7/3.8, plus minimal thinking and locally validated prompt-JSON for Gemma 4.
 - Added grounded per-product restock schedules from WPC Product Timer `woopt_actions` metadata.

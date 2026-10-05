@@ -184,3 +184,68 @@ test("treats an approximate budget as a price target and maximum", () => {
   assert.equal(needs.budgetMax, 12000000);
   assert.deepEqual(recommendations.map((product) => product.id), [2]);
 });
+
+test("uses bare recommendation amounts as targets without distant fallback", () => {
+  const variants = [
+    "rekomen cok robot 19 jutaan",
+    "rekomendasiin robot 19 jutaan dong",
+    "ada rekomendasi robot kisaran 19 juta?",
+  ];
+
+  for (const question of variants) {
+    const needs = extractRecommendationNeeds(question);
+    assert.equal(needs.targetPrice, 19000000, question);
+    assert.equal(needs.budgetMax, null, question);
+  }
+
+  const needs = extractRecommendationNeeds(variants[0]);
+  assert.deepEqual(
+    pickRecommendedProducts(
+      [
+        {
+          id: 1,
+          name: "Promo tiga juta",
+          numericPrice: 3000000,
+          stock: "instock",
+          discountPercent: 25,
+        },
+        {
+          id: 2,
+          name: "Dekat sembilan belas juta",
+          numericPrice: 18500000,
+          stock: "instock",
+        },
+        {
+          id: 3,
+          name: "Sembilan juta",
+          numericPrice: 9000000,
+          stock: "instock",
+        },
+      ],
+      needs,
+      3,
+    ).map((product) => product.id),
+    [2],
+  );
+  assert.deepEqual(
+    pickRecommendedProducts(
+      [
+        {
+          id: 1,
+          name: "Promo tiga juta",
+          numericPrice: 3000000,
+          stock: "instock",
+        },
+        {
+          id: 3,
+          name: "Sembilan juta",
+          numericPrice: 9000000,
+          stock: "instock",
+        },
+      ],
+      needs,
+      3,
+    ),
+    [],
+  );
+});

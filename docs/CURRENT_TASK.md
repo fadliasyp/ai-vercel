@@ -2,14 +2,16 @@
 
 ## Status
 
-Belum ada task aktif. Tahap pertama penguatan percakapan berkelanjutan selesai lokal dan menunggu deployment serta benchmark production.
+Belum ada task aktif. Perbaikan target harga rekomendasi selesai lokal dan menunggu deployment serta uji production.
 
 ## Current Progress
 
 - Frasa rekomendasi seperti `harga 7 jutaan` dan `harga sekitar 7 juta` sekarang menjadi target harga, bukan batas maksimum generik.
+- Frasa tanpa kata `harga`, termasuk laporan persis `rekomen cok robot 19 jutaan`, sekarang menjadi target harga selama intent rekomendasi disebut eksplisit.
+- Target harga memakai filter toleransi 20%; jika tidak ada kandidat dekat, sistem tidak lagi kembali ke produk murah yang tidak relevan.
 - Follow-up `yg 3 jutaan` setelah rekomendasi kini dilengkapi dari goal aktif menjadi permintaan rekomendasi target Rp3 juta sebelum local/LLM routing.
 - Follow-up nominal tanpa `yang/yg`, misalnya `3 juta`, tetap menjadi batas budget; pertanyaan intent baru seperti `kapan restock ya` tidak ditulis ulang.
-- Regression dua turn Rp12 juta lalu Rp3 juta lulus, seluruh suite lulus 383/383, dan coverage replay lulus 9/9 turn.
+- Regression target awal dan dua turn lulus, seluruh suite lulus 386/386, dan coverage replay lulus 9/9 turn.
 - Follow-up `yang kedua stoknya berapa?` kini mempertahankan produk kedua dan memakai intent stok, bukan harga/promo.
 - Follow-up atribut `stoknya`, `harganya`, `kondisinya`, dan `bahannya` kini menggunakan produk fokus terakhir tanpa menimpa nama produk baru atau produk halaman.
 - Mode `npm run benchmark:context` menyediakan enam gate multi-turn untuk refinement, referensi produk, topic switch, dan pending interruption.
@@ -87,7 +89,7 @@ Belum ada task aktif. Tahap pertama penguatan percakapan berkelanjutan selesai l
 
 ## Active Task
 
-- Belum ada task aktif; perbaikan rekomendasi budget perkiraan siap di-deploy dan diuji ulang pada production.
+- Belum ada task aktif; perbaikan rekomendasi target eksplisit siap di-deploy dan diuji ulang pada production.
 
 ## Last Completed Task
 
