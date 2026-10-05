@@ -2,7 +2,7 @@
 
 ## Status
 
-Belum ada task aktif. Perbaikan follow-up rekomendasi singkat selesai lokal dan menunggu deployment serta uji manual production.
+Belum ada task aktif. Tahap pertama penguatan percakapan berkelanjutan selesai lokal dan menunggu deployment serta benchmark production.
 
 ## Current Progress
 
@@ -10,6 +10,10 @@ Belum ada task aktif. Perbaikan follow-up rekomendasi singkat selesai lokal dan 
 - Follow-up `yg 3 jutaan` setelah rekomendasi kini dilengkapi dari goal aktif menjadi permintaan rekomendasi target Rp3 juta sebelum local/LLM routing.
 - Follow-up nominal tanpa `yang/yg`, misalnya `3 juta`, tetap menjadi batas budget; pertanyaan intent baru seperti `kapan restock ya` tidak ditulis ulang.
 - Regression dua turn Rp12 juta lalu Rp3 juta lulus, seluruh suite lulus 383/383, dan coverage replay lulus 9/9 turn.
+- Follow-up `yang kedua stoknya berapa?` kini mempertahankan produk kedua dan memakai intent stok, bukan harga/promo.
+- Follow-up atribut `stoknya`, `harganya`, `kondisinya`, dan `bahannya` kini menggunakan produk fokus terakhir tanpa menimpa nama produk baru atau produk halaman.
+- Mode `npm run benchmark:context` menyediakan enam gate multi-turn untuk refinement, referensi produk, topic switch, dan pending interruption.
+- Verifikasi tahap ini: 384/384 test, benchmark pelanggan 26/26, dan coverage replay 9/9 lulus.
 - Kandidat di sekitar target (toleransi 20%) diprioritaskan; sinyal promo/penjualan tidak lagi dapat memenangkan produk yang jauh dari target bila kandidat dekat tersedia.
 - Frasa budget eksplisit dan rentang tetap memakai filter keras lama.
 - Regression endpoint membuktikan target Rp7 juta dan Rp4 juta menghasilkan kelompok produk berbeda.
@@ -83,13 +87,13 @@ Belum ada task aktif. Perbaikan follow-up rekomendasi singkat selesai lokal dan 
 
 ## Active Task
 
-- Belum ada task aktif.
+- Belum ada task aktif; tahap berikutnya adalah deployment dan benchmark konteks live.
 
 ## Last Completed Task
 
-- Task: memperbaiki follow-up rekomendasi singkat yang kehilangan konteks dan salah intent.
+- Task: tahap pertama penguatan follow-up dan pergantian konteks menjelang sidang.
 - Tanggal selesai: 2026-10-05.
-- Goal: mempertahankan goal rekomendasi pada `yg 3 jutaan` tanpa menangkap pergantian topik atau merusak filter lama.
+- Goal: mempertahankan objek/intent pada follow-up atribut umum sekaligus memastikan produk dan topik baru mengalahkan konteks lama.
 
 ## Completed
 
@@ -154,7 +158,7 @@ Belum ada task aktif. Perbaikan follow-up rekomendasi singkat selesai lokal dan 
 
 ## Next Steps
 
-1. Deploy perbaikan rekomendasi ke Vercel, lalu uji `harga 7 jutaan`, `harga 4 jutaan`, `budget maksimal 7 juta`, dan satu rentang harga terhadap katalog production.
+1. Deploy perubahan konteks ke Vercel, lalu jalankan `npm run benchmark:context -- --endpoint https://ai-vercel-ten-sigma.vercel.app/api/ask`.
 2. Deploy perubahan pool Google ke Vercel tanpa menambahkan `gemma-4-31b-it` pada environment override bila perubahan tersebut memang belum ter-deploy.
 3. Paksa satu smoke semantic/composer production saat Groq tidak diprioritaskan atau gunakan konfigurasi test yang aman; pastikan metadata model menunjukkan salah satu model Google baru dan response tetap valid.
 4. Pantau latency, `attemptedModels`, HTTP 429/5xx, dan konsumsi quota sebelum uji pengguna ramai.

@@ -6,6 +6,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Added
 
+- Added `npm run benchmark:context` with six multi-turn gates covering recommendation price refinement, ordinal selection, focused-product pronouns, explicit product switches, restock topic switches, and interruption of pending shipping questions.
 - Added `gemini-3.8-flash`, `gemini-3.7-flash`, and `gemma-4-26b-a4b-it` to the bounded Google text fallback pools without adding them to vision or increasing the three-attempt cap.
 - Added per-model Google generation config: low thinking and no legacy sampling parameters for Gemini 3.7/3.8, plus minimal thinking and locally validated prompt-JSON for Gemma 4.
 - Added grounded per-product restock schedules from WPC Product Timer `woopt_actions` metadata.
@@ -15,6 +16,8 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Fixed
 
+- Fixed `yang kedua stoknya berapa?` being classified as price/promotion because the generic word `berapa` outranked the explicit `stoknya` signal.
+- Resolved focused-product possessives such as `stoknya`, `harganya`, `kondisinya`, and `bahannya` before routing, while preserving explicit new products and WooCommerce page context.
 - Fixed terse recommendation follow-ups such as `yg 3 jutaan` being routed as a standalone price/product search. The conversation resolver now expands them from the active recommendation goal before local and LLM routing, while explicit topic changes remain untouched.
 - Added a two-turn endpoint regression proving a Rp12 million recommendation can be refined to Rp3 million without repeating the previous product group.
 - Fixed recommendation requests such as `harga 7 jutaan` being treated as a generic maximum budget, which allowed much cheaper high-promo products to dominate and made different price-target questions repeat the same list.
@@ -45,6 +48,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
+- Verified 384/384 local tests, 26/26 deterministic customer-conversation turns, and 9/9 answer-coverage replay turns after the first continuity-hardening stage.
 - Verified 383/383 local tests and 9/9 answer-coverage replay turns after the contextual recommendation follow-up fix.
 - Verified target-price ranking directly and through the `/api/ask` regression fixture: Rp7 million and Rp4 million requests return different relevant product groups.
 - Verified 382/382 local tests and 9/9 answer-coverage replay turns after the recommendation target-price fix.

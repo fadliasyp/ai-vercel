@@ -256,7 +256,75 @@ const CASES = [
       "tidak tersedia",
     ],
   },
+  {
+    id: "context_recommendation_price_refinement",
+    questions: [
+      "Rekomendasi robot yang harga 12 jutaan",
+      "yg 3 jutaan",
+    ],
+    expectedIntent: "recommendation",
+    minProducts: 1,
+    minProductPrice: 2400000,
+    maxProductPrice: 3600000,
+  },
+  {
+    id: "context_ordinal_stock_followup",
+    questions: [
+      "Rekomendasikan robot yang paling worth it dan ready stock",
+      "yang kedua stoknya berapa?",
+    ],
+    expectedIntent: "stock_availability",
+    minProducts: 1,
+  },
+  {
+    id: "context_focused_product_followup",
+    questions: [
+      "Mau tanya bahan Jumbo Machinder Mazinger Z",
+      "stoknya masih ada?",
+    ],
+    expectedIntent: "stock_availability",
+    expectedProductName: "Jumbo Machinder Mazinger Z",
+    minProducts: 1,
+  },
+  {
+    id: "context_explicit_product_switch",
+    questions: [
+      "Mau tanya bahan Jumbo Machinder Mazinger Z",
+      "Kalau Action Toys Ideon harganya berapa?",
+    ],
+    expectedIntent: "price_promo",
+    expectedProductName: "Action Toys Ideon",
+    minProducts: 1,
+  },
+  {
+    id: "context_restock_topic_switch",
+    questions: [
+      "Rekomendasikan robot ready stock",
+      "kapan restock ya",
+    ],
+    expectedIntent: "stock_availability",
+    minProducts: 1,
+  },
+  {
+    id: "context_interrupt_shipping_pending",
+    questions: [
+      "cek ongkir ke Tangerang",
+      "Action Toys Ideon masih ready?",
+    ],
+    expectedIntent: "stock_availability",
+    expectedProductName: "Action Toys Ideon",
+    minProducts: 1,
+  },
 ];
+
+const CONTEXT_CASE_IDS = new Set([
+  "context_recommendation_price_refinement",
+  "context_ordinal_stock_followup",
+  "context_focused_product_followup",
+  "context_explicit_product_switch",
+  "context_restock_topic_switch",
+  "context_interrupt_shipping_pending",
+]);
 
 const CONTROLLED_CASE_IDS = new Set([
   "catalog_scope_overrides_history",
@@ -318,6 +386,10 @@ function selectedCases(argv = []) {
 
   if (argv.includes("--controlled")) {
     return CASES.filter((testCase) => CONTROLLED_CASE_IDS.has(testCase.id));
+  }
+
+  if (argv.includes("--context")) {
+    return CASES.filter((testCase) => CONTEXT_CASE_IDS.has(testCase.id));
   }
 
   if (argv.includes("--compound")) {
@@ -578,11 +650,17 @@ async function main() {
           String(response.payload?.message || ""),
         );
       const pricesValid =
-        testCase.maxProductPrice == null ||
+        (testCase.minProductPrice == null &&
+          testCase.maxProductPrice == null) ||
         validEmptyBudgetResponse ||
         (productPrices.length > 0 &&
           productPrices.every(
-            (price) => price > 0 && price <= testCase.maxProductPrice,
+            (price) =>
+              price > 0 &&
+              (testCase.minProductPrice == null ||
+                price >= testCase.minProductPrice) &&
+              (testCase.maxProductPrice == null ||
+                price <= testCase.maxProductPrice),
           ));
       const productCount = Array.isArray(response.payload?.products)
         ? response.payload.products.length

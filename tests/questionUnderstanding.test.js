@@ -175,4 +175,38 @@ test("resolves expected product names and previous-result questions", () => {
     })?.intent,
     "recommendation",
   );
+
+  assert.equal(
+    resolveContextualIntent("yang kedua stoknya berapa?", {
+      hasRecentProducts: true,
+      lastIntent: "recommendation",
+      productQueryScope: "previous",
+    })?.intent,
+    "stock_availability",
+  );
+
+  assert.equal(
+    resolveContextualIntent("yang kedua harganya berapa?", {
+      hasRecentProducts: true,
+      lastIntent: "recommendation",
+      productQueryScope: "previous",
+    })?.intent,
+    "price_promo",
+  );
+
+  for (const [question, intent] of [
+    ["promonya masih ada?", "price_promo"],
+    ["readynya gimana?", "stock_availability"],
+    ["bahannya apa?", "product_detail"],
+    ["tingginya berapa?", "product_detail"],
+  ]) {
+    assert.equal(
+      resolveContextualIntent(question, {
+        hasRecentProducts: true,
+        lastIntent: "product_detail",
+        productQueryScope: "previous",
+      })?.intent,
+      intent,
+    );
+  }
 });

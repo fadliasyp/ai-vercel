@@ -178,6 +178,9 @@ Menyediakan pilihan klarifikasi dan follow-up yang membawa metadata action/requi
 - Pilihan produk membawa object action terstruktur.
 - Pending goal dipertahankan setelah pelanggan memilih opsi.
 - Perbandingan bertahap menyimpan produk pertama ketika pelanggan meminta dibandingkan dengan `produk lain`, lalu menerima nama produk kedua pada turn berikutnya.
+- Referensi ordinal seperti `yang kedua stoknya berapa?` mempertahankan produk pilihan dan memprioritaskan sinyal stok eksplisit di atas kata tanya umum `berapa`.
+- Follow-up atribut dengan akhiran `-nya`, seperti `stoknya`, `harganya`, `kondisinya`, atau `bahannya`, merujuk produk fokus terakhir hanya bila tidak ada nama produk baru atau produk halaman.
+- Nama produk baru dan konteks halaman produk mengalahkan produk fokus lama; intent baru seperti restock tetap dapat memutus rekomendasi sebelumnya.
 - Saran lama dihapus saat pelanggan mengirim pertanyaan baru.
 - Greeting menampilkan enam saran dari pool variatif: empat global dan dua lebih spesifik.
 - Follow-up tidak mengulang informasi yang sudah dijawab.
@@ -186,6 +189,7 @@ Menyediakan pilihan klarifikasi dan follow-up yang membawa metadata action/requi
 
 - Jangan mengubah structured option menjadi teks tanpa metadata.
 - Jangan memaksa pending clarification bila pelanggan mengganti topik.
+- Jangan membiarkan produk fokus lama menimpa nama produk eksplisit atau `pageContext` WooCommerce.
 - Jangan menghapus konteks produk pertama ketika turn berikutnya memang menjawab permintaan produk kedua untuk perbandingan.
 - Jangan menampilkan saran produk/topik stale dari respons lama.
 
@@ -194,11 +198,15 @@ Menyediakan pilihan klarifikasi dan follow-up yang membawa metadata action/requi
 - `lib/chatbot/followUpClosings.js`
 - `lib/chatbot/conversationUi.js`
 - `lib/chatbot/pendingContext.js`
+- `lib/chatbot/conversationGoal.js`
+- `lib/chatbot/questionUnderstanding.js`
+- `scripts/smoke-ask.js`
 - `wordpress-frontend-chatbot/frontend.html`
 
 ### Verification
 
 - `npm test`
+- `npm run benchmark:context -- --endpoint <endpoint>` setelah deployment.
 - Test manual klik pilihan produk, pilihan lokasi, pergantian topik, dan reload history.
 
 ## Order Privacy Verification

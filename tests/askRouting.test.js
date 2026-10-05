@@ -480,6 +480,61 @@ test("routes real customer turns without stale products or fallback collisions",
     );
     assert.match(threeMillionRecommendation.reasoning_text, /Rp\s*3\.000\.000/);
 
+    const ordinalFollowUpSession = `ordinal_followup_${Date.now()}`;
+    const ordinalRecommendation = await ask(
+      "Rekomendasikan robot yang paling worth it dan ready stock",
+      null,
+      { sessionId: ordinalFollowUpSession },
+    );
+    assert.ok(ordinalRecommendation.products.length >= 2);
+    const secondProductStock = await ask("yang kedua stoknya berapa?", null, {
+      sessionId: ordinalFollowUpSession,
+    });
+    assert.equal(secondProductStock.intent, "stock_availability");
+    assert.deepEqual(productNames(secondProductStock), [
+      ordinalRecommendation.products[1].name,
+    ]);
+
+    const focusedProductSession = `focused_product_followup_${Date.now()}`;
+    const focusedProductDetail = await ask(
+      "Mau tanya bahan Jumbo Machinder Mazinger Z",
+      null,
+      { sessionId: focusedProductSession },
+    );
+    assert.deepEqual(productNames(focusedProductDetail), [
+      "Jumbo Machinder Mazinger Z",
+    ]);
+    const focusedProductStock = await ask("stoknya masih ada?", null, {
+      sessionId: focusedProductSession,
+    });
+    assert.equal(focusedProductStock.intent, "stock_availability");
+    assert.deepEqual(productNames(focusedProductStock), [
+      "Jumbo Machinder Mazinger Z",
+    ]);
+
+    const explicitProductSwitch = await ask(
+      "Kalau Action Toys Ideon harganya berapa?",
+      null,
+      { sessionId: focusedProductSession },
+    );
+    assert.equal(explicitProductSwitch.intent, "price_promo");
+    assert.deepEqual(productNames(explicitProductSwitch), [
+      "Action Toys Ideon",
+    ]);
+
+    const restockTopicSwitchSession = `restock_topic_switch_${Date.now()}`;
+    await ask("Rekomendasikan robot ready stock", null, {
+      sessionId: restockTopicSwitchSession,
+    });
+    const restockTopicSwitch = await ask("kapan restock ya", null, {
+      sessionId: restockTopicSwitchSession,
+    });
+    assert.equal(restockTopicSwitch.intent, "stock_availability");
+    assert.deepEqual(productNames(restockTopicSwitch), [
+      "Soul of Chogokin Daitarn 3",
+      "DX Chogokin Dairugger XV",
+    ]);
+
     const internationalQuestion =
       "Ini Voltes V Legacy ukurannya berapa cm ya tingginya? Kalau kirim ke Malaysia ongkirnya berapa dan total harganya jadi berapa USD?";
     const productChoice = await ask(internationalQuestion);

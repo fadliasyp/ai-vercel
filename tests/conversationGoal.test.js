@@ -142,6 +142,36 @@ test("does not rewrite a newly named product to previous results", () => {
   }
 });
 
+test("resolves possessive product facts to the focused product", () => {
+  const activeGoal = {
+    intent: "product_detail",
+    products: [products[0]],
+    focusedProductName: products[0].name,
+  };
+
+  assert.equal(
+    resolveConversationTurn("stoknya masih ada?", { activeGoal }).question,
+    "stok Robot Alpha masih ada?",
+  );
+  assert.equal(
+    resolveConversationTurn("bahannya apa?", { activeGoal }).question,
+    "bahan Robot Alpha apa?",
+  );
+  assert.equal(
+    resolveConversationTurn("harga Action Toys Ideon berapa?", {
+      activeGoal,
+    }).changed,
+    false,
+  );
+  assert.equal(
+    resolveConversationTurn("harganya berapa?", {
+      activeGoal,
+      pageProductName: "Page Product",
+    }).changed,
+    false,
+  );
+});
+
 test("keeps a compact product goal and preserves it across shipping", () => {
   const goal = buildActiveConversationGoal(null, {
     intent: "recommendation",

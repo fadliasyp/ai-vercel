@@ -642,6 +642,7 @@ export default async function handler(req, res) {
     activeGoal: session.activeGoal,
     lastIntent: session.lastIntent,
     lastProducts: session.lastProducts,
+    pageProductName: pageContext?.productName || "",
   });
   if (conversationTurn.changed) {
     rawQuestion = conversationTurn.question;
