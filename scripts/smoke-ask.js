@@ -608,6 +608,27 @@ function outputFromArgs(argv = []) {
     : "";
 }
 
+function delayFromArgs(argv = []) {
+  const index = argv.indexOf("--delay-ms");
+  if (index >= 0) {
+    const value = Number(argv[index + 1]);
+    if (!Number.isFinite(value) || value < 0) {
+      throw new Error("--delay-ms harus berupa angka nol atau lebih besar");
+    }
+    return Math.floor(value);
+  }
+
+  return argv.includes("--context") ? 8000 : 0;
+}
+
+function dependencyUnavailableError() {
+  const error = new Error(
+    "Benchmark dihentikan: katalog WooCommerce sedang mengembalikan gangguan resource. Tunggu hosting pulih lalu jalankan ulang; hasil ini bukan kegagalan logic chatbot.",
+  );
+  error.code = "SMOKE_DEPENDENCY_UNAVAILABLE";
+  return error;
+}
+
 function responsePreview(payload = {}) {
   const text = responseText(payload);
   return String(text).replace(/\s+/g, " ").trim().slice(0, 100);
@@ -639,13 +660,21 @@ async function main() {
     throw new Error("--rules-only hanya tersedia untuk handler lokal");
   }
   const outputPath = outputFromArgs(argv);
+  const delayMs = delayFromArgs(argv);
   if (!cases.length) {
     throw new Error("Tidak ada smoke case untuk intent yang dipilih");
   }
   console.log(`Mode: ${endpoint ? `HTTP ${endpoint}` : "handler lokal"}`);
+  if (delayMs > 0) {
+    console.log(`Jeda antarkasus: ${delayMs} ms`);
+  }
   const results = [];
 
   for (let index = 0; index < cases.length; index += 1) {
+    if (index > 0 && delayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+
     const testCase = cases[index];
     const questions = Array.isArray(testCase.questions)
       ? testCase.questions
@@ -656,10 +685,23 @@ async function main() {
       let response = null;
       const responses = [];
       let requestAttempts = 0;
-      for (const question of questions) {
+      for (
+        let questionIndex = 0;
+        questionIndex < questions.length;
+        questionIndex += 1
+      ) {
+        if (questionIndex > 0 && delayMs > 0) {
+          await new Promise((resolve) =>
+            setTimeout(resolve, Math.min(delayMs, 2000)),
+          );
+        }
+        const question = questions[questionIndex];
         response = endpoint
           ? await invokeAskRemote(question, index, sessionId, endpoint)
           : await invokeAskLocalWithRetry(question, index, sessionId);
+        if (isTransientCatalogPayload(response.payload)) {
+          throw dependencyUnavailableError();
+        }
         responses.push(response.payload);
         requestAttempts += response.attempts || 1;
       }
@@ -853,6 +895,7 @@ async function main() {
         `${passed ? "PASS" : "FAIL"} | ${testCase.expectedIntent} -> ${actualIntent || "-"} | ${label}`,
       );
     } catch (error) {
+      if (error?.code === "SMOKE_DEPENDENCY_UNAVAILABLE") throw error;
       results.push({
         ...testCase,
         passed: false,

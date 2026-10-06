@@ -11,6 +11,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Added verified recommendation context fields so natural follow-ups can retain target price and purpose without leaking them into explicit new topics.
 - Added `npm run benchmark:context` with six multi-turn gates covering recommendation price refinement, ordinal selection, focused-product pronouns, explicit product switches, restock topic switches, and interruption of pending shipping questions.
 - Expanded `benchmark:context` to nine multi-turn production gates with focused-product promo/photo follow-ups and two-product references.
+- Added default pacing to `benchmark:context` (8 seconds between cases and up to 2 seconds between turns), with an optional `--delay-ms` override.
 
 ### Fixed
 
@@ -35,6 +36,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Prevented price, promotion, photo, and product-detail questions containing `ada` from being hijacked by the catalog-availability guard.
 - Prevented stale comparison context from overriding a locked LLM `stock_availability` decision for follow-ups such as `keduanya ready gak?`; explicit comparison wording remains unchanged.
 - Made focused-product promo follow-ups bypass the global promo listing. The active-LLM regression and production smoke gate now require exactly one referenced product.
+- Stopped the context smoke benchmark early when WooCommerce returns the existing transient catalog-unavailable payload, so one HTTP 508 resource incident is no longer reported as failures across every remaining chatbot case.
 
 ### Verification
 
@@ -42,6 +44,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Multi-turn Product Continuity passes 403/403 local tests, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions.
 - The first 9-case production context smoke passed 8/9. After fixing the compare-to-stock transition and deploying it, the production rerun passed 9/9.
 - Payload inspection found that the 9/9 result still contained a loose focused-promo assertion. The stricter one-product gate and routing fix pass locally; a production rerun is pending.
+- The strict production rerun was blocked by WooCommerce HTTP 508 `Insufficient Resource`. The accompanying log still showed the correct Groq `stock_availability` decision before catalog retrieval failed. The benchmark-runner hardening passes syntax checks, diff checks, and the full 403/403 local test suite.
 - User-verified production smoke passes 3/3 for an approximate target, a bounded range with product-purpose constraints, and a terse same-session price refinement.
 - Added unit and full `/api/ask` regressions using the production question and a deliberately wrong Groq-shaped `maximum` result. All 399 local tests pass; only products within the Rp5.6-Rp8.4 million target window survive.
 - Added a data-driven language matrix and follow-up regressions. All 397 local tests pass, answer-coverage replay passes 9/9 turns, and the customer conversation benchmark passes 26/26 turns with 135 assertions (100%).

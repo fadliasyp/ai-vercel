@@ -218,6 +218,8 @@ Mempertahankan objek produk yang benar ketika pelanggan melanjutkan percakapan d
 - Run production pertama lulus 8/9; satu konflik intent compare-versus-stock kemudian diperbaiki. Keputusan semantic LLM yang terkunci kini mengalahkan inferensi compare dari turn sebelumnya, sementara kata eksplisit `bandingkan`/`versus` tetap masuk jalur compare.
 - Rerun production setelah deploy lulus 9/9, termasuk `context_pair_stock_followup` yang sebelumnya gagal.
 - Inspeksi payload pada run tersebut menemukan false positive: follow-up promo produk fokus masih membawa tiga produk. Jalur promo sudah diperbaiki lokal dan gate kini menetapkan `maxProducts: 1`; rerun production dengan gate ketat masih pending.
+- Rerun berikutnya tertahan oleh HTTP 508 `Insufficient Resource` dari WooCommerce. Log membuktikan semantic intent sudah benar sebelum fetch katalog gagal, sehingga hasil tersebut diklasifikasikan sebagai dependency unavailable dan bukan regression chatbot.
+- Runner `benchmark:context` memberi jeda default 8 detik antarkasus serta berhenti lebih awal ketika katalog sementara tidak tersedia; operator dapat mengubah jeda dengan `--delay-ms`.
 
 ## Product Restock Schedule
 
@@ -459,6 +461,7 @@ STABLE (local retry-contract scope; production smoke pending)
 
 - Bukti lokal 2026-09-30: transient `UND_ERR_CONNECT_TIMEOUT` berhasil pada percobaan kedua, HTTP 401 tetap satu percobaan, dan suite lulus 378/378.
 - Bukti lokal/live 2026-09-30: `gemini-3.8-flash`, `gemini-3.7-flash`, dan `gemma-4-26b-a4b-it` menghasilkan JSON valid melalui adapter; regression suite lulus 380/380 dan coverage replay 9/9. `gemma-4-31b-it` tersedia tetapi respons valid memerlukan sekitar 115 detik sehingga dikeluarkan dari default pool.
+- Bukti production 2026-10-06: WooCommerce mengembalikan HTTP 508 `Insufficient Resource` pada pengambilan halaman pertama katalog. Ini tetap blocker hosting eksternal; sistem tidak mengubah kegagalan tersebut menjadi fakta stok buatan.
 
 ## Statuses Not Yet Baseline-Stable
 
