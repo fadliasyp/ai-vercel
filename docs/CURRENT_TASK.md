@@ -2,10 +2,15 @@
 
 ## Status
 
-Belum ada task aktif. Prioritas 1 tahap Pencarian Produk, Rekomendasi, dan Detail Produk sudah diperkuat tanpa mengubah baseline yang stabil. Pencarian dan Rekomendasi telah dikonfirmasi benar di production oleh pengguna; patch Detail Produk sudah lulus seluruh verifikasi lokal dan menunggu deploy/smoke production.
+Belum ada task aktif. Prioritas 1 tahap Pencarian Produk, Rekomendasi, Detail Produk, dan Informasi Harga/Promo sudah diperkuat tanpa mengubah baseline yang stabil. Pencarian, Rekomendasi, dan Detail Produk telah dikonfirmasi benar di production oleh pengguna; patch Harga/Promo sudah lulus verifikasi lokal dan menunggu deploy/smoke production.
 
 ## Current Progress
 
+- Goal LLM `promo` kini langsung mengaktifkan handler promo walaupun pelanggan memakai bahasa informal atau typo yang tidak memuat kata literal `promo`, `diskon`, `sale`, atau `cashback`.
+- Jika semantic router tidak menemukan nama produk, pertanyaan promo umum tetap memakai seluruh katalog. Jika nama produk grounded tersedia, pencarian promo memakai entitas tersebut agar filler percakapan tidak mencemari query.
+- Presenter harga tunggal tidak lagi menimpa intro faktual dari handler. Status seperti `belum sedang promo` tetap terlihat, sementara nominal dan status diskon tetap berasal dari WooCommerce.
+- Regression active-LLM mencakup promo umum `lg ada pnawaran spesial ga sih?`, promo produk `Jumbo Machinder Mazinger Z lg dpt harga spesial ga?`, dan harga slang `bandrolnya skrg brp?`. Full suite lulus, coverage replay 9/9, serta benchmark pelanggan 26/26 turn (135 assertion, 100%). Benchmark LLM shadow belum dapat dijalankan karena Vercel CLI lokal menolak token tersimpan yang sudah tidak valid.
+- Pengguna mengonfirmasi smoke production Detail Produk lulus 3/3.
 - Goal terstruktur LLM untuk Detail Produk (`material`, `dimensions`, `product_condition`, `completeness`, `price`, `stock`, dan `promo`) kini diteruskan ke formatter fakta. Bahasa santai atau typo yang dipahami LLM tidak lagi dibuang oleh parser kata lokal.
 - Jawaban Detail Produk yang meminta facet tertentu hanya menampilkan fakta relevan dari WooCommerce. Pertanyaan detail umum tetap memakai tampilan lengkap, sedangkan permintaan kelebihan/kekurangan tetap mempertahankan pertimbangan katalog.
 - Ekstraksi detail lengkap kini mempertahankan fakta asal produksi yang eksplisit seperti `Made in`, `diproduksi`, negara asal, atau status impor. Jika fakta tidak ada, guard lama tetap menolak menebak dan menawarkan admin handoff.

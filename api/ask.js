@@ -6916,9 +6916,15 @@ Kembalikan JSON valid:
     // ===============================
     // PROMO FAST PATH (lebih ringan)
     // ===============================
+    const llmRequestedPromo =
+      semanticDecisionIsPrimary &&
+      intentResult.intent === "price_promo" &&
+      groqRoute?.goals?.includes("promo");
+
     if (
       intentResult.intent === "price_promo" &&
       (selectedSuggestion?.action_key === "catalog_promo" ||
+        llmRequestedPromo ||
         q.includes("promo") ||
         q.includes("diskon") ||
         q.includes("sale") ||
@@ -6949,10 +6955,22 @@ Kembalikan JSON valid:
         );
       }
 
+      const llmPromoProductNames = llmRequestedPromo
+        ? getGroundedLlmProductNames(rawQuestion)
+        : [];
       const promoKeywords =
-        selectedSuggestion?.action_key === "catalog_promo"
+        selectedSuggestion?.action_key === "catalog_promo" ||
+        (llmRequestedPromo && !trustedLlmProductNames.length)
           ? []
-          : extractPromoSubjectKeywords(q);
+          : llmPromoProductNames.length
+            ? [
+                ...new Set(
+                  llmPromoProductNames.flatMap((name) =>
+                    extractProductSearchTokens(name),
+                  ),
+                ),
+              ]
+            : extractPromoSubjectKeywords(q);
       const hasSpecificPromoKeyword = promoKeywords.length > 0;
       const subjectProducts = hasSpecificPromoKeyword
         ? searchProductsForDiscovery(

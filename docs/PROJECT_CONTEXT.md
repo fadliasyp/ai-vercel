@@ -31,6 +31,7 @@ Status project: **aktif dikembangkan**.
 - Normalisasi bahasa Indonesia, variasi ejaan, typo fallback, dan analisis bentuk kata.
 - Pencarian katalog, detail, harga/promo, stok, rekomendasi, dan perbandingan WooCommerce.
 - Detail Produk memakai goal terstruktur LLM untuk memahami facet yang diminta meskipun bahasa pelanggan santai atau typo, lalu mengambil nilai material, dimensi, kondisi, kelengkapan, harga, stok, dan promo hanya dari data WooCommerce. Pertanyaan detail umum tetap menampilkan ringkasan lengkap.
+- Informasi Harga/Promo memakai goal LLM tepercaya untuk memahami ungkapan informal atau typo, lalu memeriksa harga dan status promo hanya dari WooCommerce. Entitas produk LLM tetap harus grounded dan parser lokal tetap menjadi fallback.
 - Product Grounding menormalisasi kode model rapat (`GX92`, `GX-92`, `GX 92`) dan memisahkan kata kebutuhan seperti bahan/dimensi/berat/aksesori dari identitas produk. Match ambigu tetap meminta pilihan dan produk tidak dikenal tidak diganti diam-diam.
 - Product Grounding tersebut lulus smoke production 5/5 pada 2026-10-06, mencakup exact match, pertanyaan majemuk, ambiguity, dan unknown model.
 - Jadwal restock per produk dari metadata WPC Product Timer, termasuk daftar semua restock mendatang dan pencarian satu produk.
@@ -159,6 +160,8 @@ Status project: **aktif dikembangkan**.
 
 Pada 2026-10-06:
 
+- Pengguna mengonfirmasi smoke production Detail Produk lulus 3/3.
+- Tahap Harga/Promo lulus full local suite, replay coverage 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion. Benchmark LLM shadow tertahan oleh token Vercel CLI lokal yang tidak valid; smoke production masih pending deployment.
 - Transaction Continuity lulus targeted 12/12, full suite 403/403, coverage replay 9/9, benchmark pelanggan 26/26 turn dengan 135 assertion, dan production gate 7/7.
 - Multi-turn Product Continuity lulus production gate 9/9 serta smoke manual 3/3.
 - Koreksi `antara 5 sampai 8 juta ... kalau yang 3 jutaan ada?` menghasilkan target Rp3 juta dan mempertahankan tujuan pajangan, termasuk ketika output LLM disimulasikan keliru sebagai batas maksimum.

@@ -994,6 +994,77 @@ test("routes real customer turns without stale products or fallback collisions",
 
     semanticRoute = {
       scope: "in_scope",
+      intent: "price_promo",
+      intents: ["price_promo"],
+      goals: ["promo"],
+      confidence: 0.96,
+      entities: {
+        product_names: [],
+        budget_min: null,
+        budget_max: null,
+      },
+      requires_product: false,
+      customer_state: "neutral",
+      interpretation: "Pelanggan menanyakan promo katalog yang sedang aktif.",
+      topic_relation: "new_topic",
+      needs_clarification: false,
+      clarification_question: null,
+    };
+
+    const llmUnderstoodCasualPromo = await ask(
+      "lg ada pnawaran spesial ga sih?",
+      null,
+      { sessionId: `llm_casual_promo_${Date.now()}` },
+    );
+    assert.equal(llmUnderstoodCasualPromo.intent, "price_promo");
+    assert.equal(llmUnderstoodCasualPromo.type, "products");
+    assert.deepEqual(productNames(llmUnderstoodCasualPromo), [
+      "Fewture Models EX Gokin Getter Robo Black Version",
+      "Action Toys Ideon",
+    ]);
+
+    semanticRoute = {
+      ...semanticRoute,
+      entities: {
+        ...semanticRoute.entities,
+        product_names: ["Jumbo Machinder Mazinger Z"],
+      },
+      requires_product: true,
+      interpretation:
+        "Pelanggan menanyakan promo Jumbo Machinder Mazinger Z.",
+    };
+
+    const llmUnderstoodProductPromo = await ask(
+      "Jumbo Machinder Mazinger Z lg dpt harga spesial ga?",
+      null,
+      { sessionId: `llm_product_promo_${Date.now()}` },
+    );
+    assert.equal(llmUnderstoodProductPromo.intent, "price_promo");
+    assert.deepEqual(productNames(llmUnderstoodProductPromo), [
+      "Jumbo Machinder Mazinger Z",
+    ]);
+    assert.match(llmUnderstoodProductPromo.intro, /belum sedang promo/i);
+
+    semanticRoute = {
+      ...semanticRoute,
+      goals: ["price"],
+      interpretation:
+        "Pelanggan menanyakan harga Jumbo Machinder Mazinger Z.",
+    };
+
+    const llmUnderstoodCasualPrice = await ask(
+      "Jumbo Machinder Mazinger Z bandrolnya skrg brp?",
+      null,
+      { sessionId: `llm_casual_price_${Date.now()}` },
+    );
+    assert.equal(llmUnderstoodCasualPrice.intent, "price_promo");
+    assert.deepEqual(productNames(llmUnderstoodCasualPrice), [
+      "Jumbo Machinder Mazinger Z",
+    ]);
+    assert.equal(llmUnderstoodCasualPrice.products[0].numericPrice, 7000000);
+
+    semanticRoute = {
+      scope: "in_scope",
       intent: "stock_availability",
       intents: ["stock_availability"],
       goals: ["stock"],

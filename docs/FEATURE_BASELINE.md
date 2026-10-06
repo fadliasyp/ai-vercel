@@ -200,7 +200,7 @@ Menghubungkan bahasa pelanggan ke produk WooCommerce yang benar sebelum harga, s
 
 ### Status
 
-STABLE (local formatter dan endpoint regression scope)
+STABLE (local formatter, endpoint regression, dan production smoke scope)
 
 ### Function
 
@@ -233,7 +233,44 @@ Memakai pemahaman facet dari LLM untuk menjawab detail produk secara fokus, seme
 ### Verification
 
 - Bukti lokal 2026-10-06: full suite 408/408, answer-coverage replay 9/9 turn (59,4% menjadi 88,9%), dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
-- Smoke production untuk patch Detail Produk belum dijalankan.
+- Bukti production 2026-10-06: pengguna mengonfirmasi smoke manual Detail Produk lulus 3/3.
+
+## LLM-Grounded Price And Promotion
+
+### Status
+
+STABLE (local endpoint regression scope)
+
+### Function
+
+Memakai intent dan goal LLM untuk memahami pertanyaan harga/promo informal, sementara nama, nominal, dan status promo tetap diambil dari katalog WooCommerce.
+
+### Correct Behavior
+
+- Goal LLM `promo` yang tepercaya dapat mengaktifkan handler promo tanpa bergantung pada kata literal lokal.
+- Pertanyaan promo umum dengan `product_names` kosong mencari promo di seluruh katalog; pertanyaan produk spesifik memakai entitas LLM yang tetap wajib grounded pada pesan pelanggan dan katalog.
+- Produk yang tidak sedang promo harus dijelaskan apa adanya dan tetap menampilkan harga katalog saat ini.
+- Intro faktual dari handler tidak boleh dihapus oleh presenter harga tunggal.
+- Parser/rule lokal tetap menjadi fallback ketika LLM tidak tersedia, limit, confidence rendah, atau entitas tidak tepercaya.
+
+### Do Not Break
+
+- Jangan memakai LLM sebagai sumber nominal harga, persentase diskon, harga normal, harga sale, atau status promo.
+- Jangan mengubah promo umum menjadi pencarian kata filler dari kalimat pelanggan.
+- Jangan menerima nama produk LLM yang tidak grounded atau mengganti produk dengan item populer lain.
+- Jangan mengubah response shape `products` yang dipakai frontend.
+
+### Important Files
+
+- `api/ask.js`
+- `lib/chatbot/responsePresentation.js`
+- `tests/askRouting.test.js`
+
+### Verification
+
+- Bukti lokal 2026-10-06: full suite lulus, answer-coverage replay 9/9 turn (59,4% menjadi 88,9%), dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
+- Benchmark LLM shadow belum berjalan karena token Vercel CLI lokal tidak valid; active-LLM endpoint regression dengan provider mock lulus.
+- Smoke production untuk patch Harga/Promo belum dijalankan.
 
 ## Multi-turn Product Continuity
 
