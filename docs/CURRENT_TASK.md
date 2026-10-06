@@ -2,10 +2,12 @@
 
 ## Status
 
-Belum ada task aktif. Transaction Continuity Batch 1 lulus verifikasi lokal dan production gate 7/7. Tahap Multi-turn Product Continuity tetap dibekukan setelah lulus production smoke 9/9 serta smoke manual 3/3.
+Belum ada task aktif. Preflight final pra-sidang lulus tanpa perubahan source produksi. Transaction Continuity Batch 1 tetap lulus production gate 7/7 dan Multi-turn Product Continuity tetap dibekukan setelah lulus production smoke 9/9 serta smoke manual 3/3.
 
 ## Current Progress
 
+- Preflight final 2026-10-06 lulus: `npm test` 403/403, coverage replay 9/9, benchmark pelanggan 26/26 turn dengan 135 assertion (100%), dataset image 53 aktif/0 nonaktif, serta syntax check `api/ask.js` dan `api/ask-image.js`.
+- Tidak ada source produksi yang diubah pada preflight. Menjelang sidang, perubahan fitur baru dibekukan dan patch hanya dilakukan untuk bug kritis yang dapat direproduksi.
 - Menambahkan gate terpisah `npm run benchmark:transactions` agar perluasan verifikasi transaksi tidak mengubah baseline context 9/9 yang sudah stabil.
 - Tujuh kasus mencakup ongkir kota+kecamatan satu pesan, alur natural tiga langkah kota -> kabupaten/kota -> kecamatan, perpindahan pending ongkir ke pembayaran, retur, atau produk, pengiriman internasional, dan pertanyaan ongkir majemuk dengan asuransi/packing.
 - Mode transaksi memakai pacing 8 detik yang sama dengan context benchmark untuk mengurangi burst ke WordPress/WooCommerce.
@@ -254,10 +256,10 @@ Belum ada task aktif. Transaction Continuity Batch 1 lulus verifikasi lokal dan 
 
 ## Next Steps
 
-1. Deploy penguatan promo lalu rerun `npm.cmd run benchmark:context -- --endpoint https://ai-vercel-ten-sigma.vercel.app/api/ask`; kasus promo fokus harus memiliki tepat satu produk.
-2. Setelah gate ketat lulus 9/9, jalankan smoke manual singkat untuk transisi compare ke stok, follow-up promo, dan follow-up foto.
-3. Setelah smoke manual lulus, lanjutkan audit intent berikutnya tanpa mengubah baseline rekomendasi, Product Grounding, dan kontinuitas produk.
-4. Pantau metadata intent/provider, latency, HTTP 429/5xx, dan konsumsi quota sebelum uji pengguna ramai.
+1. Bekukan source production sampai sidang; jangan deploy ulang bila tidak ada bug kritis yang dapat direproduksi.
+2. Sebelum demo, cek health Intent ML dan lakukan satu smoke browser singkat untuk rekomendasi, follow-up produk, dan ongkir bertahap tanpa menjalankan benchmark live berulang.
+3. Siapkan screenshot/video hasil demo sebagai cadangan bila WooCommerce, shipping API, atau provider LLM sedang lambat/limit.
+4. Setelah sidang, lanjutkan audit intent berikutnya tanpa mengubah baseline rekomendasi, Product Grounding, kontinuitas produk, dan transaksi.
 
 ## Blockers
 
