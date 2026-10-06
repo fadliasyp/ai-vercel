@@ -314,6 +314,47 @@ Membedakan cek stok produk tertentu, daftar produk ready, dan kebijakan stok umu
 - Smoke production pertama menemukan Groq salah membaca `yg bisa lngs dibungkus ada apa aja` sebagai pencarian produk. Koreksi prompt, normalisasi singkatan, dan guard konflik sudah lulus regression lokal dengan output provider production yang sama; redeploy dan smoke ulang masih diperlukan.
 - Smoke berikutnya menemukan fallback Gemini sudah memahami `brang apa saja yang dijual?` sebagai overview katalog, tetapi handler lokal masih memperlakukan `brang` sebagai nama produk. Normalisasi typo dan bridge `product_search` tanpa objek sudah lulus regression lokal; smoke ulang masih diperlukan.
 
+## LLM-Grounded Product Comparison
+
+### Status
+
+STABLE (local endpoint regression scope)
+
+### Function
+
+Memahami dua produk yang ingin dibandingkan melalui structured LLM, kemudian mengambil identitas dan seluruh fakta perbandingan dari katalog WooCommerce.
+
+### Correct Behavior
+
+- Intent `compare` memakai goal `comparison`, dua `product_names` sesuai urutan penyebutan, dan `requires_product: true`.
+- Dua nama LLM hanya dipakai jika grounded pada pesan pelanggan; keduanya tetap harus cocok dengan katalog.
+- Regex compare lama tetap menjadi fallback saat provider gagal, limit, atau entitas tidak lengkap.
+- Harga, stok, kondisi, dimensi, rating, penjualan, kelebihan, dan kekurangan berasal dari produk WooCommerce yang cocok.
+- Follow-up `produk lain` tetap meminta nama produk kedua dan mempertahankan produk pertama.
+
+### Do Not Break
+
+- Jangan memakai interpretasi LLM sebagai fakta atau mengganti produk yang tidak ditemukan dengan produk lain.
+- Jangan mengubah urutan Produk A dan Produk B dari urutan yang disebut pelanggan.
+- Jangan menghapus fallback compare atau konteks perbandingan dua turn.
+- Jangan memotong reasoning kelebihan/kekurangan yang sudah dilindungi `_noTruncateReasoning`.
+
+### Important Files
+
+- `api/ask.js`
+- `lib/chatbot/semanticRouter.js`
+- `lib/chatbot/llmAssistant.js`
+- `lib/chatbot/productFormatter.js`
+- `tests/askRouting.test.js`
+- `tests/semanticRouter.test.js`
+- `tests/llmAssistant.test.js`
+
+### Verification
+
+- Bukti lokal 2026-10-06: full suite lulus, answer-coverage replay 9/9 turn, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
+- Active-LLM endpoint regression membuktikan bahasa natural memakai dua produk terstruktur yang benar dan tetap membawa catatan deskripsi katalog.
+- Smoke production untuk patch Perbandingan Produk belum dijalankan.
+
 ## Multi-turn Product Continuity
 
 ### Status

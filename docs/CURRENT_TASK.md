@@ -2,10 +2,15 @@
 
 ## Status
 
-Belum ada task aktif. Prioritas 1 tahap Pencarian Produk, Rekomendasi, Detail Produk, Informasi Harga/Promo, dan Ketersediaan Stok sudah diperkuat tanpa mengubah baseline yang stabil. Empat tahap pertama telah dikonfirmasi benar di production oleh pengguna; koreksi Ketersediaan Stok untuk bahasa informal sudah lulus verifikasi lokal dan menunggu redeploy/smoke production.
+Belum ada task aktif. Seluruh tahap Prioritas 1 kini sudah diperkuat sampai Perbandingan Produk tanpa mengubah baseline yang stabil. Ketersediaan Stok dan overview katalog telah dikonfirmasi lulus 5/5 di production; patch Perbandingan Produk sudah lulus verifikasi lokal dan menunggu deploy/smoke production.
 
 ## Current Progress
 
+- Intent `compare` kini memiliki goal terstruktur `comparison`. Prompt mewajibkan tepat dua `product_names` sesuai urutan penyebutan dan `requires_product: true`, termasuk bahasa santai seperti `A sama B enakan mana`.
+- Handler compare memakai dua nama LLM yang sudah grounded sebagai input utama, kemudian tetap mencocokkannya ke produk WooCommerce. Regex lama dipertahankan sebagai fallback ketika provider gagal, limit, atau tidak menghasilkan dua entitas tepercaya.
+- Regression active-LLM memakai kalimat natural yang tidak dapat dipecah aman oleh regex lama dan membuktikan dua produk yang benar dipilih serta kelebihan/kekurangan tetap berasal dari deskripsi fixture WooCommerce.
+- Verifikasi Compare: full suite lulus, coverage replay 9/9, serta benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
+- Pengguna mengonfirmasi lima smoke production Ketersediaan Stok dan overview katalog berjalan baik.
 - Log production berikutnya menunjukkan Groq terkena 429, tetapi fallback Gemini sudah benar memilih `product_discovery`, goal `product_search`, `product_names: []`, dan `requires_product: false` untuk `brang apa saja yang dijual?`. Handler lama tetap mencari kata `brang` sebagai nama produk karena keputusan LLM tanpa objek belum dihubungkan ke overview katalog.
 - Typo `brang` kini dinormalisasi menjadi `barang`. Structured understanding `product_search` tanpa nama produk juga membuka overview katalog selama pesan tidak memiliki istilah produk spesifik, sehingga pencarian seri seperti Voltes tetap memakai resolver produk.
 - Regression mencakup kalimat production persis dan `lihat produk` sebagai bukti bridge LLM. Full suite lulus, coverage replay 9/9, serta benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
@@ -190,16 +195,18 @@ Belum ada task aktif. Prioritas 1 tahap Pencarian Produk, Rekomendasi, Detail Pr
 
 ## Active Task
 
-- Belum ada task aktif; koreksi LLM-Grounded Stock Availability sudah terverifikasi lokal dan menunggu redeploy/smoke production.
+- Belum ada task aktif; LLM-Grounded Product Comparison sudah terverifikasi lokal dan menunggu deploy/smoke production.
 
 ## Last Completed Task
 
-- Task: mengoreksi salah tafsir provider pada permintaan informal daftar produk ready stock.
+- Task: menghubungkan dua entitas produk dari semantic LLM ke handler Perbandingan Produk.
 - Tanggal selesai: 2026-10-06.
-- Goal: memahami `yg bisa lngs dibungkus ada apa aja` sebagai daftar produk ready tanpa menjadikan LLM sumber fakta stok dan tanpa mengubah intent stabil lain.
+- Goal: memahami bahasa perbandingan natural tanpa menjadikan LLM sumber fakta produk dan tanpa menghapus parser fallback lama.
 
 ## Completed
 
+- Menambahkan goal `comparison`, kontrak dua nama produk, tool plan WooCommerce, dan grounding entitas pada handler compare.
+- Menambahkan regression active-LLM untuk bahasa compare natural serta mempertahankan test kelebihan/kekurangan deskripsi katalog.
 - Menormalisasi singkatan `lgs`, `lgsg`, dan `lngs` pada pemahaman bahasa bersama.
 - Menormalisasi typo `brang` dan menghubungkan keputusan LLM pencarian katalog tanpa objek ke overview WooCommerce.
 - Menambahkan aturan prompt dan guard konflik yang hanya berlaku pada permintaan daftar ready global.
@@ -274,9 +281,9 @@ Belum ada task aktif. Prioritas 1 tahap Pencarian Produk, Rekomendasi, Detail Pr
 
 ## Next Steps
 
-1. Redeploy koreksi Ketersediaan Stok ke Vercel.
-2. Ulangi `yg bisa lngs dibungkus ada apa aja` dan `brang apa saja yang dijual?`; pastikan masing-masing membuka daftar ready dan overview katalog yang sesuai.
-3. Jika benar, lanjutkan smoke stok lainnya sebelum berpindah ke Perbandingan Produk.
+1. Deploy patch Perbandingan Produk ke Vercel.
+2. Jalankan lima smoke compare: format eksplisit, bahasa natural, fokus harga, produk tidak ditemukan, dan follow-up produk kedua.
+3. Jika semuanya benar, bekukan Prioritas 1 dan lanjutkan hardening intent transaksi tanpa mengubah baseline commerce yang sudah lulus.
 
 ## Blockers
 

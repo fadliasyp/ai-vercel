@@ -33,6 +33,7 @@ Status project: **aktif dikembangkan**.
 - Detail Produk memakai goal terstruktur LLM untuk memahami facet yang diminta meskipun bahasa pelanggan santai atau typo, lalu mengambil nilai material, dimensi, kondisi, kelengkapan, harga, stok, dan promo hanya dari data WooCommerce. Pertanyaan detail umum tetap menampilkan ringkasan lengkap.
 - Informasi Harga/Promo memakai goal LLM tepercaya untuk memahami ungkapan informal atau typo, lalu memeriksa harga dan status promo hanya dari WooCommerce. Entitas produk LLM tetap harus grounded dan parser lokal tetap menjadi fallback.
 - Ketersediaan Stok membedakan daftar barang ready (`stock` tanpa nama produk), kebijakan stok umum (`stock_policy`), dan cek satu produk. Seluruh status serta jumlah tetap berasal dari WooCommerce; pencarian seri yang hanya memakai kata `tersedia` tetap menjadi pencarian katalog.
+- Perbandingan Produk memakai goal `comparison` dan dua nama produk terstruktur dari LLM sebagai input utama setelah grounding terhadap pesan pelanggan. Parser regex lama tetap menjadi fallback, sedangkan fakta dan catatan kelebihan/kekurangan tetap berasal dari WooCommerce.
 - Product Grounding menormalisasi kode model rapat (`GX92`, `GX-92`, `GX 92`) dan memisahkan kata kebutuhan seperti bahan/dimensi/berat/aksesori dari identitas produk. Match ambigu tetap meminta pilihan dan produk tidak dikenal tidak diganti diam-diam.
 - Product Grounding tersebut lulus smoke production 5/5 pada 2026-10-06, mencakup exact match, pertanyaan majemuk, ambiguity, dan unknown model.
 - Jadwal restock per produk dari metadata WPC Product Timer, termasuk daftar semua restock mendatang dan pencarian satu produk.
@@ -161,6 +162,8 @@ Status project: **aktif dikembangkan**.
 
 Pada 2026-10-06:
 
+- Pengguna mengonfirmasi smoke production Ketersediaan Stok dan overview katalog lulus 5/5.
+- Tahap Perbandingan Produk lulus full local suite, replay coverage 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion; smoke production masih pending deployment.
 - Pengguna mengonfirmasi smoke production Harga/Promo lulus 5/5.
 - Tahap Ketersediaan Stok lulus full local suite, replay coverage 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion. Smoke pertama menemukan salah tafsir provider pada `lngs dibungkus`; regression dengan output production sudah lulus dan smoke ulang menunggu redeploy.
 - Pencarian Produk kini memakai structured `product_search` tanpa nama produk sebagai overview katalog ketika tidak ada istilah produk spesifik. Ini mempertahankan pencarian seri bernama sekaligus mencegah typo generik seperti `brang` dicari sebagai produk.

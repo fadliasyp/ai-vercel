@@ -920,6 +920,47 @@ test("routes real customer turns without stale products or fallback collisions",
 
     semanticRoute = {
       scope: "in_scope",
+      intent: "compare",
+      intents: ["compare"],
+      goals: ["comparison"],
+      confidence: 0.97,
+      entities: {
+        product_names: [
+          "Comparison Robot Alpha",
+          "Comparison Robot Beta",
+        ],
+        budget_min: null,
+        budget_max: null,
+      },
+      requires_product: true,
+      customer_state: "neutral",
+      interpretation:
+        "Pelanggan ingin membandingkan Comparison Robot Alpha dan Comparison Robot Beta.",
+      topic_relation: "new_topic",
+      needs_clarification: false,
+      clarification_question: null,
+    };
+
+    const llmGroundedComparison = await ask(
+      "menurutmu dua ini enakan mana: Comparison Robot Alpha apa Comparison Robot Beta?",
+      null,
+      { sessionId: `llm_compare_${Date.now()}` },
+    );
+    assert.equal(llmGroundedComparison.intent, "compare");
+    assert.equal(llmGroundedComparison.type, "compare_reasoned");
+    assert.deepEqual(productNames(llmGroundedComparison), [
+      "Comparison Robot Alpha",
+      "Comparison Robot Beta",
+    ]);
+    assert.match(llmGroundedComparison.reasoning_text, /aksesori lengkap/i);
+    assert.match(llmGroundedComparison.reasoning_text, /artikulasi terbatas/i);
+    assert.equal(
+      llmGroundedComparison.assistant_meta.llm_led.intent_source,
+      "llm",
+    );
+
+    semanticRoute = {
+      scope: "in_scope",
       intent: "price_promo",
       intents: ["price_promo"],
       goals: ["bulk_discount"],

@@ -271,7 +271,9 @@ test("semantic prompt defines the risky intent boundaries", () => {
 
   assert.match(prompt, /tetap price_promo/);
   assert.match(prompt, /asuransi paket/);
-  assert.match(prompt, /wajib memakai compare/);
+  assert.match(prompt, /wajib\s+memakai compare/);
+  assert.match(prompt, /goal comparison/);
+  assert.match(prompt, /tepat dua nama sesuai urutan penyebutan/);
   assert.match(
     prompt,
     /Jam buka, cabang toko, dan kontak admin memakai general/,

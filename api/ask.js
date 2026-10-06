@@ -6152,7 +6152,14 @@ export default async function handler(req, res) {
       (q.includes(" beda ") && q.includes(" dengan "));
 
     if (isCompareIntent) {
-      const pair = extractCompareNames(rawQuestion); // pakai rawQuestion asli
+      const groundedCompareNames =
+        semanticDecisionIsPrimary && intentResult.intent === "compare"
+          ? getGroundedLlmProductNames(rawQuestion)
+          : [];
+      const pair =
+        groundedCompareNames.length === 2
+          ? { a: groundedCompareNames[0], b: groundedCompareNames[1] }
+          : extractCompareNames(rawQuestion);
       if (!pair) {
         session.lastIntent = "compare";
         session.lastTopic = "compare";
