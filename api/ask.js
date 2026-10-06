@@ -479,7 +479,6 @@ function isGlobalStockQuestion(q = "") {
     q.includes("apa saja stok") ||
     q.includes("stok yg ada") ||
     q.includes("stok yang ada") ||
-    q.includes("barang apa aja") ||
     q.includes("yang tersedia apa aja") ||
     q.includes("produk tersedia") ||
     q.includes("stok tersedia") ||
@@ -1024,6 +1023,7 @@ export default async function handler(req, res) {
 
   const semanticCatalogAvailabilityConflict =
     groqRoute?.intent === "stock_availability" &&
+    groqRoute.entities?.product_names?.length > 0 &&
     looksLikeSpecificCatalogAvailabilityQuestion(rawQuestion);
   const semanticCatalogBrowseConflict =
     groqRoute?.intent === "recommendation" &&
@@ -5578,10 +5578,18 @@ export default async function handler(req, res) {
       );
     }
 
+    const llmRequestsStockPolicy =
+      semanticDecisionIsPrimary &&
+      intentResult.intent === "stock_availability" &&
+      groqRoute?.goals?.includes("stock_policy");
     if (
       intentResult.intent === "stock_availability" &&
-      looksLikeGeneralStockPolicyQuestion(rawQuestion)
+      (llmRequestsStockPolicy ||
+        looksLikeGeneralStockPolicyQuestion(rawQuestion))
     ) {
+      if (llmRequestsStockPolicy) {
+        explicitIntentSource = "llm_stock_policy";
+      }
       let policyProducts = [];
       try {
         policyProducts = await getCleanProducts();
@@ -6262,8 +6270,16 @@ export default async function handler(req, res) {
     // ===============================
     // KETIKA BERTANYA PRODUK YG READY BANYAK BARANG
     // ===============================
+    const llmRequestsGlobalStock =
+      semanticDecisionIsPrimary &&
+      intentResult.intent === "stock_availability" &&
+      groqRoute?.goals?.includes("stock") &&
+      trustedLlmProductNames.length === 0 &&
+      groqRoute.requires_product === false;
+
     if (
       selectedSuggestion?.action_key === "catalog_ready_stock" ||
+      llmRequestsGlobalStock ||
       isGlobalStockQuestion(rawQuestion)
     ) {
       const products = await getCleanProducts();

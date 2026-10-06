@@ -2,10 +2,16 @@
 
 ## Status
 
-Belum ada task aktif. Prioritas 1 tahap Pencarian Produk, Rekomendasi, Detail Produk, dan Informasi Harga/Promo sudah diperkuat tanpa mengubah baseline yang stabil. Pencarian, Rekomendasi, dan Detail Produk telah dikonfirmasi benar di production oleh pengguna; patch Harga/Promo sudah lulus verifikasi lokal dan menunggu deploy/smoke production.
+Belum ada task aktif. Prioritas 1 tahap Pencarian Produk, Rekomendasi, Detail Produk, Informasi Harga/Promo, dan Ketersediaan Stok sudah diperkuat tanpa mengubah baseline yang stabil. Empat tahap pertama telah dikonfirmasi benar di production oleh pengguna; patch Ketersediaan Stok sudah lulus verifikasi lokal dan menunggu deploy/smoke production.
 
 ## Current Progress
 
+- Goal LLM `stock` tanpa nama produk dan `requires_product: false` kini membuka daftar produk ready WooCommerce, termasuk ungkapan informal yang tidak cocok dengan frasa stok lokal.
+- Goal baru `stock_policy` membedakan pertanyaan kebijakan seperti apakah semua barang selalu ready dari permintaan daftar barang ready. LLM hanya menentukan jenis kebutuhan; hitungan ready/PO tetap dihitung dari katalog.
+- Pengecualian pencarian katalog versus cek stok kini hanya berlaku jika LLM membawa nama produk. Karena itu `tampilkan Voltes yang tersedia` tetap Pencarian Produk, sedangkan permintaan stok global tanpa nama produk dapat mengikuti keputusan LLM.
+- Aturan lokal `barang apa aja` yang terlalu luas dihapus dari detektor stok global agar `Barang apa aja yang dijual?` tetap menjadi Pencarian Produk.
+- Regression active-LLM mencakup `yg bisa lgsg dibungkus ada apa aja?` dan `emang brangnya slalu ada smua?`, sekaligus mempertahankan guard lama untuk katalog Voltes. Full suite lulus, coverage replay 9/9, serta benchmark pelanggan 26/26 turn (135 assertion, 100%).
+- Pengguna mengonfirmasi smoke production Harga/Promo lulus 5/5.
 - Goal LLM `promo` kini langsung mengaktifkan handler promo walaupun pelanggan memakai bahasa informal atau typo yang tidak memuat kata literal `promo`, `diskon`, `sale`, atau `cashback`.
 - Jika semantic router tidak menemukan nama produk, pertanyaan promo umum tetap memakai seluruh katalog. Jika nama produk grounded tersedia, pencarian promo memakai entitas tersebut agar filler percakapan tidak mencemari query.
 - Presenter harga tunggal tidak lagi menimpa intro faktual dari handler. Status seperti `belum sedang promo` tetap terlihat, sementara nominal dan status diskon tetap berasal dari WooCommerce.

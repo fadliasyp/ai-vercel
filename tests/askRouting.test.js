@@ -308,6 +308,17 @@ test("routes real customer turns without stale products or fallback collisions",
     assert.ok(productNames(readyCatalog).length > 1);
     assert.doesNotMatch(readyCatalog.intro, /mau cek stok produk apa/i);
 
+    const catalogOverview = await ask("Barang apa aja yang dijual?", null, {
+      sessionId: `catalog_overview_${Date.now()}`,
+    });
+    assert.equal(catalogOverview.intent, "product_discovery");
+    assert.match(
+      [catalogOverview.intro, catalogOverview.message]
+        .filter(Boolean)
+        .join(" "),
+      /katalog Robot Jadul|kategori yang tersedia/i,
+    );
+
     const allRestocks = await ask("kapan robot2 restock?", null, {
       sessionId: `all_restocks_${Date.now()}`,
     });
@@ -1062,6 +1073,71 @@ test("routes real customer turns without stale products or fallback collisions",
       "Jumbo Machinder Mazinger Z",
     ]);
     assert.equal(llmUnderstoodCasualPrice.products[0].numericPrice, 7000000);
+
+    semanticRoute = {
+      scope: "in_scope",
+      intent: "stock_availability",
+      intents: ["stock_availability"],
+      goals: ["stock"],
+      confidence: 0.96,
+      entities: {
+        product_names: [],
+        budget_min: null,
+        budget_max: null,
+      },
+      requires_product: false,
+      customer_state: "neutral",
+      interpretation:
+        "Pelanggan meminta daftar produk yang bisa langsung dibeli.",
+      topic_relation: "new_topic",
+      needs_clarification: false,
+      clarification_question: null,
+    };
+
+    const llmUnderstoodGlobalStock = await ask(
+      "yg bisa lgsg dibungkus ada apa aja?",
+      null,
+      { sessionId: `llm_global_stock_${Date.now()}` },
+    );
+    assert.equal(llmUnderstoodGlobalStock.intent, "stock_availability");
+    assert.equal(llmUnderstoodGlobalStock.type, "products");
+    assert.ok(llmUnderstoodGlobalStock.products.length > 1);
+    assert.ok(
+      llmUnderstoodGlobalStock.products.every(
+        (product) => product.stock === "instock",
+      ),
+    );
+    assert.doesNotMatch(
+      llmUnderstoodGlobalStock.intro || llmUnderstoodGlobalStock.message,
+      /mau cek stok produk apa|belum ada di katalog/i,
+    );
+
+    semanticRoute = {
+      ...semanticRoute,
+      goals: ["stock_policy"],
+      interpretation:
+        "Pelanggan menanyakan apakah seluruh barang selalu tersedia.",
+    };
+
+    const llmUnderstoodStockPolicy = await ask(
+      "emang brangnya slalu ada smua?",
+      null,
+      { sessionId: `llm_stock_policy_${Date.now()}` },
+    );
+    assert.equal(llmUnderstoodStockPolicy.intent, "stock_availability");
+    assert.equal(llmUnderstoodStockPolicy.type, "text");
+    assert.match(
+      llmUnderstoodStockPolicy.message,
+      /tidak semua robot selalu ready/i,
+    );
+    assert.match(
+      llmUnderstoodStockPolicy.message,
+      /dari katalog yang terbaca/i,
+    );
+    assert.equal(
+      llmUnderstoodStockPolicy.assistant_meta.llm_led.intent_source,
+      "llm_stock_policy",
+    );
 
     semanticRoute = {
       scope: "in_scope",

@@ -21,6 +21,10 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Fixed
 
+- Connected trusted product-free `stock` understanding to the WooCommerce ready-stock listing instead of treating conversational filler as a missing product name.
+- Added the structured `stock_policy` goal so informal questions about always-ready or PO policy remain separate from requests to list ready products; all counts still come from WooCommerce.
+- Narrowed the catalog-availability conflict guard to named products, preserving `tampilkan Voltes yang tersedia` as discovery without overriding product-free stock requests.
+- Removed the overly broad `barang apa aja` stock phrase so ordinary catalog-overview questions are no longer mislabeled as stock checks.
 - Connected the trusted LLM `promo` goal to the existing catalog-promotion handler, including casual or misspelled requests that do not contain the local literal promo keywords.
 - Used grounded LLM product entities for product-specific promotion lookup while keeping entity-free promotion questions scoped to the whole catalog.
 - Preserved factual single-product promotion intros through response presentation so `belum sedang promo` is not replaced by a generic product-found sentence.
@@ -59,7 +63,8 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
-- LLM-grounded Price/Promo passes the full local suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. The LLM shadow benchmark is blocked by an invalid local Vercel CLI token; production smoke is pending deployment.
+- LLM-grounded Stock Availability passes the full local suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. Production smoke is pending deployment.
+- LLM-grounded Price/Promo passes the full local suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. The LLM shadow benchmark is blocked by an invalid local Vercel CLI token; the user-confirmed production smoke passes 5/5.
 - The user confirmed the deployed Product Detail smoke cases pass 3/3 in production.
 - LLM-grounded Product Detail passes the full 408/408 suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions; the user-confirmed production smoke passes 3/3.
 - The user confirmed the deployed named-family Voltes recommendation now returns the correct scoped results in production.

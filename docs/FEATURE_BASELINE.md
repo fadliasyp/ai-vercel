@@ -239,7 +239,7 @@ Memakai pemahaman facet dari LLM untuk menjawab detail produk secara fokus, seme
 
 ### Status
 
-STABLE (local endpoint regression scope)
+STABLE (local endpoint regression dan production smoke scope)
 
 ### Function
 
@@ -270,7 +270,48 @@ Memakai intent dan goal LLM untuk memahami pertanyaan harga/promo informal, seme
 
 - Bukti lokal 2026-10-06: full suite lulus, answer-coverage replay 9/9 turn (59,4% menjadi 88,9%), dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
 - Benchmark LLM shadow belum berjalan karena token Vercel CLI lokal tidak valid; active-LLM endpoint regression dengan provider mock lulus.
-- Smoke production untuk patch Harga/Promo belum dijalankan.
+- Bukti production 2026-10-06: pengguna mengonfirmasi smoke manual Harga/Promo lulus 5/5.
+
+## LLM-Grounded Stock Availability
+
+### Status
+
+STABLE (local endpoint regression scope)
+
+### Function
+
+Membedakan cek stok produk tertentu, daftar produk ready, dan kebijakan stok umum melalui structured understanding, sementara status serta jumlah stok tetap berasal dari WooCommerce.
+
+### Correct Behavior
+
+- Goal `stock` dengan `product_names` kosong dan `requires_product: false` berarti pelanggan meminta daftar produk ready dari katalog.
+- Goal `stock_policy` berarti pelanggan menanyakan kebijakan umum seperti apakah semua barang selalu ready atau tersedia melalui PO.
+- Produk bernama tetap memakai Product Grounding dan hanya menampilkan status/jumlah stok produk yang cocok.
+- Permintaan katalog bernama seperti `tampilkan Voltes yang tersedia` tetap `product_discovery`, bukan cek jumlah stok.
+- Rule lokal stok, structured action, restock, produk fokus, dan fallback tanpa LLM tetap dipertahankan.
+
+### Do Not Break
+
+- Jangan memakai LLM sebagai sumber status stok, jumlah unit, mode PO, atau jadwal restock.
+- Jangan mengubah pencarian seri/kategori menjadi `stock_availability` hanya karena memuat kata `tersedia`.
+- Jangan meminta nama produk lagi ketika structured understanding tepercaya sudah menyatakan permintaan daftar ready global.
+- Jangan mengganti produk yang tidak ditemukan dengan produk ready atau populer lain.
+
+### Important Files
+
+- `api/ask.js`
+- `lib/chatbot/semanticRouter.js`
+- `lib/chatbot/llmAssistant.js`
+- `lib/chatbot/storePolicy.js`
+- `tests/askRouting.test.js`
+- `tests/llmAssistant.test.js`
+- `tests/semanticRouter.test.js`
+
+### Verification
+
+- Bukti lokal 2026-10-06: full suite lulus, answer-coverage replay 9/9 turn (59,4% menjadi 88,9%), dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
+- Active-LLM endpoint regression membuktikan daftar ready global, kebijakan stok informal, dan guard pencarian katalog bernama.
+- Smoke production untuk patch Ketersediaan Stok belum dijalankan.
 
 ## Multi-turn Product Continuity
 
