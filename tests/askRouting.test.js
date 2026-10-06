@@ -676,6 +676,17 @@ test("routes real customer turns without stale products or fallback collisions",
       "price",
     ]);
 
+    const ideonFacts = await ask(
+      "Ideon bahannya metal atau plastik, terus harganya berapa?",
+      null,
+      { sessionId: `ideon_grounding_${Date.now()}` },
+    );
+    assert.deepEqual(productNames(ideonFacts), ["Action Toys Ideon"]);
+    assert.deepEqual(ideonFacts.assistant_meta.answer_coverage.requested, [
+      "material",
+      "price",
+    ]);
+
     const grendizerReturn = await ask(
       "Ini Grendizer U part-nya lengkap kan ya, bukan barang JUNK yang kondisinya rusak parah? Kalau pas sampai ternyata part ada yang hilang, syarat retur-nya gimana?",
     );

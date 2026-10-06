@@ -30,6 +30,7 @@ Status project: **aktif dikembangkan**.
 - Context/pending state untuk follow-up, klarifikasi produk, lokasi pengiriman, status pesanan, dan pergantian topik.
 - Normalisasi bahasa Indonesia, variasi ejaan, typo fallback, dan analisis bentuk kata.
 - Pencarian katalog, detail, harga/promo, stok, rekomendasi, dan perbandingan WooCommerce.
+- Product Grounding menormalisasi kode model rapat (`GX92`, `GX-92`, `GX 92`) dan memisahkan kata kebutuhan seperti bahan/dimensi/berat/aksesori dari identitas produk. Match ambigu tetap meminta pilihan dan produk tidak dikenal tidak diganti diam-diam.
 - Jadwal restock per produk dari metadata WPC Product Timer, termasuk daftar semua restock mendatang dan pencarian satu produk.
 - Strength/caveat rekomendasi serta perbandingan dapat memakai deskripsi produk WooCommerce.
 - Rekomendasi membedakan target harga seperti `harga 7 jutaan` dan `rekomen robot 19 jutaan` dari batas budget; target harga hanya menerima kandidat dalam toleransi 20%, sedangkan batas/rentang tetap menjadi filter keras. Frasa `budget sekitar/kisaran X` memakai X sebagai target sekaligus batas maksimum.
@@ -57,6 +58,7 @@ Status project: **aktif dikembangkan**.
 - Katalog WooCommerce adalah sumber fakta produk. Data shipping/order/tracking berasal dari API masing-masing.
 - Jika produk ambigu, sistem harus menawarkan pilihan dan mempertahankan semua kebutuhan pelanggan setelah pilihan dipilih.
 - Nama produk baru pada pertanyaan pelanggan harus mengalahkan stale context dari produk sebelumnya.
+- Kata atribut atau nilai atribut bukan nama produk. Resolver harus menemukan objek katalog lebih dahulu, baru menjawab facet dari data produk terverifikasi.
 - Jika data katalog tidak tersedia, bot harus menyatakan keterbatasan atau meminta klarifikasi, bukan mengganti produk diam-diam.
 - Tanggal restock hanya boleh berasal dari aksi `set_instock` WPC Product Timer yang memiliki waktu pasti dan berlaku bagi pengunjung; jadwal yang tidak tersedia diarahkan ke admin.
 - Pertanyaan majemuk harus melacak semua facet yang diminta; facet tidak tersedia diklarifikasi secara spesifik.

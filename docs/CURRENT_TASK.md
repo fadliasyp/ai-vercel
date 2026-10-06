@@ -2,10 +2,15 @@
 
 ## Status
 
-Belum ada task aktif. Hardening bahasa sehari-hari pada rekomendasi sudah ter-deploy dan lulus smoke production terarah 3/3 berdasarkan pengujian manual pengguna.
+Belum ada task aktif. Product Grounding untuk nama pendek, pertanyaan atribut, dan kode model rapat sudah selesai serta terverifikasi lokal; deployment dan smoke production masih menunggu pengguna.
 
 ## Current Progress
 
+- Product matcher kini memisahkan huruf dan angka pada kode rapat, sehingga `GX92` diperlakukan sama dengan `GX-92`/`GX 92` tanpa mengubah angka percakapan biasa menjadi model number.
+- Kata kebutuhan seperti bahan, dimensi, berat, aksesori, harga nett, dan satuan tidak lagi mencemari token nama produk. Pertanyaan `Ideon bahannya metal atau plastik?` tetap berlabuh ke produk Ideon, lalu facet material dijawab dari katalog.
+- Guard tetap konservatif: `getter black` meminta klarifikasi ketika beberapa produk dekat, `ideon ultraman` tidak ditebak, dan kode salah `GX99 Ideon` tidak dialihkan ke `GX-92`.
+- Regression matrix menjaga susunan nama terbalik, typo ringan, kode model, atribut produk, nama lini `POSE+ METAL`, ambiguity, dan unknown product.
+- Verifikasi akhir tahap Product Grounding: 400/400 test lulus dan coverage replay 9/9 turn dengan coverage 59,4% ke 88,9%.
 - Menambahkan matriks regression berbasis data untuk variasi rekomendasi sehari-hari: `rekomen`, `pilihin`, `mnurut lu`, `pengen`, `jtan/jtaan`, `sd`, nominal dengan spasi, tujuan pajangan/kado/koleksi, dan syarat ready stock.
 - Normalisasi harga bersama kini memahami unit informal serta typo ringan tanpa mengubah model number menjadi nominal.
 - Intent rekomendasi mempertahankan stok dan tujuan penggunaan sebagai constraint. Kalimat `yang ready dan paling cocok buat display yang mana?` tidak lagi turun menjadi cek stok saja.
@@ -113,16 +118,20 @@ Belum ada task aktif. Hardening bahasa sehari-hari pada rekomendasi sudah ter-de
 
 ## Active Task
 
-- Belum ada task aktif; hardening rekomendasi bahasa sehari-hari sudah terverifikasi lokal dan production.
+- Belum ada task aktif; Product Grounding sudah terverifikasi lokal. Next step yang disarankan adalah deploy lalu smoke production terarah.
 
 ## Last Completed Task
 
-- Task: hardening pemahaman bahasa sehari-hari untuk rekomendasi LLM-first yang tetap data-grounded.
+- Task: hardening Product Grounding untuk nama produk alami, atribut, dan kode model.
 - Tanggal selesai: 2026-10-06.
-- Goal: mencegah slang, singkatan, typo harga, tujuan penggunaan, dan syarat stok mengubah intent atau constraint rekomendasi.
+- Goal: memastikan pertanyaan produk pendek/majemuk menemukan objek katalog yang benar tanpa menebak produk ambigu atau tidak dikenal.
 
 ## Completed
 
+- Menormalisasi kode alfanumerik rapat seperti `GX92` pada matcher katalog bersama.
+- Mengeluarkan kata atribut produk dan satuan dari token identitas produk.
+- Menambahkan `tests/productGroundingLanguageMatrix.test.js` serta regression endpoint pertanyaan material + harga untuk Ideon.
+- Memverifikasi 400/400 test dan coverage replay 9/9 turn.
 - Menambahkan `tests/recommendationLanguageMatrix.test.js` agar variasi bahasa dan kasus kebalikannya diuji otomatis oleh `npm test`.
 - Memusatkan normalisasi nominal informal pada parser harga bersama dan menyelaraskan explicit intent fallback dengan kontrak semantic router.
 - Menjaga LLM sebagai pemahaman utama pada mode aktif, dengan parser/validator lokal sebagai grounding dan fallback yang tidak boleh membelokkan intent tepercaya.

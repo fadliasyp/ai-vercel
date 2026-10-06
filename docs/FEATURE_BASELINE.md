@@ -135,6 +135,46 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 - Bukti 2026-10-06: 399/399 test lulus, replay 9/9 turn lulus, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus.
 - Bukti production 2026-10-06: smoke manual pengguna lulus 3/3 untuk target harga, rentang + kebutuhan, dan refinement harga singkat dalam sesi yang sama.
 
+## Product Grounding
+
+### Status
+
+STABLE (shared matcher dan local endpoint regression scope)
+
+### Function
+
+Menghubungkan bahasa pelanggan ke produk WooCommerce yang benar sebelum harga, stok, promo, atau detail dijawab.
+
+### Correct Behavior
+
+- Kode model `GX92`, `GX-92`, dan `GX 92` memiliki representasi pencarian yang setara.
+- Kata pertanyaan atribut seperti bahan, dimensi, tinggi, berat, aksesori, kondisi, dan harga nett tidak dianggap bagian nama produk.
+- Nama keluarga produk yang cukup spesifik dapat cocok dengan nama katalog yang lebih panjang.
+- Nama eksplisit pada turn baru mengalahkan produk lama atau konteks halaman yang berbeda.
+- Kandidat dekat yang sama kuat menghasilkan klarifikasi; kombinasi nama asing atau model salah tidak boleh dipaksakan ke produk terdekat.
+- Nama lini katalog yang memakai kata atribut, misalnya `POSE+ METAL series SASURAIGER`, tetap dapat ditemukan dari token identitas lainnya dan exact-name matching.
+
+### Do Not Break
+
+- Jangan menurunkan threshold hanya untuk membuat semua query menghasilkan produk.
+- Jangan mengganti produk tidak dikenal dengan produk ready stock atau populer.
+- Jangan membuang seluruh goal majemuk setelah produk ditemukan.
+- Jangan memakai stale context ketika pelanggan menyebut produk baru.
+
+### Important Files
+
+- `lib/chatbot/productSearch.js`
+- `api/ask.js`
+- `tests/productSearch.test.js`
+- `tests/productGroundingLanguageMatrix.test.js`
+- `tests/askRouting.test.js`
+
+### Verification
+
+- Bukti lokal 2026-10-06: 400/400 test lulus.
+- Answer-coverage replay lulus 9/9 turn; coverage 59,4% menjadi 88,9%.
+- Production smoke: belum dijalankan untuk perubahan ini.
+
 ## Product Restock Schedule
 
 ### Status
