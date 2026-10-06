@@ -145,6 +145,12 @@ test("explicit rules resolve recommendation, compare, store, and insurance bound
     detectExplicitIntentOverride("produknya ada berapa macam?").intent,
     "product_discovery",
   );
+  assert.equal(
+    detectExplicitIntentOverride(
+      "Aku kepengen banget lihat koleksi lawas seri Voltes",
+    ).intent,
+    "product_discovery",
+  );
 });
 
 test("distinguishes evaluating one named product from requesting recommendations", () => {

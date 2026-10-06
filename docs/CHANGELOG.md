@@ -22,6 +22,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 ### Fixed
 
 - Prevented an LLM product entity from narrowing a family request such as `Voltes` to a full catalog variant that the customer did not mention. Every entity token must now be grounded in the current message.
+- Fixed `Aku kepengen banget lihat koleksi lawas seri Voltes` being locked as a recommendation and returning unrelated alternatives. Explicit catalog browsing now wins this narrow conflict, and the semantic prompt distinguishes browsing a collection from asking for a recommendation.
 - Fixed bulk-discount questions such as `Kalau beli tiga barang, bisa dapat potongan harga nggak?` falling through to product lookup. The active LLM `bulk_discount` goal now routes directly to verified store policy, with Indonesian word-number extraction retained as fallback.
 - Fixed informal restock questions such as `kalau Voltron habis, kapan restok?` being rejected as unknown products. Restock wording is now removed from product identity matching while stock and schedule facts remain catalog-grounded.
 - Fixed requests such as `Coba tampilin robot Voltron yang tersedia` being locked as stock checks. Catalog availability now remains product discovery even if the LLM returns high-confidence `stock_availability`, while explicit quantity/ready/restock questions keep their existing route.

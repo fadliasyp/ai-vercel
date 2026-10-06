@@ -1025,8 +1025,13 @@ export default async function handler(req, res) {
   const semanticCatalogAvailabilityConflict =
     groqRoute?.intent === "stock_availability" &&
     looksLikeSpecificCatalogAvailabilityQuestion(rawQuestion);
+  const semanticCatalogBrowseConflict =
+    groqRoute?.intent === "recommendation" &&
+    directExplicitIntent?.intent === "product_discovery" &&
+    directExplicitIntent?.method === "explicit_product_discovery_rule";
   const semanticDecisionIsPrimary =
     !semanticCatalogAvailabilityConflict &&
+    !semanticCatalogBrowseConflict &&
     groqRoute?.scope === "in_scope" &&
     Number(groqRoute.confidence || 0) >= minSemanticConfidence &&
     String(intentResult.method || "").includes("_semantic:");
@@ -1071,6 +1076,13 @@ export default async function handler(req, res) {
     answerPlan = buildAnswerPlan(compoundAnalysis);
     groqContext.compound = compactCompoundQuestionAnalysis(compoundAnalysis);
     groqContext.semanticDecision = groqRoute;
+  } else if (semanticCatalogBrowseConflict) {
+    intentResult = {
+      ...intentResult,
+      ...directExplicitIntent,
+      score: 1,
+      scope: "in_scope",
+    };
   } else if (contextualIntent) {
     intentResult = {
       ...intentResult,

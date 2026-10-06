@@ -1032,9 +1032,9 @@ test("routes real customer turns without stale products or fallback collisions",
 
     semanticRoute = {
       scope: "in_scope",
-      intent: "product_discovery",
-      intents: ["product_discovery"],
-      goals: ["catalog_search"],
+      intent: "recommendation",
+      intents: ["recommendation"],
+      goals: ["recommendation"],
       confidence: 0.96,
       entities: {
         product_names: ["Voltes"],
@@ -1043,7 +1043,7 @@ test("routes real customer turns without stale products or fallback collisions",
       },
       requires_product: true,
       customer_state: "neutral",
-      interpretation: "Pelanggan ingin melihat koleksi seri Voltes.",
+      interpretation: "Pelanggan meminta rekomendasi koleksi lawas Voltes.",
       topic_relation: "new_topic",
       needs_clarification: false,
       clarification_question: null,
@@ -1059,6 +1059,10 @@ test("routes real customer turns without stale products or fallback collisions",
     assert.ok(llmGroundedDiscovery.products.length > 1);
     assert.ok(
       productNames(llmGroundedDiscovery).every((name) => /Voltes/i.test(name)),
+    );
+    assert.equal(
+      llmGroundedDiscovery.assistant_meta.llm_led.intent_locked,
+      false,
     );
 
     semanticRoute = {
