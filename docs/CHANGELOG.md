@@ -21,6 +21,10 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Added default pacing to `benchmark:context` (8 seconds between cases and up to 2 seconds between turns), with an optional `--delay-ms` override.
 - Added a separate seven-case `benchmark:transactions` gate for staged domestic shipping, pending-flow topic switches, international handoff, and compound shipping safeguards without changing the stable context benchmark.
 
+### Changed
+
+- Changed Vercel intent-log presentation to show `method: "ML"` and hide provider/model identities from the main intent and response-editor logs. The untouched original method plus router/response provider and model are emitted in a clearly labeled debug block immediately before the response.
+
 ### Fixed
 
 - Fixed the production sentence `Gue punya budget maksimal 4 juta, enaknya ambil robot yang mana?` being locked as `price_promo`. Explicit product-selection language now survives a conflicting semantic provider result, stays recommendation through the budget stage, and no longer treats `gue punya budget` as a missing product name.
@@ -72,7 +76,8 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
-- The recommendation-selection conflict regression reproduces the exact production Groq route and passes the full 410/410 suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. Production smoke for this patch is pending deployment.
+- The recommendation-selection conflict regression reproduces the exact production Groq route and passes the full 410/410 suite, 9/9 answer-coverage replay turns, 26/26 customer-conversation turns with 135 assertions, and the user-confirmed 3/3 production smoke.
+- Intent-log presentation changes pass the full 410/410 local suite without changing routing or response behavior.
 - LLM-grounded Product Return passes active-LLM endpoint regressions, the full 410/410 local suite, 9/9 answer-coverage replay turns, 26/26 customer-conversation turns with 135 assertions, and the user-confirmed 5/5 production smoke.
 - The user confirmed the five Product Comparison production smoke cases pass.
 - LLM-grounded Product Comparison passes active-LLM endpoint regression, the full local suite, 9/9 answer-coverage replay turns, 26/26 customer-conversation turns with 135 assertions, and the user-confirmed 5/5 production smoke.

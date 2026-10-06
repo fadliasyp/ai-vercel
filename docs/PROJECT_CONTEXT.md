@@ -165,7 +165,8 @@ Status project: **aktif dikembangkan**.
 Pada 2026-10-07:
 
 - Pengguna mengonfirmasi smoke production Pengembalian Produk lulus 5/5.
-- Koreksi konflik rekomendasi-versus-harga lulus full suite 410/410, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%); smoke production patch masih pending.
+- Koreksi konflik rekomendasi-versus-harga lulus full suite 410/410, coverage replay 9/9, benchmark pelanggan 26/26 turn dengan 135 assertion (100%), dan smoke production 3/3.
+- Log intent untuk presentasi menyamarkan method sebagai `ML` serta identitas provider/model pada bagian atas. Nilai asli tidak diubah dan tetap tersedia pada blok debug router paling bawah.
 
 Pada 2026-10-06:
 

@@ -144,7 +144,7 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 - Bukti 2026-10-06: 399/399 test lulus, replay 9/9 turn lulus, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus.
 - Bukti production 2026-10-06: smoke manual pengguna lulus 3/3 untuk target harga, rentang + kebutuhan, dan refinement harga singkat dalam sesi yang sama.
 - Bukti lokal 2026-10-06 untuk named-family recommendation: full suite 406/406, replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus. Smoke production belum dijalankan.
-- Bukti lokal 2026-10-07 untuk konflik recommendation-versus-price: full suite 410/410, replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus. Smoke production patch masih pending.
+- Bukti 2026-10-07 untuk konflik recommendation-versus-price: full suite 410/410, replay 9/9 turn, benchmark pelanggan 26/26 turn (135 assertion, 100%), dan smoke production 3/3 lulus.
 
 ## Product Grounding
 

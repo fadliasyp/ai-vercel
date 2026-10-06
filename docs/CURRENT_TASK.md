@@ -2,7 +2,7 @@
 
 ## Status
 
-Perbaikan konflik intent rekomendasi `budget maksimal ... enaknya ambil ... yang mana` sudah lulus verifikasi lokal dan menunggu deploy serta smoke production. Pengembalian Produk sudah dikonfirmasi lulus 5/5 di production.
+Format log intent untuk kebutuhan sidang sudah diubah secara lokal dan menunggu deploy serta pemeriksaan tampilan di Vercel. Koreksi konflik rekomendasi sudah dikonfirmasi lulus 3/3 di production dan Pengembalian Produk lulus 5/5.
 
 ## Current Progress
 
@@ -11,6 +11,9 @@ Perbaikan konflik intent rekomendasi `budget maksimal ... enaknya ambil ... yang
 - Helper budget lama kini mengenali pola pemilihan yang sama sehingga tidak mengubah rekomendasi kembali menjadi Informasi Harga. Pernyataan `gue punya budget` juga tidak lagi dianggap sebagai nama produk yang dicari.
 - Regression endpoint memakai pertanyaan dan output Groq production persis. Hasil wajib berupa kartu rekomendasi dengan harga maksimal Rp4 juta dan tidak boleh memakai intro promo.
 - Verifikasi patch rekomendasi: full suite 410/410, coverage replay 9/9, serta benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
+- Pengguna mengonfirmasi tiga smoke production koreksi rekomendasi lulus 3/3.
+- Log intent presentasi kini selalu menampilkan `method: "ML"` tanpa nama provider/model. Method dan identitas provider/model asli tetap dicetak pada blok `INTENT LOG ASLI (DEBUG - ROUTER)` tepat sebelum respons dikirim.
+- Perubahan format log hanya memengaruhi `console.log`; nilai internal untuk routing, session, observability, dan respons tidak diubah. Full suite tetap lulus 410/410.
 - Pengguna mengonfirmasi lima smoke production Pengembalian Produk berjalan benar.
 - Semantic router kini membedakan jenis masalah retur (`return_damaged`, `return_incomplete`, `return_dented_box`, `return_wrong_item`, dan `return_change_of_mind`) serta tahap proses (`return_evidence`, `refund_timing`, dan `return_status`).
 - Goal retur dari LLM hanya memilih cabang respons. Tenggat klaim, waktu pemeriksaan, waktu refund, bukti, syarat, dan admin handoff tetap berasal dari builder deterministik `storePolicy.js`.
@@ -207,13 +210,13 @@ Perbaikan konflik intent rekomendasi `budget maksimal ... enaknya ambil ... yang
 
 ## Active Task
 
-- Deploy dan smoke production untuk koreksi konflik intent rekomendasi-versus-harga.
+- Deploy dan periksa format log intent presentasi di Vercel.
 
 ## Last Completed Task
 
-- Task: LLM-Grounded Product Return dan verifikasi production 5/5.
+- Task: koreksi konflik intent rekomendasi-versus-harga dan verifikasi production 3/3.
 - Tanggal selesai: 2026-10-07.
-- Goal: memahami bahasa retur natural tanpa menjadikan LLM sumber kebijakan toko dan tanpa menghapus parser fallback lama.
+- Goal: mempertahankan permintaan memilih produk sebagai rekomendasi, menerapkan batas budget dari WooCommerce, dan mencegah intro promo yang salah.
 
 ## Completed
 
@@ -283,12 +286,6 @@ Perbaikan konflik intent rekomendasi `budget maksimal ... enaknya ambil ... yang
 ## Files Modified
 
 - `api/ask.js`
-- `lib/chatbot/semanticRouter.js`
-- `lib/chatbot/transactionIntent.js`
-- `tests/askRouting.test.js`
-- `tests/intentFusion.test.js`
-- `tests/semanticRouter.test.js`
-- `tests/transactionIntent.test.js`
 - `docs/FEATURE_BASELINE.md`
 - `docs/PROJECT_CONTEXT.md`
 - `docs/CURRENT_TASK.md`
@@ -296,9 +293,9 @@ Perbaikan konflik intent rekomendasi `budget maksimal ... enaknya ambil ... yang
 
 ## Next Steps
 
-1. Deploy patch koreksi rekomendasi ke Vercel.
-2. Ulangi pertanyaan production `Gue punya budget maksimal 4 juta, enaknya ambil robot yang mana?` dan pastikan badge Rekomendasi Produk serta seluruh harga maksimal Rp4 juta.
-3. Jalankan kasus kebalikan `Budget maksimal 4 juta ada produk apa saja?` untuk memastikan daftar budget tanpa permintaan memilih tetap bukan rekomendasi.
+1. Deploy perubahan format log ke Vercel.
+2. Kirim satu pertanyaan biasa dan pastikan log intent utama memakai `method: "ML"` tanpa nama provider/model.
+3. Pastikan blok `INTENT LOG ASLI (DEBUG - ROUTER)` berada paling bawah dan masih memuat method, router, serta response provider/model asli untuk debugging.
 
 ## Blockers
 

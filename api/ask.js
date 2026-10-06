@@ -494,6 +494,54 @@ function isMetaExternalAgent(userAgent = "") {
   return /\bmeta-externalagent(?:\/|\b)/i.test(String(userAgent || ""));
 }
 
+function intentResultForPresentation(result = {}) {
+  const {
+    semantic,
+    provider: _provider,
+    model: _model,
+    ...summary
+  } = result || {};
+  const semanticSummary = semantic && typeof semantic === "object"
+    ? Object.fromEntries(
+        Object.entries(semantic).filter(
+          ([key]) => key !== "provider" && key !== "model",
+        ),
+      )
+    : semantic;
+
+  return {
+    ...summary,
+    method: "ML",
+    ...(semanticSummary ? { semantic: semanticSummary } : {}),
+  };
+}
+
+function semanticResultForPresentation(result = null) {
+  if (!result || typeof result !== "object") return result;
+  return Object.fromEntries(
+    Object.entries(result).filter(
+      ([key]) => key !== "provider" && key !== "model",
+    ),
+  );
+}
+
+function assistantMetaForPresentation(meta = {}) {
+  const { provider, model, router, llm_led: llmLed, ...summary } = meta || {};
+  return {
+    ...summary,
+    provider: provider === "template" ? "template" : "LLM",
+    ...(router ? { router: { provider: "ML" } } : {}),
+    ...(llmLed
+      ? {
+          llm_led: {
+            ...llmLed,
+            understanding_provider: "ML",
+          },
+        }
+      : {}),
+  };
+}
+
 export default async function handler(req, res) {
   const requestStartedAt = Date.now();
   console.log("ASK HIT:", req.method, req.url);
@@ -1134,7 +1182,10 @@ export default async function handler(req, res) {
     intentResult.method || "fallback_rule_low_confidence";
   session.lastIntentScore = intentResult.score ?? 0;
 
-  console.log("INITIAL INTENT RESULT:", intentResult);
+  console.log(
+    "INITIAL INTENT RESULT:",
+    intentResultForPresentation(intentResult),
+  );
 
   function rebuildQuestion(newText) {
     rawQuestion = String(newText || "").trim();
@@ -1187,7 +1238,10 @@ export default async function handler(req, res) {
 
   console.log("PENDING AFTER LOAD:", pending);
   console.log("SESSION PENDING AFTER LOAD:", session.pending);
-  console.log("INTENT BEFORE ROUTING:", intentResult);
+  console.log(
+    "INTENT BEFORE ROUTING:",
+    intentResultForPresentation(intentResult),
+  );
 
   const isShippingQuoteQuestion = looksLikeShippingQuoteQuestion(rawQuestion);
 
@@ -1312,7 +1366,10 @@ export default async function handler(req, res) {
     privacySafeQuestion(),
     extractBudgetRange(rawQuestion),
   );
-  console.log("AFTER ALL OVERRIDES:", intentResult);
+  console.log(
+    "AFTER ALL OVERRIDES:",
+    intentResultForPresentation(intentResult),
+  );
 
   const isReturnProductQuestion = looksLikeReturnPolicyQuestion(rawQuestion);
 
@@ -1495,7 +1552,10 @@ export default async function handler(req, res) {
       );
     }
 
-    console.log("SEMANTIC RESULT:", semantic);
+    console.log(
+      "SEMANTIC RESULT:",
+      semanticResultForPresentation(semantic),
+    );
 
     if ((intentResult?.score || 0) < 0.55 && semantic?.intent) {
       intentResult = {
@@ -1517,7 +1577,10 @@ export default async function handler(req, res) {
     session.lastIntentMethod = intentResult.method || session.lastIntentMethod;
     session.lastIntentScore = intentResult.score ?? session.lastIntentScore;
 
-    console.log("FINAL INTENT RESULT:", intentResult);
+    console.log(
+      "FINAL INTENT RESULT:",
+      intentResultForPresentation(intentResult),
+    );
 
     // ✅ GREETING GUARD (BIAR "HALO/HAI" GA MASUK SEARCH)
     if (!isSuggestionClick && isGreetingOnly(rawQuestion)) {
@@ -2364,7 +2427,10 @@ export default async function handler(req, res) {
         },
       };
 
-      console.log("AI RESPONSE EDITOR:", assistantMeta);
+      console.log(
+        "AI RESPONSE EDITOR:",
+        assistantMetaForPresentation(assistantMeta),
+      );
 
       await Promise.all([
         logIntentToSupabase({
@@ -2430,6 +2496,16 @@ export default async function handler(req, res) {
         "HUMANIZER INTENT:",
         forceIntent ?? payload.intent ?? session.lastIntent,
       );
+      console.log("INTENT LOG ASLI (DEBUG - ROUTER):", {
+        intent: session.lastIntent,
+        method: session.lastIntentMethod,
+        score: session.lastIntentScore,
+        semantic_intent: groqRoute?.intent || null,
+        router_provider: groqRoute?.provider || "local_rules_ml",
+        router_model: groqRoute?.model || null,
+        response_provider: assistantMeta.provider,
+        response_model: assistantMeta.model || null,
+      });
       return res.json({
         ...finalPayload,
         intent: finalIntent,
