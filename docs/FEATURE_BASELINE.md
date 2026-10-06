@@ -19,6 +19,7 @@ Memisahkan pemahaman/bahasa LLM dari fakta commerce yang harus diambil melalui t
 - Naturalizer ditolak atau field dikembalikan ke legacy bila protected facts berubah.
 - LLM/tool plan memilih sumber data sesuai goal.
 - Promo bersyarat yang tidak tercatat sebagai fakta katalog, seperti beli 1 gratis 1, tidak boleh disimpulkan dari produk yang sekadar memiliki harga diskon; chatbot menyatakan belum memiliki informasi terverifikasi dan menyediakan admin handoff.
+- Goal LLM `bulk_discount` tidak memerlukan nama produk dan harus menuju kebijakan penawaran sebelum katalog diambil. Jumlah barang boleh ditampilkan hanya jika berasal dari pesan pelanggan.
 
 ### Do Not Break
 
@@ -26,6 +27,7 @@ Memisahkan pemahaman/bahasa LLM dari fakta commerce yang harus diambil melalui t
 - Jangan menghapus safety validator untuk menaikkan composer acceptance.
 - Jangan naturalize array `products`, `options`, `steps`, payment methods, atau admin handoff.
 - Jangan mengganti pertanyaan promo bersyarat dengan daftar produk diskon biasa.
+- Jangan mengubah pertanyaan potongan pembelian banyak menjadi pencarian satu produk atau klaim bahwa diskon pasti diberikan.
 
 ### Important Files
 
@@ -33,6 +35,7 @@ Memisahkan pemahaman/bahasa LLM dari fakta commerce yang harus diambil melalui t
 - `lib/chatbot/responseNaturalizer.js`
 - `lib/chatbot/answerCoverage.js`
 - `lib/chatbot/wooCatalog.js`
+- `lib/chatbot/storePolicy.js`
 
 ### Verification
 

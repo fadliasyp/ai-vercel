@@ -182,11 +182,14 @@ import {
   resolveContextualIntent,
 } from "../lib/chatbot/questionUnderstanding.js";
 import {
+  buildBulkPurchaseOfferMessage,
   buildGeneralStockPolicyMessage,
   buildNegotiationPolicyMessage,
   buildReturnPolicyMessage,
+  extractBulkPurchaseOfferContext,
   getReturnActionContext,
   looksLikeBuyOneGetOneQuestion,
+  looksLikeBulkPurchaseOfferQuestion,
   looksLikeGeneralStockPolicyQuestion,
   looksLikeNegotiationPolicyQuestion,
   looksLikeReturnPolicyQuestion,
@@ -2645,6 +2648,39 @@ export default async function handler(req, res) {
           intent: "price_promo",
           topic: "promo beli 1 gratis 1",
         }),
+        "price_promo",
+      );
+    }
+
+    const llmRequestsBulkDiscount =
+      llmAssistantConfig.mode === "active" &&
+      groqRoute?.scope === "in_scope" &&
+      Number(groqRoute.confidence || 0) >= minSemanticConfidence &&
+      groqRoute.goals?.includes("bulk_discount");
+    if (
+      (intentResult.intent === "price_promo" || llmRequestsBulkDiscount) &&
+      (llmRequestsBulkDiscount ||
+        looksLikeBulkPurchaseOfferQuestion(rawQuestion))
+    ) {
+      clearPending(session);
+      explicitIntentSource = llmRequestsBulkDiscount
+        ? "llm_bulk_discount_policy"
+        : "bulk_discount_policy_rule";
+      session.lastIntent = "price_promo";
+      session.lastIntentMethod = explicitIntentSource;
+      session.lastIntentScore = 1;
+
+      const offerContext = extractBulkPurchaseOfferContext(rawQuestion);
+      return await send(
+        {
+          type: "text",
+          message: buildBulkPurchaseOfferMessage({
+            ...offerContext,
+            asksFreeShipping:
+              offerContext.asksFreeShipping ||
+              Boolean(groqRoute?.goals?.includes("free_shipping")),
+          }),
+        },
         "price_promo",
       );
     }

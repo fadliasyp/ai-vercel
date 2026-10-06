@@ -11,6 +11,7 @@ import {
   extractBulkPurchaseOfferContext,
   getReturnActionContext,
   looksLikeBuyOneGetOneQuestion,
+  looksLikeBulkPurchaseOfferQuestion,
   looksLikeGeneralStockPolicyQuestion,
   looksLikeNegotiationPolicyQuestion,
   looksLikePostPurchaseReturnIssue,
@@ -48,6 +49,15 @@ test("extracts the full context of a bulk purchase offer", () => {
   assert.match(buildBulkPurchaseOfferMessage(context), /3 barang/);
   assert.match(buildBulkPurchaseOfferMessage(context), /Rp 10\.000\.000/);
   assert.match(buildBulkPurchaseOfferMessage(context), /Depok/);
+});
+
+test("recognizes word-number bulk discount questions", () => {
+  const question = "Kalau beli tiga barang, bisa dapat potongan harga nggak?";
+  const context = extractBulkPurchaseOfferContext(question);
+
+  assert.equal(looksLikeBulkPurchaseOfferQuestion(question), true);
+  assert.equal(context.quantity, 3);
+  assert.match(buildBulkPurchaseOfferMessage(context), /3 barang/);
 });
 
 test("recognizes general negotiation questions without requiring a product", () => {

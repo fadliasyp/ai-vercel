@@ -911,6 +911,42 @@ test("routes real customer turns without stale products or fallback collisions",
       scope: "in_scope",
       intent: "price_promo",
       intents: ["price_promo"],
+      goals: ["bulk_discount"],
+      confidence: 0.96,
+      entities: {
+        product_names: [],
+        budget_min: null,
+        budget_max: null,
+        quantity: 3,
+      },
+      requires_product: false,
+      customer_state: "neutral",
+      interpretation:
+        "Pelanggan menanyakan potongan untuk pembelian tiga barang.",
+      topic_relation: "new_topic",
+      needs_clarification: false,
+      clarification_question: null,
+    };
+
+    const llmBulkDiscount = await ask(
+      "Kalau beli tiga barang, bisa dapat potongan harga nggak?",
+      null,
+      { sessionId: `llm_bulk_discount_${Date.now()}` },
+    );
+    assert.equal(llmBulkDiscount.intent, "price_promo");
+    assert.equal(llmBulkDiscount.type, "text");
+    assert.equal(llmBulkDiscount.products, undefined);
+    assert.match(llmBulkDiscount.message, /3 barang/i);
+    assert.match(llmBulkDiscount.message, /potongan tambahan/i);
+    assert.equal(
+      llmBulkDiscount.assistant_meta.llm_led.intent_source,
+      "llm_bulk_discount_policy",
+    );
+
+    semanticRoute = {
+      scope: "in_scope",
+      intent: "price_promo",
+      intents: ["price_promo"],
       goals: ["promo"],
       confidence: 0.96,
       entities: {

@@ -2,10 +2,13 @@
 
 ## Status
 
-Belum ada task aktif. Resolver produk kini LLM-first pada mode active, sedangkan parser lokal hanya fallback; seluruh verifikasi lokal lulus dan deploy/smoke production masih perlu dilakukan. Transaction Continuity Batch 1 dan Multi-turn Product Continuity tetap dibekukan pada baseline yang sudah lulus.
+Belum ada task aktif. Prioritas 1 tahap Informasi Harga untuk kebijakan bulk discount sudah diperbaiki dan lulus seluruh verifikasi lokal; deploy/smoke production masih perlu dilakukan. Resolver produk tetap LLM-first pada mode active dan baseline stabil lainnya tidak diubah.
 
 ## Current Progress
 
+- Goal LLM `bulk_discount` kini langsung menuju policy handler sebelum pengambilan katalog. Pertanyaan `Kalau beli tiga barang, bisa dapat potongan harga nggak?` tidak lagi meminta nama produk atau mengembalikan produk tidak ditemukan.
+- Angka kata `satu` sampai `sepuluh` didukung pada fallback bulk purchase. Respons menyatakan potongan tidak dijanjikan otomatis dan harus dikonfirmasi admin, tanpa mengarang promo.
+- Regression active-LLM memastikan response tidak membawa kartu produk dan mencatat sumber `llm_bulk_discount_policy`. Verifikasi: full suite 405/405, coverage replay 9/9, dan benchmark pelanggan 26/26 turn (135 assertion, 100%).
 - Pada mode LLM-led active, `product_names` terstruktur dari provider kini menjadi input utama resolver produk bersama. Nama tersebut tetap harus ditemukan di WooCommerce dan memiliki token yang berasal dari pertanyaan pelanggan; entitas LLM yang tidak grounded ditolak.
 - Parser teks mentah tetap tersedia hanya sebagai fallback ketika provider limit/gagal atau tidak menghasilkan entitas tepercaya. Structured suggestion tetap memiliki prioritas tertinggi karena pilihan pengguna sudah tervalidasi.
 - Regression active-LLM membuktikan `Daitarn` dari pemahaman LLM dipakai untuk pertanyaan restock informal, sementara entitas `Daitarn` ditolak ketika pelanggan menulis `Ultraman`. Full suite tetap 404/404, replay 9/9, dan benchmark pelanggan 26/26 (135 assertion, 100%).
