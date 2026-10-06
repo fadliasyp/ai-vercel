@@ -861,6 +861,42 @@ test("routes real customer turns without stale products or fallback collisions",
     process.env.GROQ_API_KEY = "test-groq-key";
     semanticRoute = {
       scope: "in_scope",
+      intent: "shipping_transaction",
+      intents: ["shipping_transaction"],
+      goals: ["payment_methods"],
+      confidence: 0.95,
+      entities: {
+        product_names: [],
+        budget_min: null,
+        budget_max: null,
+      },
+      requires_product: false,
+      customer_state: "neutral",
+      interpretation: "Pelanggan menanyakan metode pembayaran yang tersedia.",
+      topic_relation: "new_topic",
+      needs_clarification: false,
+      clarification_question: null,
+    };
+
+    const llmLockedPaymentMethods = await ask(
+      "Kalau bayar bisa pakai apa aja?",
+      null,
+      { sessionId: `semantic_payment_${Date.now()}` },
+    );
+    assert.equal(llmLockedPaymentMethods.intent, "shipping_transaction");
+    assert.equal(llmLockedPaymentMethods.type, "text");
+    assert.match(
+      llmLockedPaymentMethods.message,
+      /Pilihan Pembayaran Tersedia/i,
+    );
+    assert.match(llmLockedPaymentMethods.message, /QRIS/i);
+    assert.equal(
+      llmLockedPaymentMethods.assistant_meta.llm_led.intent_source,
+      "llm",
+    );
+
+    semanticRoute = {
+      scope: "in_scope",
       intent: "price_promo",
       intents: ["price_promo"],
       goals: ["promo"],

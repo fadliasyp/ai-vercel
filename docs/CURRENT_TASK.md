@@ -2,10 +2,17 @@
 
 ## Status
 
-Belum ada task aktif. Tahap Multi-turn Product Continuity dan gate promo ketat lulus verifikasi lokal serta production smoke 9/9. Gangguan WooCommerce HTTP 508 sebelumnya terbukti sementara dan tidak merepresentasikan regression logic chatbot.
+Task aktif: Transaction Continuity Batch 1. Tahap Multi-turn Product Continuity tetap dibekukan setelah lulus verifikasi lokal, production smoke 9/9, serta smoke manual production 3/3.
 
 ## Current Progress
 
+- Menambahkan gate terpisah `npm run benchmark:transactions` agar perluasan verifikasi transaksi tidak mengubah baseline context 9/9 yang sudah stabil.
+- Tujuh kasus mencakup ongkir kota+kecamatan satu pesan, alur natural tiga langkah kota -> kabupaten/kota -> kecamatan, perpindahan pending ongkir ke pembayaran, retur, atau produk, pengiriman internasional, dan pertanyaan ongkir majemuk dengan asuransi/packing.
+- Mode transaksi memakai pacing 8 detik yang sama dengan context benchmark untuk mengurangi burst ke WordPress/WooCommerce.
+- Production gate awal lulus 6/7. Satu kegagalan terjadi pada `Ongkir ke Tangerang` -> `Kalau bayar bisa pakai apa aja?`: LLM sudah benar menghasilkan intent `shipping_transaction` dan goal `payment_methods`, tetapi builder policy mengabaikan facet LLM lalu mengembalikan klarifikasi generik.
+- `buildTransactionPolicyMessage` kini menerima facet transaksi terstruktur yang sudah divalidasi (`payment_methods`, COD, asuransi, packing, same-day, dan estimasi), sambil mempertahankan detektor kata lokal sebagai fallback.
+- Regression unit dan endpoint active-LLM memakai kalimat production persis. Verifikasi setelah fix lulus: targeted 12/12, full suite 403/403, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
+- Deploy perubahan API dan rerun production gate 7 kasus masih pending.
 - Follow-up alami tanpa kata ganti eksplisit, seperti `masih ready gak?`, `ada diskon gak?`, `ada fotonya?`, `lengkap gak?`, dan `full die-cast nggak?`, kini tetap terhubung ke produk fokus terakhir.
 - Rujukan `keduanya`/`dua-duanya` mempertahankan tepat dua produk sebelumnya dan dapat menampilkan fakta keduanya; sistem tidak menebak jika kandidat sebelumnya lebih dari dua.
 - Produk yang disebut eksplisit tetap mengalahkan konteks lama, sedangkan permintaan katalog umum seperti `ada promo apa aja?` dan `semua yang ready apa aja?` tidak diwarisi ke satu produk.
@@ -22,6 +29,7 @@ Belum ada task aktif. Tahap Multi-turn Product Continuity dan gate promo ketat l
 - `benchmark:context` kini memakai jeda default 8 detik antarkasus dan maksimal 2 detik antarturn. Ketika payload menandakan katalog sementara tidak tersedia, benchmark berhenti sekali dengan pesan dependency unavailable alih-alih melanjutkan dan melaporkan seluruh kasus sebagai kegagalan logic.
 - Jeda dapat diatur melalui `--delay-ms`; fitur ini tetap dipertahankan untuk mengurangi burst pada benchmark berikutnya.
 - Setelah WooCommerce pulih, pengguna menjalankan ulang gate ketat dan mengonfirmasi production smoke lulus 9/9. Rerun production tidak lagi pending.
+- Pengguna juga mengonfirmasi smoke manual production lulus 3/3: follow-up stok satu produk, stok dua produk melalui `keduanya`, dan promo yang tetap terikat ke satu produk fokus.
 - Product matcher kini memisahkan huruf dan angka pada kode rapat, sehingga `GX92` diperlakukan sama dengan `GX-92`/`GX 92` tanpa mengubah angka percakapan biasa menjadi model number.
 - Kata kebutuhan seperti bahan, dimensi, berat, aksesori, harga nett, dan satuan tidak lagi mencemari token nama produk. Pertanyaan `Ideon bahannya metal atau plastik?` tetap berlabuh ke produk Ideon, lalu facet material dijawab dari katalog.
 - Guard tetap konservatif: `getter black` meminta klarifikasi ketika beberapa produk dekat, `ideon ultraman` tidak ditebak, dan kode salah `GX99 Ideon` tidak dialihkan ke `GX-92`.

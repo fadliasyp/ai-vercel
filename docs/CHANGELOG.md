@@ -12,6 +12,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Added `npm run benchmark:context` with six multi-turn gates covering recommendation price refinement, ordinal selection, focused-product pronouns, explicit product switches, restock topic switches, and interruption of pending shipping questions.
 - Expanded `benchmark:context` to nine multi-turn production gates with focused-product promo/photo follow-ups and two-product references.
 - Added default pacing to `benchmark:context` (8 seconds between cases and up to 2 seconds between turns), with an optional `--delay-ms` override.
+- Added a separate seven-case `benchmark:transactions` gate for staged domestic shipping, pending-flow topic switches, international handoff, and compound shipping safeguards without changing the stable context benchmark.
 
 ### Fixed
 
@@ -37,15 +38,19 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Prevented stale comparison context from overriding a locked LLM `stock_availability` decision for follow-ups such as `keduanya ready gak?`; explicit comparison wording remains unchanged.
 - Made focused-product promo follow-ups bypass the global promo listing. The active-LLM regression and production smoke gate now require exactly one referenced product.
 - Stopped the context smoke benchmark early when WooCommerce returns the existing transient catalog-unavailable payload, so one HTTP 508 resource incident is no longer reported as failures across every remaining chatbot case.
+- Fixed validated LLM transaction facets being discarded by the deterministic policy builder. Natural payment wording such as `Kalau bayar bisa pakai apa aja?` now renders verified payment methods instead of a generic transaction-topic clarification.
 
 ### Verification
 
+- Transaction Continuity Batch 1 passes syntax/JSON/diff checks, the full 403/403 local suite, and the rules-only international-shipping smoke; the seven-case production gate remains pending.
+- The first transaction production gate passed 6/7 and isolated the payment-facet bridge bug. After the fix, targeted tests pass 12/12, the full suite passes 403/403, coverage replay passes 9/9, and the customer benchmark passes 26/26 turns with 135 assertions.
 - Product-grounding verification passes 400/400 local tests, 9/9 answer-coverage replay turns (59.4% before repair, 88.9% after repair), and 5/5 user-run production smoke cases.
 - Multi-turn Product Continuity passes 403/403 local tests, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions.
 - The first 9-case production context smoke passed 8/9. After fixing the compare-to-stock transition and deploying it, the production rerun passed 9/9.
 - Payload inspection found that the earlier 9/9 result still contained a loose focused-promo assertion. After tightening the one-product gate and routing, the user-confirmed strict production rerun passes 9/9.
 - The strict production rerun was blocked by WooCommerce HTTP 508 `Insufficient Resource`. The accompanying log still showed the correct Groq `stock_availability` decision before catalog retrieval failed. The benchmark-runner hardening passes syntax checks, diff checks, and the full 403/403 local test suite.
 - After WooCommerce recovered, the same strict production context benchmark passed all 9/9 cases on 2026-10-06.
+- User-confirmed production smoke passes 3/3 for focused-product stock continuity, exact two-product stock continuity, and focused-product promotion scope.
 - User-verified production smoke passes 3/3 for an approximate target, a bounded range with product-purpose constraints, and a terse same-session price refinement.
 - Added unit and full `/api/ask` regressions using the production question and a deliberately wrong Groq-shaped `maximum` result. All 399 local tests pass; only products within the Rp5.6-Rp8.4 million target window survive.
 - Added a data-driven language matrix and follow-up regressions. All 397 local tests pass, answer-coverage replay passes 9/9 turns, and the customer conversation benchmark passes 26/26 turns with 135 assertions (100%).

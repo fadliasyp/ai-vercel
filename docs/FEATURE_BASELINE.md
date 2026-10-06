@@ -221,6 +221,7 @@ Mempertahankan objek produk yang benar ketika pelanggan melanjutkan percakapan d
 - Rerun berikutnya tertahan oleh HTTP 508 `Insufficient Resource` dari WooCommerce. Log membuktikan semantic intent sudah benar sebelum fetch katalog gagal, sehingga hasil tersebut diklasifikasikan sebagai dependency unavailable dan bukan regression chatbot.
 - Runner `benchmark:context` memberi jeda default 8 detik antarkasus serta berhenti lebih awal ketika katalog sementara tidak tersedia; operator dapat mengubah jeda dengan `--delay-ms`.
 - Setelah dependency pulih, pengguna mengonfirmasi rerun gate production ketat lulus 9/9 pada 2026-10-06.
+- Smoke manual production juga lulus 3/3 untuk produk fokus -> stok, perbandingan dua produk -> `keduanya` stok, dan produk fokus -> promo tanpa melebar ke katalog global.
 
 ## Product Restock Schedule
 

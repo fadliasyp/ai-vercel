@@ -85,6 +85,15 @@ test("understands informal payment and PayLater questions", () => {
     buildTransactionPolicyMessage(methodsQuestion),
     /Pilihan Pembayaran Tersedia/i,
   );
+
+  const llmUnderstoodQuestion = "Kalau bayar bisa pakai apa aja?";
+  assert.equal(looksLikePaymentMethodQuestion(llmUnderstoodQuestion), false);
+  assert.match(
+    buildTransactionPolicyMessage(llmUnderstoodQuestion, {
+      facets: ["payment_methods"],
+    }),
+    /Pilihan Pembayaran Tersedia/i,
+  );
 });
 
 test("keeps an ambiguous transaction prompt optional", () => {

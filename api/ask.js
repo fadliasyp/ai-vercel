@@ -2052,6 +2052,10 @@ export default async function handler(req, res) {
           codEnabled:
             String(process.env.COD_ENABLED || "false").toLowerCase() ===
             "true",
+          facets:
+            answerPlan.sections?.find(
+              (section) => section.key === "transaction_policy",
+            )?.facets || [],
         },
       );
       const storeAddress =
@@ -4766,6 +4770,10 @@ export default async function handler(req, res) {
             String(process.env.COD_ENABLED || "false").toLowerCase() ===
             "true",
           includeShippingOffer: true,
+          facets:
+            answerPlan.sections?.find(
+              (section) => section.key === "transaction_policy",
+            )?.facets || [],
         },
       );
 

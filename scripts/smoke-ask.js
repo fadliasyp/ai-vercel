@@ -174,6 +174,46 @@ const CASES = [
     expectedIntent: "shipping_transaction",
   },
   {
+    id: "transaction_shipping_location_three_step",
+    questions: [
+      "Ongkir ke Tangerang berapa ya?",
+      "Kabupaten Tangerang",
+      "Rajeg",
+    ],
+    expectedIntent: "shipping_transaction",
+    expectedType: "text",
+    requiredAnyText: ["jne", "tiki", "pos", "wahana", "sicepat", "j&t"],
+  },
+  {
+    id: "transaction_pending_payment_switch",
+    questions: [
+      "Ongkir ke Tangerang berapa ya?",
+      "Kalau bayar bisa pakai apa aja?",
+    ],
+    expectedIntent: "shipping_transaction",
+    expectedType: "text",
+    requiredText: ["Pilihan Pembayaran Tersedia", "QRIS"],
+    forbiddenText: ["sebutkan juga kecamatan", "pilih kota/kabupaten"],
+  },
+  {
+    id: "transaction_pending_return_switch",
+    questions: [
+      "Ongkir ke Tangerang berapa ya?",
+      "Kalau barang sampai rusak, cara return dan refund gimana?",
+    ],
+    expectedIntent: "return_product",
+    expectedType: "text",
+    requiredText: ["2 x 24 jam", "1-3 hari kerja", "3-7 hari kerja"],
+  },
+  {
+    id: "transaction_international_handoff",
+    question:
+      "Bisa kirim robot ke Malaysia? Ongkir, kurir, dan packingnya gimana?",
+    expectedIntent: "shipping_transaction",
+    expectedType: "text",
+    requiredText: ["Admin Robot Jadul", "tidak akan menebak", "bea masuk"],
+  },
+  {
     id: "compound_secure_shipping_multiturn",
     questions: [
       "Ongkir ke Surabaya untuk Getter Robo GX-74 berapa? Pengirimannya aman kan, bisa asuransi dan packing kayu?",
@@ -359,6 +399,16 @@ const CONTEXT_CASE_IDS = new Set([
   "context_interrupt_shipping_pending",
 ]);
 
+const TRANSACTION_CONTEXT_CASE_IDS = new Set([
+  "shipping_quote_multiturn",
+  "transaction_shipping_location_three_step",
+  "transaction_pending_payment_switch",
+  "transaction_pending_return_switch",
+  "transaction_international_handoff",
+  "compound_secure_shipping_multiturn",
+  "context_interrupt_shipping_pending",
+]);
+
 const CONTROLLED_CASE_IDS = new Set([
   "catalog_scope_overrides_history",
   "previous_scope_keeps_history",
@@ -423,6 +473,12 @@ function selectedCases(argv = []) {
 
   if (argv.includes("--context")) {
     return CASES.filter((testCase) => CONTEXT_CASE_IDS.has(testCase.id));
+  }
+
+  if (argv.includes("--transactions")) {
+    return CASES.filter((testCase) =>
+      TRANSACTION_CONTEXT_CASE_IDS.has(testCase.id),
+    );
   }
 
   if (argv.includes("--compound")) {
@@ -618,7 +674,9 @@ function delayFromArgs(argv = []) {
     return Math.floor(value);
   }
 
-  return argv.includes("--context") ? 8000 : 0;
+  return argv.includes("--context") || argv.includes("--transactions")
+    ? 8000
+    : 0;
 }
 
 function dependencyUnavailableError() {

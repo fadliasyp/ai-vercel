@@ -9,6 +9,7 @@
     "benchmark:groq-intents": "node scripts/benchmark-groq-intents.js",
     "benchmark:customers": "node scripts/benchmark-customer-conversations.js",
     "benchmark:context": "node scripts/smoke-ask.js --context",
+    "benchmark:transactions": "node scripts/smoke-ask.js --transactions",
     "benchmark:coverage-replay": "node scripts/benchmark-answer-coverage-replays.js",
     "benchmark:llm-shadow": "node --env-file-if-exists=.env scripts/benchmark-llm-led-shadow.js",
     "benchmark:simulations-live": "node scripts/benchmark-live-customer-simulations.js",
