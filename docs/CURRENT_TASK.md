@@ -2,10 +2,16 @@
 
 ## Status
 
-Belum ada task aktif. Seluruh tahap Prioritas 1 kini sudah diperkuat sampai Perbandingan Produk tanpa mengubah baseline yang stabil. Ketersediaan Stok dan overview katalog telah dikonfirmasi lulus 5/5 di production; patch Perbandingan Produk sudah lulus verifikasi lokal dan menunggu deploy/smoke production.
+Hardening intent Pengembalian Produk sudah lulus verifikasi lokal dan menunggu deploy serta smoke production. Seluruh Prioritas 1 tetap dipertahankan; pengguna telah mengonfirmasi smoke Perbandingan Produk lulus 5/5 di production.
 
 ## Current Progress
 
+- Semantic router kini membedakan jenis masalah retur (`return_damaged`, `return_incomplete`, `return_dented_box`, `return_wrong_item`, dan `return_change_of_mind`) serta tahap proses (`return_evidence`, `refund_timing`, dan `return_status`).
+- Goal retur dari LLM hanya memilih cabang respons. Tenggat klaim, waktu pemeriksaan, waktu refund, bukti, syarat, dan admin handoff tetap berasal dari builder deterministik `storePolicy.js`.
+- Parser lokal lama tetap menjadi fallback saat provider gagal, limit, atau semantic route tidak tepercaya.
+- Regression active-LLM mencakup `Pas unboxing kok tangan robotnya ga ada, mesti gimana?` dan `Duit baliknya biasanya nunggu brp lama?`.
+- Verifikasi Pengembalian Produk: full suite 410/410, coverage replay 9/9, serta benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
+- Pengguna mengonfirmasi lima smoke production Perbandingan Produk berjalan benar.
 - Intent `compare` kini memiliki goal terstruktur `comparison`. Prompt mewajibkan tepat dua `product_names` sesuai urutan penyebutan dan `requires_product: true`, termasuk bahasa santai seperti `A sama B enakan mana`.
 - Handler compare memakai dua nama LLM yang sudah grounded sebagai input utama, kemudian tetap mencocokkannya ke produk WooCommerce. Regex lama dipertahankan sebagai fallback ketika provider gagal, limit, atau tidak menghasilkan dua entitas tepercaya.
 - Regression active-LLM memakai kalimat natural yang tidak dapat dipecah aman oleh regex lama dan membuktikan dua produk yang benar dipilih serta kelebihan/kekurangan tetap berasal dari deskripsi fixture WooCommerce.
@@ -195,11 +201,11 @@ Belum ada task aktif. Seluruh tahap Prioritas 1 kini sudah diperkuat sampai Perb
 
 ## Active Task
 
-- Belum ada task aktif; LLM-Grounded Product Comparison sudah terverifikasi lokal dan menunggu deploy/smoke production.
+- Deploy dan smoke production untuk LLM-Grounded Product Return.
 
 ## Last Completed Task
 
-- Task: menghubungkan dua entitas produk dari semantic LLM ke handler Perbandingan Produk.
+- Task: menghubungkan dua entitas produk dari semantic LLM ke handler Perbandingan Produk dan memverifikasinya di production.
 - Tanggal selesai: 2026-10-06.
 - Goal: memahami bahasa perbandingan natural tanpa menjadikan LLM sumber fakta produk dan tanpa menghapus parser fallback lama.
 
@@ -271,9 +277,13 @@ Belum ada task aktif. Seluruh tahap Prioritas 1 kini sudah diperkuat sampai Perb
 ## Files Modified
 
 - `api/ask.js`
-- `lib/chatbot/productFormatter.js`
+- `lib/chatbot/llmAssistant.js`
+- `lib/chatbot/semanticRouter.js`
+- `lib/chatbot/storePolicy.js`
 - `tests/askRouting.test.js`
-- `tests/productFormatter.test.js`
+- `tests/llmAssistant.test.js`
+- `tests/semanticRouter.test.js`
+- `tests/storePolicy.test.js`
 - `docs/FEATURE_BASELINE.md`
 - `docs/PROJECT_CONTEXT.md`
 - `docs/CURRENT_TASK.md`
@@ -281,9 +291,9 @@ Belum ada task aktif. Seluruh tahap Prioritas 1 kini sudah diperkuat sampai Perb
 
 ## Next Steps
 
-1. Deploy patch Perbandingan Produk ke Vercel.
-2. Jalankan lima smoke compare: format eksplisit, bahasa natural, fokus harga, produk tidak ditemukan, dan follow-up produk kedua.
-3. Jika semuanya benar, bekukan Prioritas 1 dan lanjutkan hardening intent transaksi tanpa mengubah baseline commerce yang sudah lulus.
+1. Deploy patch Pengembalian Produk ke Vercel.
+2. Jalankan lima smoke retur: part kurang, barang rusak, bukti klaim, durasi refund, dan status pengajuan.
+3. Jika semuanya benar, bekukan logic retur dan lanjutkan intent berikutnya tanpa mengubah baseline yang sudah lulus.
 
 ## Blockers
 

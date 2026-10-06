@@ -11,6 +11,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Added
 
+- Added structured return-problem and return-process goals so the semantic router can distinguish damaged, incomplete, dented-box, wrong-item, change-of-mind, evidence, refund-timing, and return-status requests.
 - Added the structured `comparison` goal and required ordered pair of product entities for natural product-comparison requests.
 - Added a product-grounding language matrix for compact model codes, reordered names, attribute questions, light typos, ambiguity, and unknown-product inverse cases.
 - Added a structured LLM recommendation contract for price mode, target/range, purpose, stock, condition, and promo constraints.
@@ -22,6 +23,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Fixed
 
+- Connected trusted return goals to the deterministic store-policy builder. Casual complaints such as a missing robot hand now receive the incomplete-item procedure, while refund-duration questions receive the verified timeline without allowing the LLM to invent policy.
 - Connected two grounded LLM product entities to the comparison handler before the legacy regex parser, while retaining WooCommerce matching and the existing fallback path.
 - Fixed `brang apa saja yang dijual?` being treated as a search for a product named `brang` even though Gemini correctly returned a product-free catalog-search route. Shared normalization now maps `brang` to `barang`, and trusted object-free `product_search` understanding opens the WooCommerce catalog overview while named-series searches remain unchanged.
 - Normalized `lgs`, `lgsg`, and `lngs` to `langsung` and taught the semantic router that `bisa langsung dibungkus ... apa aja` requests the ready-stock list.
@@ -69,7 +71,9 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
-- LLM-grounded Product Comparison passes active-LLM endpoint regression, the full local suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. Production smoke is pending deployment.
+- LLM-grounded Product Return passes active-LLM endpoint regressions, the full 410/410 local suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. Production smoke is pending deployment.
+- The user confirmed the five Product Comparison production smoke cases pass.
+- LLM-grounded Product Comparison passes active-LLM endpoint regression, the full local suite, 9/9 answer-coverage replay turns, 26/26 customer-conversation turns with 135 assertions, and the user-confirmed 5/5 production smoke.
 - The user confirmed the five Stock Availability and catalog-overview production smoke cases pass.
 - The exact production fallback route for `brang apa saja yang dijual?` and a separate object-free `lihat produk` route pass endpoint regression; the full suite, 9/9 coverage replay, and 26/26 customer turns with 135 assertions pass.
 - LLM-grounded Stock Availability passes the full local suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. The first production smoke exposed the `lngs dibungkus` provider error; its correction is locally verified and awaits redeployment.

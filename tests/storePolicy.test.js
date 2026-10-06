@@ -193,3 +193,29 @@ test("answers each return follow-up with correlated but different policy", () =>
     assert.match(answer, /Laporkan ke Admin Robot Jadul/i);
   }
 });
+
+test("uses trusted LLM return goals when casual wording has no local subtype", () => {
+  const question = "Pas unboxing kok tangan robotnya ga ada, mesti gimana?";
+  const goals = ["return_policy", "return_incomplete"];
+  const answer = buildReturnPolicyMessage(question, { goals });
+
+  assert.equal(detectReturnIssue(question), "unknown");
+  assert.match(answer, /part kurang atau barang tidak lengkap/i);
+  assert.match(answer, new RegExp(RETURN_POLICY.claimWindow));
+  assert.doesNotMatch(answer, /Berikut alur retur/i);
+  assert.equal(
+    getReturnActionContext(question, { goals }),
+    "return_claim_help",
+  );
+});
+
+test("uses trusted LLM return process goals without changing policy facts", () => {
+  const answer = buildReturnPolicyMessage(
+    "Duit baliknya biasanya nunggu brp lama?",
+    { goals: ["refund", "refund_timing"] },
+  );
+
+  assert.match(answer, /Waktu refund dihitung/i);
+  assert.match(answer, new RegExp(RETURN_POLICY.reviewTime));
+  assert.match(answer, new RegExp(RETURN_POLICY.refundTime));
+});

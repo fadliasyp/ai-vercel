@@ -2169,8 +2169,12 @@ export default async function handler(req, res) {
             payment_methods: transactionCoverageSection,
             store_location: storeCoverageSection,
             store_hours: storeCoverageSection,
-            return_policy: buildReturnPolicyMessage(rawQuestion),
-            refund: buildReturnPolicyMessage(rawQuestion),
+            return_policy: buildReturnPolicyMessage(rawQuestion, {
+              goals: semanticDecisionIsPrimary ? groqRoute?.goals : [],
+            }),
+            refund: buildReturnPolicyMessage(rawQuestion, {
+              goals: semanticDecisionIsPrimary ? groqRoute?.goals : [],
+            }),
           },
           clarificationSections: {
             material: productClarification,
@@ -4152,12 +4156,19 @@ export default async function handler(req, res) {
     if (intentResult.intent === "return_product") {
       session.lastIntent = "return_product";
       session.lastTopic = "return_product";
+      const trustedReturnGoals = semanticDecisionIsPrimary
+        ? groqRoute?.goals || []
+        : [];
 
       return await send(
         {
           type: "text",
-          message: buildReturnPolicyMessage(rawQuestion),
-          _actionContext: getReturnActionContext(rawQuestion),
+          message: buildReturnPolicyMessage(rawQuestion, {
+            goals: trustedReturnGoals,
+          }),
+          _actionContext: getReturnActionContext(rawQuestion, {
+            goals: trustedReturnGoals,
+          }),
         },
         "return_product",
       );

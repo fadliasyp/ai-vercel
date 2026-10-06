@@ -920,6 +920,60 @@ test("routes real customer turns without stale products or fallback collisions",
 
     semanticRoute = {
       scope: "in_scope",
+      intent: "return_product",
+      intents: ["return_product"],
+      goals: ["return_policy", "return_incomplete"],
+      confidence: 0.97,
+      entities: {
+        product_names: [],
+        budget_min: null,
+        budget_max: null,
+      },
+      requires_product: false,
+      customer_state: "frustrated",
+      interpretation:
+        "Pelanggan melaporkan part produk tidak lengkap setelah unboxing.",
+      topic_relation: "new_topic",
+      needs_clarification: false,
+      clarification_question: null,
+    };
+
+    const llmIncompleteReturn = await ask(
+      "Pas unboxing kok tangan robotnya ga ada, mesti gimana?",
+      null,
+      { sessionId: `llm_incomplete_return_${Date.now()}` },
+    );
+    assert.equal(llmIncompleteReturn.intent, "return_product");
+    assert.equal(llmIncompleteReturn.type, "text");
+    assert.match(
+      llmIncompleteReturn.message,
+      /part kurang atau barang tidak lengkap/i,
+    );
+    assert.match(llmIncompleteReturn.message, /2 x 24 jam/i);
+    assert.equal(
+      llmIncompleteReturn.assistant_meta.llm_led.intent_source,
+      "llm",
+    );
+
+    semanticRoute = {
+      ...semanticRoute,
+      goals: ["refund", "refund_timing"],
+      customer_state: "neutral",
+      interpretation: "Pelanggan menanyakan durasi pencairan refund.",
+    };
+
+    const llmRefundTiming = await ask(
+      "Duit baliknya biasanya nunggu brp lama?",
+      null,
+      { sessionId: `llm_refund_timing_${Date.now()}` },
+    );
+    assert.equal(llmRefundTiming.intent, "return_product");
+    assert.equal(llmRefundTiming.type, "text");
+    assert.match(llmRefundTiming.message, /Waktu refund dihitung/i);
+    assert.match(llmRefundTiming.message, /3-7 hari kerja/i);
+
+    semanticRoute = {
+      scope: "in_scope",
       intent: "compare",
       intents: ["compare"],
       goals: ["comparison"],

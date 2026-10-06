@@ -239,7 +239,7 @@ Memakai pemahaman facet dari LLM untuk menjawab detail produk secara fokus, seme
 
 ### Status
 
-STABLE (local endpoint regression dan production smoke scope)
+STABLE (local endpoint regression scope)
 
 ### Function
 
@@ -276,7 +276,7 @@ Memakai intent dan goal LLM untuk memahami pertanyaan harga/promo informal, seme
 
 ### Status
 
-STABLE (local endpoint regression scope)
+STABLE (local endpoint regression dan production smoke scope)
 
 ### Function
 
@@ -318,7 +318,7 @@ Membedakan cek stok produk tertentu, daftar produk ready, dan kebijakan stok umu
 
 ### Status
 
-STABLE (local endpoint regression scope)
+STABLE (local endpoint regression dan production smoke scope)
 
 ### Function
 
@@ -353,7 +353,44 @@ Memahami dua produk yang ingin dibandingkan melalui structured LLM, kemudian men
 
 - Bukti lokal 2026-10-06: full suite lulus, answer-coverage replay 9/9 turn, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
 - Active-LLM endpoint regression membuktikan bahasa natural memakai dua produk terstruktur yang benar dan tetap membawa catatan deskripsi katalog.
-- Smoke production untuk patch Perbandingan Produk belum dijalankan.
+- Pengguna mengonfirmasi smoke production Perbandingan Produk lulus 5/5.
+
+## LLM-Grounded Product Return
+
+### Status
+
+STABLE (local endpoint regression scope; production smoke pending)
+
+### Function
+
+Memahami jenis kendala dan tahap proses retur dari bahasa sehari-hari, lalu menyusun jawaban hanya dari kebijakan toko deterministik.
+
+### Correct Behavior
+
+- Intent `return_product` dapat membawa goal masalah rusak, part kurang, box penyok, salah barang, atau berubah pikiran.
+- Goal proses membedakan permintaan bukti, waktu refund, dan status laporan.
+- LLM hanya memilih jenis kebutuhan; tenggat `2 x 24 jam`, pemeriksaan `1-3 hari kerja`, refund `3-7 hari kerja`, syarat, dan admin handoff berasal dari `storePolicy.js`.
+- Parser lokal tetap menjadi fallback ketika semantic route tidak tersedia atau tidak tepercaya.
+
+### Do Not Break
+
+- Jangan menjadikan LLM sumber kebijakan atau menjanjikan retur/refund otomatis disetujui.
+- Jangan mengungkap status laporan pribadi; arahkan verifikasi aman melalui admin.
+- Jangan menghapus fallback lokal atau mengubah response shape text/action yang dipakai frontend.
+
+### Important Files
+
+- `api/ask.js`
+- `lib/chatbot/semanticRouter.js`
+- `lib/chatbot/llmAssistant.js`
+- `lib/chatbot/storePolicy.js`
+- `tests/askRouting.test.js`
+- `tests/storePolicy.test.js`
+
+### Verification
+
+- Bukti lokal 2026-10-06: full suite 410/410, answer-coverage replay 9/9 turn (59,4% menjadi 88,9%), dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
+- Active-LLM endpoint regression membuktikan keluhan part kurang dan pertanyaan durasi refund memakai subtype LLM tetapi mempertahankan fakta policy deterministik.
 
 ## Multi-turn Product Continuity
 
