@@ -100,6 +100,7 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 - `harga 7 jutaan` dan `harga sekitar 7 juta` diperlakukan sebagai target harga, lalu kandidat terdekat diprioritaskan.
 - Nominal yang langsung mengikuti permintaan rekomendasi, misalnya `rekomen robot 19 jutaan` atau `rekomendasiin robot 6 jutaan`, juga diperlakukan sebagai target harga meskipun kata `harga` tidak ditulis.
 - `budget sekitar 12 jutaan` dan `dana kisaran 12 juta` diperlakukan sebagai target mendekati Rp12 juta sekaligus batas maksimum Rp12 juta, sehingga produk yang jauh lebih murah tidak menang hanya karena promo/popularitas.
+- `budget 9 jutaan` pada permintaan rekomendasi juga berarti target mendekati Rp9 juta sekaligus batas maksimum Rp9 juta. Akhiran `-an` membedakannya dari batas eksplisit `budget maksimal`, `di bawah`, atau `cuma punya`.
 - `budget maksimal 7 juta`, `di bawah 7 juta`, dan rentang `5 juta sampai 7 juta` tetap menjadi batas keras.
 - Kalimat yang meminta keputusan seperti `budget maksimal 4 juta, enaknya ambil robot yang mana?` tetap recommendation walaupun provider keliru memilih `price_promo`; batas maksimalnya tetap difilter secara keras.
 - Pernyataan pelanggan seperti `gue punya budget` bukan permintaan mencari produk bernama dan tidak boleh memicu guard produk tidak tersedia.
@@ -145,6 +146,7 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 - Bukti production 2026-10-06: smoke manual pengguna lulus 3/3 untuk target harga, rentang + kebutuhan, dan refinement harga singkat dalam sesi yang sama.
 - Bukti lokal 2026-10-06 untuk named-family recommendation: full suite 406/406, replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus. Smoke production belum dijalankan.
 - Bukti 2026-10-07 untuk konflik recommendation-versus-price: full suite 410/410, replay 9/9 turn, benchmark pelanggan 26/26 turn (135 assertion, 100%), dan smoke production 3/3 lulus.
+- Bukti lokal 2026-10-07 untuk `budget 9 jutaan`: full suite 411/411, replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus. Smoke production patch masih pending.
 
 ## Product Grounding
 

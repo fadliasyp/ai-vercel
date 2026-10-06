@@ -17,6 +17,13 @@ const recommendationCases = [
     budgetMax: 7000000,
   },
   {
+    question: "rekomen dong robot buat kado budget 9 jutaan",
+    priceMode: "target",
+    targetPrice: 9000000,
+    budgetMax: 9000000,
+    wantsGift: true,
+  },
+  {
     question: "nyari robot 5-8jt buat dipajang",
     priceMode: "range",
     budgetMin: 5000000,

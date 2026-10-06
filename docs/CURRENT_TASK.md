@@ -2,7 +2,7 @@
 
 ## Status
 
-Format log intent untuk kebutuhan sidang sudah diubah secara lokal dan menunggu deploy serta pemeriksaan tampilan di Vercel. Koreksi konflik rekomendasi sudah dikonfirmasi lulus 3/3 di production dan Pengembalian Produk lulus 5/5.
+Koreksi `budget 9 jutaan` sebagai target harga rekomendasi sudah lulus verifikasi lokal dan menunggu deploy serta satu smoke production. Koreksi konflik intent rekomendasi tetap lulus 3/3 di production dan Pengembalian Produk lulus 5/5.
 
 ## Current Progress
 
@@ -12,6 +12,10 @@ Format log intent untuk kebutuhan sidang sudah diubah secara lokal dan menunggu 
 - Regression endpoint memakai pertanyaan dan output Groq production persis. Hasil wajib berupa kartu rekomendasi dengan harga maksimal Rp4 juta dan tidak boleh memakai intro promo.
 - Verifikasi patch rekomendasi: full suite 410/410, coverage replay 9/9, serta benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
 - Pengguna mengonfirmasi tiga smoke production koreksi rekomendasi lulus 3/3.
+- Log production `Rekomen dong robot buat kado budget 9 jutaan` menunjukkan intent dan tujuan kado sudah benar, tetapi provider mengirim `price_mode: maximum`; akibatnya produk jauh lebih murah tetap lolos dan mengalahkan kandidat dekat Rp9 juta.
+- Resolver harga kini mengubah `budget X jutaan` menjadi target X sekaligus batas maksimum X, meskipun provider salah mengirim mode `maximum`. Kata batas eksplisit seperti `maksimal`, `di bawah`, atau `cuma punya` tetap menjadi maximum.
+- Regression memakai kalimat production persis dan memastikan kandidat Rp650 ribu/Rp3 juta ditolak, sedangkan produk Rp7,5-Rp9 juta diprioritaskan.
+- Verifikasi koreksi target budget: full suite 411/411, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
 - Log intent presentasi kini selalu menampilkan `method: "ML"` tanpa nama provider/model. Method dan identitas provider/model asli tetap dicetak pada blok `INTENT LOG ASLI (DEBUG - ROUTER)` tepat sebelum respons dikirim.
 - Perubahan format log hanya memengaruhi `console.log`; nilai internal untuk routing, session, observability, dan respons tidak diubah. Full suite tetap lulus 410/410.
 - Pengguna mengonfirmasi lima smoke production Pengembalian Produk berjalan benar.
@@ -210,7 +214,7 @@ Format log intent untuk kebutuhan sidang sudah diubah secara lokal dan menunggu 
 
 ## Active Task
 
-- Deploy dan periksa format log intent presentasi di Vercel.
+- Deploy dan smoke production koreksi target harga `budget X jutaan`.
 
 ## Last Completed Task
 
@@ -285,7 +289,11 @@ Format log intent untuk kebutuhan sidang sudah diubah secara lokal dan menunggu 
 
 ## Files Modified
 
-- `api/ask.js`
+- `lib/chatbot/productRecommendation.js`
+- `lib/chatbot/semanticRouter.js`
+- `tests/productRecommendationReasoning.test.js`
+- `tests/recommendationLanguageMatrix.test.js`
+- `tests/semanticRouter.test.js`
 - `docs/FEATURE_BASELINE.md`
 - `docs/PROJECT_CONTEXT.md`
 - `docs/CURRENT_TASK.md`
@@ -293,9 +301,9 @@ Format log intent untuk kebutuhan sidang sudah diubah secara lokal dan menunggu 
 
 ## Next Steps
 
-1. Deploy perubahan format log ke Vercel.
-2. Kirim satu pertanyaan biasa dan pastikan log intent utama memakai `method: "ML"` tanpa nama provider/model.
-3. Pastikan blok `INTENT LOG ASLI (DEBUG - ROUTER)` berada paling bawah dan masih memuat method, router, serta response provider/model asli untuk debugging.
+1. Deploy koreksi target harga rekomendasi ke Vercel.
+2. Ulangi `Rekomen dong robot buat kado budget 9 jutaan` dan pastikan seluruh hasil berada pada Rp7,2-Rp9 juta.
+3. Jalankan kasus kebalikan `Rekomen robot budget maksimal 9 juta` dan pastikan tetap diperlakukan sebagai batas maksimum, bukan target harga.
 
 ## Blockers
 
