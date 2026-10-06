@@ -173,7 +173,49 @@ Menghubungkan bahasa pelanggan ke produk WooCommerce yang benar sebelum harga, s
 
 - Bukti lokal 2026-10-06: 400/400 test lulus.
 - Answer-coverage replay lulus 9/9 turn; coverage 59,4% menjadi 88,9%.
-- Production smoke: belum dijalankan untuk perubahan ini.
+- Bukti production 2026-10-06: smoke manual pengguna lulus 5/5 untuk kode rapat, material + harga, dimensi + stok, ambiguity, dan unknown model.
+
+## Multi-turn Product Continuity
+
+### Status
+
+STABLE (local resolver dan endpoint regression scope; production smoke pending)
+
+### Function
+
+Mempertahankan objek produk yang benar ketika pelanggan melanjutkan percakapan dengan bahasa singkat, sambil tetap membedakan follow-up dari produk atau topik baru.
+
+### Correct Behavior
+
+- Follow-up fakta seperti `masih ready gak?`, `ada diskon gak?`, `ada fotonya?`, `lengkap gak?`, dan `full die-cast nggak?` memakai produk fokus terakhir.
+- Kata `keduanya` dan `dua-duanya` merujuk ke dua produk terakhir hanya jika kandidatnya tepat dua.
+- Pilihan ordinal seperti `yang kedua` tetap merujuk ke urutan produk sebelumnya.
+- Nama produk baru yang disebut eksplisit mengganti fokus lama dan menjadi konteks untuk follow-up berikutnya.
+- Pertanyaan katalog umum seperti `ada promo apa aja?` dan `semua yang ready apa aja?` tidak dipersempit ke produk fokus.
+
+### Do Not Break
+
+- Jangan mewarisi produk lama ketika pelanggan menyebut produk baru.
+- Jangan menebak arti `keduanya` ketika konteks memuat lebih dari dua produk.
+- Jangan mengubah pertanyaan promo, harga, foto, atau detail menjadi pencarian ketersediaan katalog hanya karena memakai kata `ada`.
+- Jangan mengubah response shape produk yang dipakai renderer frontend.
+
+### Important Files
+
+- `lib/chatbot/conversationGoal.js`
+- `lib/chatbot/questionUnderstanding.js`
+- `lib/chatbot/productSearch.js`
+- `api/ask.js`
+- `tests/conversationGoal.test.js`
+- `tests/askRouting.test.js`
+- `scripts/smoke-ask.js`
+
+### Verification
+
+- Bukti lokal 2026-10-06: 403/403 test lulus.
+- Answer-coverage replay lulus 9/9 turn.
+- Benchmark pelanggan lulus 26/26 turn dengan 135 assertion (100%).
+- Smoke production 9 kasus belum dijalankan setelah perubahan ini.
 
 ## Product Restock Schedule
 

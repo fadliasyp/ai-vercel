@@ -4262,6 +4262,26 @@ export default async function handler(req, res) {
       return catalogMatch;
     }
 
+    function resolveReferencedProducts(products) {
+      const catalog = Array.isArray(products) ? products : [];
+      const seen = new Set();
+
+      return conversationTurn.referencedProducts
+        .map((reference) =>
+          catalog.find(
+            (product) =>
+              (reference?.id && Number(product?.id) === Number(reference.id)) ||
+              normalize(product?.name || "") === normalize(reference?.name || ""),
+          ),
+        )
+        .filter((product) => {
+          const key = String(product?.id || product?.name || "");
+          if (!key || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+    }
+
     // ==============================
     // ALAMAT TOKO (SHIPPING ORIGIN) HANDLER
     // ==============================
@@ -6836,6 +6856,21 @@ Kembalikan JSON valid:
     // =====================
 
     if (intentResult.intent === "price_promo" && !hasPriceIntent) {
+      const referencedProducts = resolveReferencedProducts(cleanProducts);
+      if (referencedProducts.length > 1) {
+        session.lastProducts = referencedProducts;
+        session.lastTopic = "price";
+        session.lastIntent = "price_promo";
+
+        return await send(
+          {
+            type: "products",
+            products: referencedProducts,
+          },
+          "price_promo",
+        );
+      }
+
       const productMatch = resolveRequestedProduct(rawQuestion, cleanProducts);
       const bestProduct = productMatch.product;
 
@@ -6890,6 +6925,21 @@ Kembalikan JSON valid:
           {
             type: "text",
             message: "Mau cek stok produk apa? Sebutkan nama produknya ya.",
+          },
+          "stock_availability",
+        );
+      }
+
+      const referencedProducts = resolveReferencedProducts(cleanProducts);
+      if (referencedProducts.length > 1) {
+        session.lastProducts = referencedProducts;
+        session.lastTopic = "stock";
+        session.lastIntent = "stock_availability";
+
+        return await send(
+          {
+            type: "products",
+            products: referencedProducts,
           },
           "stock_availability",
         );
@@ -6961,6 +7011,25 @@ Kembalikan JSON valid:
             type: "text",
             message:
               "Mau cek detail produk apa? Sebutkan nama atau kode produknya ya.",
+          },
+          "product_detail",
+        );
+      }
+
+      const referencedProducts = resolveReferencedProducts(cleanProducts);
+      if (referencedProducts.length > 1) {
+        session.lastProducts = referencedProducts;
+        session.lastTopic = "product_detail";
+        session.lastIntent = "product_detail";
+
+        return await send(
+          {
+            type: "products",
+            products: referencedProducts,
+            reasoning_text: referencedProducts
+              .map((product) => buildProductDetailMessage(product))
+              .join("\n\n"),
+            _noTruncateReasoning: true,
           },
           "product_detail",
         );

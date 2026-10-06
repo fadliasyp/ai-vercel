@@ -280,11 +280,40 @@ const CASES = [
     id: "context_focused_product_followup",
     questions: [
       "Mau tanya bahan Jumbo Machinder Mazinger Z",
-      "stoknya masih ada?",
+      "masih ready gak?",
     ],
     expectedIntent: "stock_availability",
     expectedProductName: "Jumbo Machinder Mazinger Z",
     minProducts: 1,
+  },
+  {
+    id: "context_focused_product_promo_followup",
+    questions: [
+      "Mau tanya bahan Jumbo Machinder Mazinger Z",
+      "ada diskon gak?",
+    ],
+    expectedIntent: "price_promo",
+    expectedProductName: "Jumbo Machinder Mazinger Z",
+    minProducts: 1,
+  },
+  {
+    id: "context_focused_product_photo_followup",
+    questions: [
+      "Mau tanya bahan Jumbo Machinder Mazinger Z",
+      "ada fotonya?",
+    ],
+    expectedIntent: "product_detail",
+    expectedProductName: "Jumbo Machinder Mazinger Z",
+    minProducts: 1,
+  },
+  {
+    id: "context_pair_stock_followup",
+    questions: [
+      "Bandingkan Jumbo Machinder Mazinger Z dengan Soul of Chogokin GX-92 Ideon Full Action",
+      "keduanya ready gak?",
+    ],
+    expectedIntent: "stock_availability",
+    minProducts: 2,
   },
   {
     id: "context_explicit_product_switch",
@@ -321,6 +350,9 @@ const CONTEXT_CASE_IDS = new Set([
   "context_recommendation_price_refinement",
   "context_ordinal_stock_followup",
   "context_focused_product_followup",
+  "context_focused_product_promo_followup",
+  "context_focused_product_photo_followup",
+  "context_pair_stock_followup",
   "context_explicit_product_switch",
   "context_restock_topic_switch",
   "context_interrupt_shipping_pending",

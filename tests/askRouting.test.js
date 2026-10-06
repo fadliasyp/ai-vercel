@@ -481,10 +481,11 @@ test("routes real customer turns without stale products or fallback collisions",
     );
     assert.match(bareTargetRecommendation.reasoning_text, /Rp\s*6\.000\.000/);
 
+    const sevenMillionSession = `target_price_7m_${Date.now()}`;
     const sevenMillionRecommendation = await ask(
       "Rekomendasi dong yg harga 7 jutaan",
       null,
-      { sessionId: `target_price_7m_${Date.now()}` },
+      { sessionId: sevenMillionSession },
     );
     assert.equal(sevenMillionRecommendation.intent, "recommendation");
     assert.equal(sevenMillionRecommendation.type, "products");
@@ -493,6 +494,15 @@ test("routes real customer turns without stale products or fallback collisions",
       "Fewture Getter Set 1,2,3 Black Version",
     ]);
     assert.match(sevenMillionRecommendation.reasoning_text, /Rp\s*7\.000\.000/);
+
+    const bothRecommendedProducts = await ask("keduanya ready gak?", null, {
+      sessionId: sevenMillionSession,
+    });
+    assert.equal(bothRecommendedProducts.intent, "stock_availability");
+    assert.deepEqual(
+      productNames(bothRecommendedProducts),
+      productNames(sevenMillionRecommendation),
+    );
 
     const fourMillionRecommendation = await ask(
       "Rekomendasi dong yg harga 4 jutaan",
@@ -556,11 +566,35 @@ test("routes real customer turns without stale products or fallback collisions",
     assert.deepEqual(productNames(focusedProductDetail), [
       "Jumbo Machinder Mazinger Z",
     ]);
-    const focusedProductStock = await ask("stoknya masih ada?", null, {
+    const focusedProductStock = await ask("masih ready gak?", null, {
       sessionId: focusedProductSession,
     });
     assert.equal(focusedProductStock.intent, "stock_availability");
     assert.deepEqual(productNames(focusedProductStock), [
+      "Jumbo Machinder Mazinger Z",
+    ]);
+
+    const focusedProductPromo = await ask("ada diskon gak?", null, {
+      sessionId: focusedProductSession,
+    });
+    assert.equal(focusedProductPromo.intent, "price_promo");
+    assert.deepEqual(productNames(focusedProductPromo), [
+      "Jumbo Machinder Mazinger Z",
+    ]);
+
+    const focusedProductPhoto = await ask("ada fotonya?", null, {
+      sessionId: focusedProductSession,
+    });
+    assert.equal(focusedProductPhoto.intent, "product_detail");
+    assert.deepEqual(productNames(focusedProductPhoto), [
+      "Jumbo Machinder Mazinger Z",
+    ]);
+
+    const focusedProductMaterial = await ask("full die-cast nggak?", null, {
+      sessionId: focusedProductSession,
+    });
+    assert.equal(focusedProductMaterial.intent, "product_detail");
+    assert.deepEqual(productNames(focusedProductMaterial), [
       "Jumbo Machinder Mazinger Z",
     ]);
 
@@ -571,6 +605,14 @@ test("routes real customer turns without stale products or fallback collisions",
     );
     assert.equal(explicitProductSwitch.intent, "price_promo");
     assert.deepEqual(productNames(explicitProductSwitch), [
+      "Action Toys Ideon",
+    ]);
+
+    const switchedProductFollowUp = await ask("bahannya apa?", null, {
+      sessionId: focusedProductSession,
+    });
+    assert.equal(switchedProductFollowUp.intent, "product_detail");
+    assert.deepEqual(productNames(switchedProductFollowUp), [
       "Action Toys Ideon",
     ]);
 

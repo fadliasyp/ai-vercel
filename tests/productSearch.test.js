@@ -495,6 +495,22 @@ test("finds a non-promo catalog product before evaluating its promotion", () => 
   assert.equal(matches[0].isPromo, false);
 });
 
+test("does not treat price or promotion follow-ups as catalog availability", () => {
+  for (const question of [
+    "Ada Ideon yang diskon gak?",
+    "Ada diskon gak? Produk: Jumbo Machinder Mazinger Z",
+    "Harga Mazinger Z ada potongan?",
+    "Ada foto Jumbo Machinder Mazinger Z?",
+    "Ada info bahan Ideon?",
+  ]) {
+    assert.equal(
+      looksLikeSpecificCatalogAvailabilityQuestion(question),
+      false,
+      question,
+    );
+  }
+});
+
 test("prefers the matching promo product for a compound request", () => {
   const result = findBestProductForCompoundRequest(
     "Mazinger Z yang promonya masih ready dan bisa dikirim hari ini?",

@@ -202,6 +202,64 @@ test("resolves possessive product facts to the focused product", () => {
   );
 });
 
+test("resolves natural elliptical facts to the focused product", () => {
+  const activeGoal = {
+    intent: "product_detail",
+    products: [products[0]],
+    focusedProductName: products[0].name,
+  };
+
+  for (const question of [
+    "masih ready gak?",
+    "ready sisa berapa pcs?",
+    "ada diskon gak?",
+    "ada fotonya?",
+    "linknya mana?",
+    "lengkap gak?",
+    "worth it gak?",
+    "full die-cast nggak?",
+  ]) {
+    const result = resolveConversationTurn(question, { activeGoal });
+    assert.equal(result.usesPreviousProducts, true, question);
+    assert.equal(result.referencedProducts[0]?.id, products[0].id, question);
+    assert.match(result.question, /Robot Alpha/, question);
+  }
+
+  for (const question of [
+    "ada promo apa aja?",
+    "semua yang ready apa aja?",
+    "Mazinger Z masih ready?",
+  ]) {
+    assert.equal(
+      resolveConversationTurn(question, { activeGoal }).changed,
+      false,
+      question,
+    );
+  }
+});
+
+test("treats keduanya as a pair instead of the second product", () => {
+  const pair = products.slice(0, 2);
+
+  for (const question of [
+    "keduanya harganya berapa?",
+    "dua-duanya ready gak?",
+    "bandingkan kedua-duanya",
+  ]) {
+    const result = resolveConversationTurn(question, { lastProducts: pair });
+    assert.deepEqual(result.referencedProducts, pair, question);
+    assert.match(result.question, /Robot Alpha/, question);
+    assert.match(result.question, /Robot Beta/, question);
+  }
+
+  assert.equal(
+    resolveConversationTurn("keduanya ready?", {
+      lastProducts: products,
+    }).changed,
+    false,
+  );
+});
+
 test("keeps a compact product goal and preserves it across shipping", () => {
   const goal = buildActiveConversationGoal(null, {
     intent: "recommendation",

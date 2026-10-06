@@ -31,6 +31,7 @@ Status project: **aktif dikembangkan**.
 - Normalisasi bahasa Indonesia, variasi ejaan, typo fallback, dan analisis bentuk kata.
 - Pencarian katalog, detail, harga/promo, stok, rekomendasi, dan perbandingan WooCommerce.
 - Product Grounding menormalisasi kode model rapat (`GX92`, `GX-92`, `GX 92`) dan memisahkan kata kebutuhan seperti bahan/dimensi/berat/aksesori dari identitas produk. Match ambigu tetap meminta pilihan dan produk tidak dikenal tidak diganti diam-diam.
+- Product Grounding tersebut lulus smoke production 5/5 pada 2026-10-06, mencakup exact match, pertanyaan majemuk, ambiguity, dan unknown model.
 - Jadwal restock per produk dari metadata WPC Product Timer, termasuk daftar semua restock mendatang dan pencarian satu produk.
 - Strength/caveat rekomendasi serta perbandingan dapat memakai deskripsi produk WooCommerce.
 - Rekomendasi membedakan target harga seperti `harga 7 jutaan` dan `rekomen robot 19 jutaan` dari batas budget; target harga hanya menerima kandidat dalam toleransi 20%, sedangkan batas/rentang tetap menjadi filter keras. Frasa `budget sekitar/kisaran X` memakai X sebagai target sekaligus batas maksimum.
@@ -41,6 +42,7 @@ Status project: **aktif dikembangkan**.
 - Pada permintaan memilih produk, kebutuhan ready stock dan tujuan seperti display/kado/koleksi tetap menjadi constraint rekomendasi, bukan pengganti intent utama.
 - Goal rekomendasi menyimpan target harga, mode harga, dan tujuan penggunaan agar LLM dapat menyelesaikan follow-up alami tanpa memaksakan constraint lama ke `new_topic`.
 - Produk fokus mendukung follow-up atribut alami seperti `stoknya`, `harganya`, `kondisinya`, dan `bahannya`; nama produk eksplisit serta produk halaman tetap memiliki prioritas lebih tinggi.
+- Produk fokus juga mendukung elipsis sehari-hari seperti `masih ready?`, `ada diskon?`, `ada fotonya?`, dan `full die-cast nggak?`. Rujukan `keduanya` hanya dipakai saat konteks tepat dua produk; pertanyaan katalog umum dan nama produk baru tetap bebas dari konteks lama.
 - Kebijakan pembayaran, COD, packing, asuransi, retur/refund, jam/lokasi toko, dan pengiriman internasional.
 - Ongkir domestik melalui endpoint WordPress custom dengan pemilihan kota/kecamatan.
 - Verifikasi status pesanan dengan Order ID plus email/telepon billing.

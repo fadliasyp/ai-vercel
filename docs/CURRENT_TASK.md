@@ -2,15 +2,22 @@
 
 ## Status
 
-Belum ada task aktif. Product Grounding untuk nama pendek, pertanyaan atribut, dan kode model rapat sudah selesai serta terverifikasi lokal; deployment dan smoke production masih menunggu pengguna.
+Belum ada task aktif. Tahap Multi-turn Product Continuity sudah selesai secara lokal; deployment dan smoke production 9 kasus masih menunggu pengguna. Baseline Product Grounding dan rekomendasi yang sebelumnya lulus tetap dipertahankan.
 
 ## Current Progress
 
+- Follow-up alami tanpa kata ganti eksplisit, seperti `masih ready gak?`, `ada diskon gak?`, `ada fotonya?`, `lengkap gak?`, dan `full die-cast nggak?`, kini tetap terhubung ke produk fokus terakhir.
+- Rujukan `keduanya`/`dua-duanya` mempertahankan tepat dua produk sebelumnya dan dapat menampilkan fakta keduanya; sistem tidak menebak jika kandidat sebelumnya lebih dari dua.
+- Produk yang disebut eksplisit tetap mengalahkan konteks lama, sedangkan permintaan katalog umum seperti `ada promo apa aja?` dan `semua yang ready apa aja?` tidak diwarisi ke satu produk.
+- Guard pencarian produk tidak lagi mengambil alih pertanyaan promo, harga, foto, atau detail hanya karena kalimat memakai kata `ada`.
+- Verifikasi tahap Multi-turn Product Continuity: 403/403 test lokal, coverage replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus.
+- `npm run benchmark:context` kini memiliki 9 gate production, termasuk stok produk fokus, promo, foto, dua produk, perpindahan produk eksplisit, dan interupsi pending ongkir.
 - Product matcher kini memisahkan huruf dan angka pada kode rapat, sehingga `GX92` diperlakukan sama dengan `GX-92`/`GX 92` tanpa mengubah angka percakapan biasa menjadi model number.
 - Kata kebutuhan seperti bahan, dimensi, berat, aksesori, harga nett, dan satuan tidak lagi mencemari token nama produk. Pertanyaan `Ideon bahannya metal atau plastik?` tetap berlabuh ke produk Ideon, lalu facet material dijawab dari katalog.
 - Guard tetap konservatif: `getter black` meminta klarifikasi ketika beberapa produk dekat, `ideon ultraman` tidak ditebak, dan kode salah `GX99 Ideon` tidak dialihkan ke `GX-92`.
 - Regression matrix menjaga susunan nama terbalik, typo ringan, kode model, atribut produk, nama lini `POSE+ METAL`, ambiguity, dan unknown product.
 - Verifikasi akhir tahap Product Grounding: 400/400 test lulus dan coverage replay 9/9 turn dengan coverage 59,4% ke 88,9%.
+- Pengguna mengonfirmasi smoke production 5/5 lulus untuk kode model rapat, pertanyaan material + harga, dimensi + stok, produk ambigu, dan kode model yang tidak tersedia.
 - Menambahkan matriks regression berbasis data untuk variasi rekomendasi sehari-hari: `rekomen`, `pilihin`, `mnurut lu`, `pengen`, `jtan/jtaan`, `sd`, nominal dengan spasi, tujuan pajangan/kado/koleksi, dan syarat ready stock.
 - Normalisasi harga bersama kini memahami unit informal serta typo ringan tanpa mengubah model number menjadi nominal.
 - Intent rekomendasi mempertahankan stok dan tujuan penggunaan sebagai constraint. Kalimat `yang ready dan paling cocok buat display yang mana?` tidak lagi turun menjadi cek stok saja.
@@ -118,7 +125,7 @@ Belum ada task aktif. Product Grounding untuk nama pendek, pertanyaan atribut, d
 
 ## Active Task
 
-- Belum ada task aktif; Product Grounding sudah terverifikasi lokal. Next step yang disarankan adalah deploy lalu smoke production terarah.
+- Belum ada task aktif; Product Grounding sudah terverifikasi lokal dan production.
 
 ## Last Completed Task
 
@@ -132,6 +139,7 @@ Belum ada task aktif. Product Grounding untuk nama pendek, pertanyaan atribut, d
 - Mengeluarkan kata atribut produk dan satuan dari token identitas produk.
 - Menambahkan `tests/productGroundingLanguageMatrix.test.js` serta regression endpoint pertanyaan material + harga untuk Ideon.
 - Memverifikasi 400/400 test dan coverage replay 9/9 turn.
+- Memverifikasi smoke production 5/5 berdasarkan pengujian manual pengguna.
 - Menambahkan `tests/recommendationLanguageMatrix.test.js` agar variasi bahasa dan kasus kebalikannya diuji otomatis oleh `npm test`.
 - Memusatkan normalisasi nominal informal pada parser harga bersama dan menyelaraskan explicit intent fallback dengan kontrak semantic router.
 - Menjaga LLM sebagai pemahaman utama pada mode aktif, dengan parser/validator lokal sebagai grounding dan fallback yang tidak boleh membelokkan intent tepercaya.
@@ -228,8 +236,9 @@ Belum ada task aktif. Product Grounding untuk nama pendek, pertanyaan atribut, d
 
 ## Next Steps
 
-1. Lanjutkan ke audit intent berikutnya berdasarkan prioritas sidang, tanpa mengubah baseline rekomendasi yang sudah lulus.
-2. Pantau metadata intent/provider, latency, HTTP 429/5xx, dan konsumsi quota sebelum uji pengguna ramai.
+1. Deploy perubahan lalu jalankan `npm.cmd run benchmark:context -- --endpoint https://ai-vercel-ten-sigma.vercel.app/api/ask` untuk smoke production 9 kasus.
+2. Setelah smoke production lulus, lanjutkan audit intent berikutnya tanpa mengubah baseline rekomendasi, Product Grounding, dan kontinuitas produk.
+3. Pantau metadata intent/provider, latency, HTTP 429/5xx, dan konsumsi quota sebelum uji pengguna ramai.
 
 ## Blockers
 

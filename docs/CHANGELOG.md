@@ -10,6 +10,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Added a structured LLM recommendation contract for price mode, target/range, purpose, stock, condition, and promo constraints.
 - Added verified recommendation context fields so natural follow-ups can retain target price and purpose without leaking them into explicit new topics.
 - Added `npm run benchmark:context` with six multi-turn gates covering recommendation price refinement, ordinal selection, focused-product pronouns, explicit product switches, restock topic switches, and interruption of pending shipping questions.
+- Expanded `benchmark:context` to nine multi-turn production gates with focused-product promo/photo follow-ups and two-product references.
 
 ### Fixed
 
@@ -29,10 +30,14 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Fixed fallback parsing for `jangan lebih dari 6 juta`, mixed lower/upper bounds with negation, and informal `budget gue/gw` wording.
 - Fixed bare recommendation amounts such as `rekomen cok robot 19 jutaan` not becoming a target price when the customer omitted the word `harga`.
 - Removed the distant-product fallback for target-price recommendations. When no product is within 20% of the requested target, the system now returns no matching candidate instead of unrelated Rp1.5-Rp3.5 million products.
+- Fixed natural focused-product follow-ups such as `masih ready gak?`, `ada diskon gak?`, `ada fotonya?`, and `full die-cast nggak?` losing the product discussed in the preceding turn.
+- Fixed `keduanya` being interpreted as only the second product. Pair references now resolve only when exactly two prior products are available.
+- Prevented price, promotion, photo, and product-detail questions containing `ada` from being hijacked by the catalog-availability guard.
 
 ### Verification
 
-- Product-grounding verification passes 400/400 local tests and 9/9 answer-coverage replay turns (59.4% before repair, 88.9% after repair). Production smoke is pending.
+- Product-grounding verification passes 400/400 local tests, 9/9 answer-coverage replay turns (59.4% before repair, 88.9% after repair), and 5/5 user-run production smoke cases.
+- Multi-turn Product Continuity passes 403/403 local tests, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. Production smoke is pending.
 - User-verified production smoke passes 3/3 for an approximate target, a bounded range with product-purpose constraints, and a terse same-session price refinement.
 - Added unit and full `/api/ask` regressions using the production question and a deliberately wrong Groq-shaped `maximum` result. All 399 local tests pass; only products within the Rp5.6-Rp8.4 million target window survive.
 - Added a data-driven language matrix and follow-up regressions. All 397 local tests pass, answer-coverage replay passes 9/9 turns, and the customer conversation benchmark passes 26/26 turns with 135 assertions (100%).
