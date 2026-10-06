@@ -6315,7 +6315,18 @@ export default async function handler(req, res) {
     // ===============================
     // RINGKASAN KATALOG / JUMLAH PRODUK
     // ===============================
-    if (isCatalogOverviewQuestion(rawQuestion)) {
+    const llmRequestsCatalogOverview =
+      semanticDecisionIsPrimary &&
+      intentResult.intent === "product_discovery" &&
+      groqRoute?.goals?.includes("product_search") &&
+      trustedLlmProductNames.length === 0 &&
+      groqRoute.requires_product === false &&
+      !hasSpecificProductSearchTerms(rawQuestion);
+
+    if (
+      llmRequestsCatalogOverview ||
+      isCatalogOverviewQuestion(rawQuestion)
+    ) {
       const products = await getCleanProducts();
       const overview = buildCatalogOverview(products, 10);
 

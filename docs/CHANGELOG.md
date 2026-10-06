@@ -21,6 +21,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Fixed
 
+- Fixed `brang apa saja yang dijual?` being treated as a search for a product named `brang` even though Gemini correctly returned a product-free catalog-search route. Shared normalization now maps `brang` to `barang`, and trusted object-free `product_search` understanding opens the WooCommerce catalog overview while named-series searches remain unchanged.
 - Normalized `lgs`, `lgsg`, and `lngs` to `langsung` and taught the semantic router that `bisa langsung dibungkus ... apa aja` requests the ready-stock list.
 - Added a narrow `global_ready_stock_guard` so a high-confidence provider misclassification cannot turn that fulfillment phrase into a product keyword; product facts still come only from WooCommerce.
 - Added an endpoint regression using the exact wrong Groq route captured in production (`product_discovery`, confidence 0.92, no product entity).
@@ -66,6 +67,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
+- The exact production fallback route for `brang apa saja yang dijual?` and a separate object-free `lihat produk` route pass endpoint regression; the full suite, 9/9 coverage replay, and 26/26 customer turns with 135 assertions pass.
 - LLM-grounded Stock Availability passes the full local suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. The first production smoke exposed the `lngs dibungkus` provider error; its correction is locally verified and awaits redeployment.
 - LLM-grounded Price/Promo passes the full local suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. The LLM shadow benchmark is blocked by an invalid local Vercel CLI token; the user-confirmed production smoke passes 5/5.
 - The user confirmed the deployed Product Detail smoke cases pass 3/3 in production.

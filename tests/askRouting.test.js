@@ -1178,6 +1178,46 @@ test("routes real customer turns without stale products or fallback collisions",
 
     semanticRoute = {
       scope: "in_scope",
+      intent: "product_discovery",
+      intents: ["product_discovery"],
+      goals: ["product_search"],
+      confidence: 0.98,
+      entities: {
+        product_names: [],
+        budget_min: null,
+        budget_max: null,
+      },
+      requires_product: false,
+      customer_state: "neutral",
+      interpretation:
+        "Pelanggan menanyakan daftar atau kategori produk yang dijual di toko.",
+      topic_relation: "new_topic",
+      needs_clarification: false,
+      clarification_question: null,
+    };
+
+    const typoCatalogOverview = await ask(
+      "brang apa saja yang dijual?",
+      null,
+      { sessionId: `typo_catalog_overview_${Date.now()}` },
+    );
+    assert.equal(typoCatalogOverview.intent, "product_discovery");
+    assert.equal(typoCatalogOverview.type, "products");
+    assert.ok(typoCatalogOverview.products.length > 1);
+    assert.doesNotMatch(
+      typoCatalogOverview.intro || typoCatalogOverview.message,
+      /brang.*tidak tersedia|belum menemukannya/i,
+    );
+
+    const llmCatalogOverview = await ask("lihat produk", null, {
+      sessionId: `llm_catalog_overview_${Date.now()}`,
+    });
+    assert.equal(llmCatalogOverview.intent, "product_discovery");
+    assert.equal(llmCatalogOverview.type, "products");
+    assert.ok(llmCatalogOverview.products.length > 1);
+
+    semanticRoute = {
+      scope: "in_scope",
       intent: "stock_availability",
       intents: ["stock_availability"],
       goals: ["stock"],

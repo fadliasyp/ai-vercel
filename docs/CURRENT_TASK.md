@@ -6,6 +6,9 @@ Belum ada task aktif. Prioritas 1 tahap Pencarian Produk, Rekomendasi, Detail Pr
 
 ## Current Progress
 
+- Log production berikutnya menunjukkan Groq terkena 429, tetapi fallback Gemini sudah benar memilih `product_discovery`, goal `product_search`, `product_names: []`, dan `requires_product: false` untuk `brang apa saja yang dijual?`. Handler lama tetap mencari kata `brang` sebagai nama produk karena keputusan LLM tanpa objek belum dihubungkan ke overview katalog.
+- Typo `brang` kini dinormalisasi menjadi `barang`. Structured understanding `product_search` tanpa nama produk juga membuka overview katalog selama pesan tidak memiliki istilah produk spesifik, sehingga pencarian seri seperti Voltes tetap memakai resolver produk.
+- Regression mencakup kalimat production persis dan `lihat produk` sebagai bukti bridge LLM. Full suite lulus, coverage replay 9/9, serta benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
 - Log production membuktikan Groq salah membaca `yg bisa lngs dibungkus ada apa aja` sebagai `product_discovery` dengan confidence 0,92. Akibatnya handler stok tidak pernah dipanggil meskipun handler tersebut sudah benar.
 - Normalisasi bersama kini memahami `lgs`, `lgsg`, dan `lngs` sebagai `langsung`. Prompt semantic router juga menetapkan bahwa `bisa langsung dibungkus ... apa aja` berarti daftar ready stock, bukan nama produk atau pertanyaan packing.
 - Guard intent yang sempit menangani konflik ketika provider tetap mengembalikan `product_discovery` untuk pola tersebut. Hasil akhirnya hanya berasal dari produk WooCommerce berstatus `instock`, dan sumber koreksi tercatat sebagai `global_ready_stock_guard`.
@@ -198,6 +201,7 @@ Belum ada task aktif. Prioritas 1 tahap Pencarian Produk, Rekomendasi, Detail Pr
 ## Completed
 
 - Menormalisasi singkatan `lgs`, `lgsg`, dan `lngs` pada pemahaman bahasa bersama.
+- Menormalisasi typo `brang` dan menghubungkan keputusan LLM pencarian katalog tanpa objek ke overview WooCommerce.
 - Menambahkan aturan prompt dan guard konflik yang hanya berlaku pada permintaan daftar ready global.
 - Menambahkan regression berdasarkan output Groq production yang salah dan memverifikasi full suite serta benchmark utama.
 - Meneruskan facet Detail Produk dari answer plan terverifikasi ke `buildProductTransactionSummary`.
@@ -271,8 +275,8 @@ Belum ada task aktif. Prioritas 1 tahap Pencarian Produk, Rekomendasi, Detail Pr
 ## Next Steps
 
 1. Redeploy koreksi Ketersediaan Stok ke Vercel.
-2. Ulangi `yg bisa lngs dibungkus ada apa aja` dan pastikan respons berisi kartu produk ready dengan intent Ketersediaan Stok.
-3. Jika benar, lanjutkan empat smoke stok lainnya sebelum berpindah ke Perbandingan Produk.
+2. Ulangi `yg bisa lngs dibungkus ada apa aja` dan `brang apa saja yang dijual?`; pastikan masing-masing membuka daftar ready dan overview katalog yang sesuai.
+3. Jika benar, lanjutkan smoke stok lainnya sebelum berpindah ke Perbandingan Produk.
 
 ## Blockers
 

@@ -53,6 +53,10 @@ test("normalizes abbreviations across every commerce flow", () => {
     normalizeIndonesianCommerceText("yg bisa lngs dibungkus atau lgsg dikirim"),
     "yang bisa langsung dibungkus atau langsung dikirim",
   );
+  assert.equal(
+    normalizeIndonesianCommerceText("brang apa saja yang dijual"),
+    "barang apa saja yang dijual",
+  );
 });
 
 test("keeps catalog typo matching conservative", () => {

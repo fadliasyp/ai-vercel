@@ -17,6 +17,7 @@ import {
 test("recognizes catalog overview questions without treating them as one product", () => {
   assert.equal(isCatalogOverviewQuestion("Produknya ada berapa macem?"), true);
   assert.equal(isCatalogOverviewQuestion("Barang apa aja yang dijual?"), true);
+  assert.equal(isCatalogOverviewQuestion("brang apa saja yang dijual?"), true);
   assert.equal(isCatalogOverviewQuestion("Robot apa saja yang dijual?"), true);
   assert.equal(isCatalogOverviewQuestion("Mainannya ada berapa jenis?"), true);
   assert.equal(isCatalogOverviewQuestion("Item apa aja yang tersedia?"), true);
