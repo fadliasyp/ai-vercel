@@ -2,10 +2,13 @@
 
 ## Status
 
-Belum ada task aktif. Preflight final pra-sidang lulus; perubahan terakhir hanya pemetaan label intent berbahasa Indonesia pada frontend, tanpa mengubah logic intent. Transaction Continuity Batch 1 tetap lulus production gate 7/7 dan Multi-turn Product Continuity tetap dibekukan setelah lulus production smoke 9/9 serta smoke manual 3/3.
+Belum ada task aktif. Bug pencarian `tampilin robot ... yang tersedia` sudah diperbaiki dan lulus seluruh verifikasi lokal; deploy serta smoke production masih perlu dilakukan. Transaction Continuity Batch 1 dan Multi-turn Product Continuity tetap dibekukan pada baseline yang sudah lulus.
 
 ## Current Progress
 
+- Permintaan menampilkan/mencari seri produk `yang tersedia` kini tetap menjadi `product_discovery`, meskipun provider LLM keliru memberi `stock_availability` dengan confidence tinggi. Pertanyaan stok eksplisit seperti `sisa berapa pcs`, `ready`, dan `restock` tetap memakai jalur stok.
+- Normalisasi bahasa katalog kini memahami `tampilin`, `nampilin`, dan `tunjukin`; filler `coba` tidak lagi mencemari token nama produk.
+- Regression active-LLM mensimulasikan salah klasifikasi confidence 0,96 dan membuktikan hasil tetap berupa produk Voltes. Verifikasi: full suite 403/403, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
 - Log Vercel kini mencetak `INTENT ML TOP 3` segera setelah hasil classifier tersedia, lengkap dengan peringkat, confidence desimal, dan persentase. Logging bersifat observability-only; keputusan routing tidak berubah dan fallback lokal ditandai jelas saat ML tidak tersedia.
 - Badge intent frontend kini memakai label Indonesia untuk seluruh 13 intent aktif, ditambah label fitur pencarian produk dari foto. Nama intent internal, routing, classifier, dan response API tidak berubah; regression suite tetap lulus 403/403.
 - Preflight final 2026-10-06 lulus: `npm test` 403/403, coverage replay 9/9, benchmark pelanggan 26/26 turn dengan 135 assertion (100%), dataset image 53 aktif/0 nonaktif, serta syntax check `api/ask.js` dan `api/ask-image.js`.
@@ -212,9 +215,11 @@ Belum ada task aktif. Preflight final pra-sidang lulus; perubahan terakhir hanya
 ## Files Modified
 
 - `lib/chatbot/intentFusion.js`
+- `lib/chatbot/productSearch.js`
 - `lib/chatbot/textNormalization.js`
 - `lib/chatbot/semanticRouter.js`
 - `tests/recommendationLanguageMatrix.test.js`
+- `tests/productSearch.test.js`
 - `tests/semanticRouter.test.js`
 - `benchmarks/customer-conversations.json`
 - `benchmarks/results/customer-conversations.json`

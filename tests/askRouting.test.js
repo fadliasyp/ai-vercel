@@ -951,6 +951,44 @@ test("routes real customer turns without stale products or fallback collisions",
       goals: ["stock"],
       confidence: 0.96,
       entities: {
+        product_names: ["Voltes"],
+        budget_min: null,
+        budget_max: null,
+      },
+      requires_product: true,
+      customer_state: "neutral",
+      interpretation:
+        "Pelanggan meminta produk Voltes yang tersedia di katalog.",
+      topic_relation: "new_topic",
+      needs_clarification: false,
+      clarification_question: null,
+    };
+
+    const catalogAvailabilityDiscovery = await ask(
+      "Coba tampilin robot Voltes yang tersedia",
+      null,
+      { sessionId: `catalog_availability_${Date.now()}` },
+    );
+    assert.equal(catalogAvailabilityDiscovery.intent, "product_discovery");
+    assert.equal(catalogAvailabilityDiscovery.type, "products");
+    assert.ok(catalogAvailabilityDiscovery.products.length > 0);
+    assert.ok(
+      productNames(catalogAvailabilityDiscovery).every((name) =>
+        /Voltes/i.test(name),
+      ),
+    );
+    assert.equal(
+      catalogAvailabilityDiscovery.assistant_meta.llm_led.intent_locked,
+      false,
+    );
+
+    semanticRoute = {
+      scope: "in_scope",
+      intent: "stock_availability",
+      intents: ["stock_availability"],
+      goals: ["stock"],
+      confidence: 0.96,
+      entities: {
         product_names: ["Fewture Getter Set 1,2,3 Black Version"],
         budget_min: null,
         budget_max: null,

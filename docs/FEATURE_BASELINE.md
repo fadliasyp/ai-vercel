@@ -153,6 +153,8 @@ Menghubungkan bahasa pelanggan ke produk WooCommerce yang benar sebelum harga, s
 - Nama eksplisit pada turn baru mengalahkan produk lama atau konteks halaman yang berbeda.
 - Kandidat dekat yang sama kuat menghasilkan klarifikasi; kombinasi nama asing atau model salah tidak boleh dipaksakan ke produk terdekat.
 - Nama lini katalog yang memakai kata atribut, misalnya `POSE+ METAL series SASURAIGER`, tetap dapat ditemukan dari token identitas lainnya dan exact-name matching.
+- Permintaan seperti `tampilin robot Voltron yang tersedia` adalah pencarian katalog dengan filter ketersediaan, bukan pertanyaan jumlah stok. Salah klasifikasi LLM ke `stock_availability` tidak boleh mengunci routing ini.
+- Kata percakapan `coba`, `tampilin`, `nampilin`, dan `tunjukin` tidak boleh menjadi token identitas produk.
 
 ### Do Not Break
 
@@ -160,6 +162,7 @@ Menghubungkan bahasa pelanggan ke produk WooCommerce yang benar sebelum harga, s
 - Jangan mengganti produk tidak dikenal dengan produk ready stock atau populer.
 - Jangan membuang seluruh goal majemuk setelah produk ditemukan.
 - Jangan memakai stale context ketika pelanggan menyebut produk baru.
+- Jangan mengubah pertanyaan stok eksplisit seperti `sisa berapa pcs`, `ready`, atau `restock` menjadi pencarian katalog.
 
 ### Important Files
 
@@ -174,6 +177,7 @@ Menghubungkan bahasa pelanggan ke produk WooCommerce yang benar sebelum harga, s
 - Bukti lokal 2026-10-06: 400/400 test lulus.
 - Answer-coverage replay lulus 9/9 turn; coverage 59,4% menjadi 88,9%.
 - Bukti production 2026-10-06: smoke manual pengguna lulus 5/5 untuk kode rapat, material + harga, dimensi + stok, ambiguity, dan unknown model.
+- Bukti lokal 2026-10-06 untuk batas pencarian/stok: full suite 403/403, replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus. Smoke production untuk patch ini belum dijalankan.
 
 ## Multi-turn Product Continuity
 

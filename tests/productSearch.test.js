@@ -562,6 +562,16 @@ test("extracts the merchandise object instead of the store context", () => {
     true,
   );
   assert.equal(
+    looksLikeSpecificCatalogAvailabilityQuestion(
+      "Coba tampilin robot Voltron yang tersedia",
+    ),
+    true,
+  );
+  assert.deepEqual(
+    extractProductSearchTokens("Coba tampilin robot Voltron yang tersedia"),
+    ["voltron"],
+  );
+  assert.equal(
     looksLikeSpecificCatalogAvailabilityQuestion("stok Mazinger Z masih ada?"),
     false,
   );

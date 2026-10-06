@@ -997,7 +997,11 @@ export default async function handler(req, res) {
     internationalShipping: looksLikeInternationalShippingQuestion(rawQuestion),
   });
 
+  const semanticCatalogAvailabilityConflict =
+    groqRoute?.intent === "stock_availability" &&
+    looksLikeSpecificCatalogAvailabilityQuestion(rawQuestion);
   const semanticDecisionIsPrimary =
+    !semanticCatalogAvailabilityConflict &&
     groqRoute?.scope === "in_scope" &&
     Number(groqRoute.confidence || 0) >= minSemanticConfidence &&
     String(intentResult.method || "").includes("_semantic:");

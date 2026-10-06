@@ -19,6 +19,8 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Fixed
 
+- Fixed requests such as `Coba tampilin robot Voltron yang tersedia` being locked as stock checks. Catalog availability now remains product discovery even if the LLM returns high-confidence `stock_availability`, while explicit quantity/ready/restock questions keep their existing route.
+- Normalized casual display verbs (`tampilin`, `nampilin`, and `tunjukin`) and removed `coba` from product identity tokens so valid catalog matches are not rejected by conversational filler.
 - Fixed compact model codes such as `GX92` failing to match catalog forms such as `GX-92`.
 - Prevented material, dimension, weight, accessory, and nett-price wording from being treated as part of the requested product name.
 - Kept ambiguous references and wrong model numbers conservative instead of substituting a nearby catalog product.
