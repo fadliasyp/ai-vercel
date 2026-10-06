@@ -93,6 +93,9 @@ uv run `
 =========================
 WARNA - WARNA PADA CHATBOT
 =========================
+- Class Kotak Chatbot
+#ai-chat-box
+
 - Header Chatbot (Ada tulisan "Tanya Produk")
 linear-gradient(135deg, #2c7be5 0%, #4f9af5 100%);
 
