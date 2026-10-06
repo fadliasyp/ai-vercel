@@ -66,6 +66,30 @@ test("finds a catalog product from a specific robot name", () => {
   );
 });
 
+test("ignores restock wording when matching a product family", () => {
+  const catalog = [
+    {
+      id: 3,
+      name: "Action Gokin Voltron Lion Force By Action Toys",
+      category: "Voltron",
+      stock: "instock",
+    },
+  ];
+
+  for (const question of [
+    "kalau voltron habis, kapan restok?",
+    "Voltron kapan ready lagi?",
+    "Voltron bakal masuk lagi kapan?",
+    "Voltron restoknya kapan?",
+  ]) {
+    const result = assessProductSearchConfidence(question, catalog);
+
+    assert.equal(result.status, "matched", question);
+    assert.equal(result.product?.id, 3, question);
+    assert.deepEqual(result.queryTokens, ["voltron"], question);
+  }
+});
+
 test("ignores conversational connectors after an exact product name", () => {
   const catalog = [
     {

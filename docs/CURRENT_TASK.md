@@ -2,10 +2,13 @@
 
 ## Status
 
-Belum ada task aktif. Bug pencarian `tampilin robot ... yang tersedia` sudah diperbaiki dan lulus seluruh verifikasi lokal; deploy serta smoke production masih perlu dilakukan. Transaction Continuity Batch 1 dan Multi-turn Product Continuity tetap dibekukan pada baseline yang sudah lulus.
+Belum ada task aktif. Bug pencarian katalog dan pertanyaan restock nama keluarga produk sudah diperbaiki serta lulus seluruh verifikasi lokal; deploy dan smoke production untuk patch terbaru masih perlu dilakukan. Transaction Continuity Batch 1 dan Multi-turn Product Continuity tetap dibekukan pada baseline yang sudah lulus.
 
 ## Current Progress
 
+- Pertanyaan `kalau Voltron habis, kapan restok?` tidak lagi memakai `habis`, `kapan`, dan `restock` sebagai bagian nama produk. Matcher kini menemukan keluarga produk `Voltron`, lalu jawaban jadwal/stok tetap memakai fakta WooCommerce.
+- Variasi `kapan ready lagi`, `bakal masuk lagi kapan`, dan `restoknya kapan` dilindungi regression matcher; endpoint regression membuktikan pertanyaan restock informal tetap masuk `stock_availability` dan menemukan produk yang benar.
+- Verifikasi patch restock: full suite 404/404, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
 - Permintaan menampilkan/mencari seri produk `yang tersedia` kini tetap menjadi `product_discovery`, meskipun provider LLM keliru memberi `stock_availability` dengan confidence tinggi. Pertanyaan stok eksplisit seperti `sisa berapa pcs`, `ready`, dan `restock` tetap memakai jalur stok.
 - Normalisasi bahasa katalog kini memahami `tampilin`, `nampilin`, dan `tunjukin`; filler `coba` tidak lagi mencemari token nama produk.
 - Regression active-LLM mensimulasikan salah klasifikasi confidence 0,96 dan membuktikan hasil tetap berupa produk Voltes. Verifikasi: full suite 403/403, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).

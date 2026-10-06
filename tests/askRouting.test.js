@@ -356,6 +356,18 @@ test("routes real customer turns without stale products or fallback collisions",
     assert.match(specificRestock.intro, /1 Desember 2099.*15\.30 WIB/is);
     assert.doesNotMatch(specificRestock.intro, /Dairugger|2 Desember/i);
 
+    const casualSpecificRestock = await ask(
+      "kalau Daitarn habis, kapan restok?",
+      null,
+      { sessionId: `casual_specific_restock_${Date.now()}` },
+    );
+    assert.equal(casualSpecificRestock.intent, "stock_availability");
+    assert.equal(casualSpecificRestock.type, "products");
+    assert.deepEqual(productNames(casualSpecificRestock), [
+      "Soul of Chogokin Daitarn 3",
+    ]);
+    assert.match(casualSpecificRestock.intro, /1 Desember 2099.*15\.30 WIB/is);
+
     const unknownRestock = await ask(
       "kapan SOC Bandai 50th Anniversary Godmars restock?",
       null,
