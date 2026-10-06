@@ -2,7 +2,7 @@
 
 ## Status
 
-Task aktif: Transaction Continuity Batch 1. Tahap Multi-turn Product Continuity tetap dibekukan setelah lulus verifikasi lokal, production smoke 9/9, serta smoke manual production 3/3.
+Belum ada task aktif. Transaction Continuity Batch 1 lulus verifikasi lokal dan production gate 7/7. Tahap Multi-turn Product Continuity tetap dibekukan setelah lulus production smoke 9/9 serta smoke manual 3/3.
 
 ## Current Progress
 
@@ -12,7 +12,7 @@ Task aktif: Transaction Continuity Batch 1. Tahap Multi-turn Product Continuity 
 - Production gate awal lulus 6/7. Satu kegagalan terjadi pada `Ongkir ke Tangerang` -> `Kalau bayar bisa pakai apa aja?`: LLM sudah benar menghasilkan intent `shipping_transaction` dan goal `payment_methods`, tetapi builder policy mengabaikan facet LLM lalu mengembalikan klarifikasi generik.
 - `buildTransactionPolicyMessage` kini menerima facet transaksi terstruktur yang sudah divalidasi (`payment_methods`, COD, asuransi, packing, same-day, dan estimasi), sambil mempertahankan detektor kata lokal sebagai fallback.
 - Regression unit dan endpoint active-LLM memakai kalimat production persis. Verifikasi setelah fix lulus: targeted 12/12, full suite 403/403, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
-- Deploy perubahan API dan rerun production gate 7 kasus masih pending.
+- Setelah deploy, pengguna mengonfirmasi rerun production gate lulus 7/7. Transaction Continuity Batch 1 selesai dan perilaku terverifikasi dipindahkan ke feature baseline.
 - Follow-up alami tanpa kata ganti eksplisit, seperti `masih ready gak?`, `ada diskon gak?`, `ada fotonya?`, `lengkap gak?`, dan `full die-cast nggak?`, kini tetap terhubung ke produk fokus terakhir.
 - Rujukan `keduanya`/`dua-duanya` mempertahankan tepat dua produk sebelumnya dan dapat menampilkan fakta keduanya; sistem tidak menebak jika kandidat sebelumnya lebih dari dua.
 - Produk yang disebut eksplisit tetap mengalahkan konteks lama, sedangkan permintaan katalog umum seperti `ada promo apa aja?` dan `semua yang ready apa aja?` tidak diwarisi ke satu produk.

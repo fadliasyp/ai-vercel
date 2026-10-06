@@ -42,8 +42,9 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
-- Transaction Continuity Batch 1 passes syntax/JSON/diff checks, the full 403/403 local suite, and the rules-only international-shipping smoke; the seven-case production gate remains pending.
+- Transaction Continuity Batch 1 passes syntax/JSON/diff checks, the full 403/403 local suite, and the rules-only international-shipping smoke.
 - The first transaction production gate passed 6/7 and isolated the payment-facet bridge bug. After the fix, targeted tests pass 12/12, the full suite passes 403/403, coverage replay passes 9/9, and the customer benchmark passes 26/26 turns with 135 assertions.
+- After deployment, the user-confirmed transaction production rerun passes all 7/7 cases on 2026-10-06.
 - Product-grounding verification passes 400/400 local tests, 9/9 answer-coverage replay turns (59.4% before repair, 88.9% after repair), and 5/5 user-run production smoke cases.
 - Multi-turn Product Continuity passes 403/403 local tests, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions.
 - The first 9-case production context smoke passed 8/9. After fixing the compare-to-stock transition and deploying it, the production rerun passed 9/9.

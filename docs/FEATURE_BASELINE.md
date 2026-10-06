@@ -223,6 +223,46 @@ Mempertahankan objek produk yang benar ketika pelanggan melanjutkan percakapan d
 - Setelah dependency pulih, pengguna mengonfirmasi rerun gate production ketat lulus 9/9 pada 2026-10-06.
 - Smoke manual production juga lulus 3/3 untuk produk fokus -> stok, perbandingan dua produk -> `keduanya` stok, dan produk fokus -> promo tanpa melebar ke katalog global.
 
+## Transaction Continuity
+
+### Status
+
+STABLE (local regression dan seven-case production smoke scope)
+
+### Function
+
+Mempertahankan alur transaksi multi-turn ketika pelanggan melengkapi lokasi ongkir atau berpindah secara eksplisit ke pembayaran, retur, produk, maupun pengiriman internasional.
+
+### Correct Behavior
+
+- Ongkir domestik menerima kota dan kecamatan sekaligus maupun alur tiga langkah kota -> kabupaten/kota -> kecamatan.
+- Pending ongkir tidak menahan pelanggan yang jelas berpindah ke metode pembayaran, retur, atau pertanyaan produk.
+- Facet transaksi terstruktur dari LLM yang sudah divalidasi diteruskan ke builder kebijakan; detektor kata lokal tetap menjadi fallback.
+- Pengiriman internasional diarahkan ke Admin Robot Jadul tanpa mengarang tarif, kurir, total, atau bea masuk.
+- Pertanyaan ongkir majemuk mempertahankan kebutuhan asuransi dan packing sambil meminta lokasi yang masih kurang.
+
+### Do Not Break
+
+- Jangan membuang facet LLM yang sudah divalidasi hanya karena susunan kata pelanggan tidak cocok dengan pola lokal.
+- Jangan meneruskan pending ongkir setelah pelanggan menyatakan intent baru dengan jelas.
+- Jangan menghitung ongkir internasional memakai endpoint domestik atau mengarang biayanya.
+- Jangan mengubah kebijakan toko menjadi fakta buatan LLM.
+
+### Important Files
+
+- `api/ask.js`
+- `lib/chatbot/transactionIntent.js`
+- `lib/chatbot/pendingContext.js`
+- `scripts/smoke-ask.js`
+- `tests/transactionIntent.test.js`
+- `tests/askRouting.test.js`
+
+### Verification
+
+- Bukti lokal 2026-10-06: targeted 12/12, full suite 403/403, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
+- Production gate pertama lulus 6/7 dan menemukan facet `payment_methods` tidak sampai ke builder kebijakan.
+- Setelah fix dan deploy, pengguna mengonfirmasi production gate lulus 7/7 pada 2026-10-06.
+
 ## Product Restock Schedule
 
 ### Status

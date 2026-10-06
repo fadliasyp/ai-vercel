@@ -45,6 +45,7 @@ Status project: **aktif dikembangkan**.
 - Produk fokus juga mendukung elipsis sehari-hari seperti `masih ready?`, `ada diskon?`, `ada fotonya?`, dan `full die-cast nggak?`. Rujukan `keduanya` hanya dipakai saat konteks tepat dua produk; pertanyaan katalog umum dan nama produk baru tetap bebas dari konteks lama.
 - Kebijakan pembayaran, COD, packing, asuransi, retur/refund, jam/lokasi toko, dan pengiriman internasional.
 - Ongkir domestik melalui endpoint WordPress custom dengan pemilihan kota/kecamatan.
+- Transaction Continuity menjaga alur ongkir bertahap serta membolehkan perpindahan eksplisit dari pending ongkir ke pembayaran, retur, atau produk. Facet kebijakan hasil LLM yang tervalidasi digunakan oleh builder deterministik tanpa menjadikan LLM sumber fakta.
 - Verifikasi status pesanan dengan Order ID plus email/telepon billing.
 - Pelacakan resi melalui Biteship.
 - How-to-buy dari halaman WordPress dan renderer langkah bergambar.
@@ -157,6 +158,8 @@ Status project: **aktif dikembangkan**.
 
 Pada 2026-10-06:
 
+- Transaction Continuity lulus targeted 12/12, full suite 403/403, coverage replay 9/9, benchmark pelanggan 26/26 turn dengan 135 assertion, dan production gate 7/7.
+- Multi-turn Product Continuity lulus production gate 9/9 serta smoke manual 3/3.
 - Koreksi `antara 5 sampai 8 juta ... kalau yang 3 jutaan ada?` menghasilkan target Rp3 juta dan mempertahankan tujuan pajangan, termasuk ketika output LLM disimulasikan keliru sebagai batas maksimum.
 - `npm test`: 399/399 lulus; coverage replay: 9/9 turn; benchmark pelanggan deterministik: 26/26 turn dengan 135 assertion (100%).
 - Setelah deployment, pengguna mengonfirmasi smoke production rekomendasi lulus 3/3: target harga, rentang dengan kebutuhan, dan follow-up target singkat.
