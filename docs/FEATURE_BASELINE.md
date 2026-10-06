@@ -215,8 +215,9 @@ Mempertahankan objek produk yang benar ketika pelanggan melanjutkan percakapan d
 - Bukti lokal 2026-10-06: 403/403 test lulus.
 - Answer-coverage replay lulus 9/9 turn.
 - Benchmark pelanggan lulus 26/26 turn dengan 135 assertion (100%).
-- Smoke production 9 kasus belum dijalankan setelah perubahan ini.
-- Run production pertama lulus 8/9; satu konflik intent compare-versus-stock sudah diperbaiki lokal dan menunggu deploy serta rerun. Keputusan semantic LLM yang terkunci kini mengalahkan inferensi compare dari turn sebelumnya, sementara kata eksplisit `bandingkan`/`versus` tetap masuk jalur compare.
+- Run production pertama lulus 8/9; satu konflik intent compare-versus-stock kemudian diperbaiki. Keputusan semantic LLM yang terkunci kini mengalahkan inferensi compare dari turn sebelumnya, sementara kata eksplisit `bandingkan`/`versus` tetap masuk jalur compare.
+- Rerun production setelah deploy lulus 9/9, termasuk `context_pair_stock_followup` yang sebelumnya gagal.
+- Inspeksi payload pada run tersebut menemukan false positive: follow-up promo produk fokus masih membawa tiga produk. Jalur promo sudah diperbaiki lokal dan gate kini menetapkan `maxProducts: 1`; rerun production dengan gate ketat masih pending.
 
 ## Product Restock Schedule
 

@@ -34,12 +34,14 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Fixed `keduanya` being interpreted as only the second product. Pair references now resolve only when exactly two prior products are available.
 - Prevented price, promotion, photo, and product-detail questions containing `ada` from being hijacked by the catalog-availability guard.
 - Prevented stale comparison context from overriding a locked LLM `stock_availability` decision for follow-ups such as `keduanya ready gak?`; explicit comparison wording remains unchanged.
+- Made focused-product promo follow-ups bypass the global promo listing. The active-LLM regression and production smoke gate now require exactly one referenced product.
 
 ### Verification
 
 - Product-grounding verification passes 400/400 local tests, 9/9 answer-coverage replay turns (59.4% before repair, 88.9% after repair), and 5/5 user-run production smoke cases.
-- Multi-turn Product Continuity passes 403/403 local tests, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. Production smoke is pending.
-- The first 9-case production context smoke passed 8/9. The failing compare-to-stock transition now has an active-LLM endpoint regression and passes locally; production rerun is pending deployment.
+- Multi-turn Product Continuity passes 403/403 local tests, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions.
+- The first 9-case production context smoke passed 8/9. After fixing the compare-to-stock transition and deploying it, the production rerun passed 9/9.
+- Payload inspection found that the 9/9 result still contained a loose focused-promo assertion. The stricter one-product gate and routing fix pass locally; a production rerun is pending.
 - User-verified production smoke passes 3/3 for an approximate target, a bounded range with product-purpose constraints, and a terse same-session price refinement.
 - Added unit and full `/api/ask` regressions using the production question and a deliberately wrong Groq-shaped `maximum` result. All 399 local tests pass; only products within the Rp5.6-Rp8.4 million target window survive.
 - Added a data-driven language matrix and follow-up regressions. All 397 local tests pass, answer-coverage replay passes 9/9 turns, and the customer conversation benchmark passes 26/26 turns with 135 assertions (100%).

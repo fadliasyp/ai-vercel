@@ -851,6 +851,11 @@ test("routes real customer turns without stale products or fallback collisions",
     assert.equal(compareTopicSwitch.intent, "price_promo");
     assert.deepEqual(productNames(compareTopicSwitch), ["Action Toys Ideon"]);
 
+    const activePromoFocusSession = `active_promo_focus_${Date.now()}`;
+    await ask("Mau tanya bahan Jumbo Machinder Mazinger Z", null, {
+      sessionId: activePromoFocusSession,
+    });
+
     process.env.LLM_LED_ASSISTANT_MODE = "active";
     process.env.GROQ_ROUTER_ENABLED = "true";
     process.env.GROQ_API_KEY = "test-groq-key";
@@ -886,6 +891,22 @@ test("routes real customer turns without stale products or fallback collisions",
       bogo.assistant_meta.llm_led.intent_source,
       "buy_one_get_one_policy",
     );
+
+    semanticRoute = {
+      ...semanticRoute,
+      interpretation:
+        "Pelanggan menanyakan promo produk yang baru dibicarakan.",
+      topic_relation: "follow_up",
+    };
+
+    const llmLockedFocusedPromo = await ask("ada diskon gak?", null, {
+      sessionId: activePromoFocusSession,
+    });
+    assert.equal(llmLockedFocusedPromo.intent, "price_promo");
+    assert.equal(llmLockedFocusedPromo.type, "products");
+    assert.deepEqual(productNames(llmLockedFocusedPromo), [
+      "Jumbo Machinder Mazinger Z",
+    ]);
 
     semanticRoute = {
       scope: "in_scope",

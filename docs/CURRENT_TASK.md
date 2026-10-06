@@ -2,7 +2,7 @@
 
 ## Status
 
-Belum ada task aktif. Konflik intent pada follow-up `keduanya ready gak?` setelah perbandingan sudah diperbaiki dan terverifikasi lokal; deployment ulang serta smoke production 9 kasus masih menunggu pengguna. Baseline Product Grounding dan rekomendasi yang sebelumnya lulus tetap dipertahankan.
+Belum ada task aktif. Tahap Multi-turn Product Continuity lulus verifikasi lokal; smoke production sempat tercatat 9/9, tetapi inspeksi payload menemukan false positive pada follow-up promo. Perbaikan dan gate yang lebih ketat sudah siap lokal, sedangkan deploy serta rerun production masih menunggu pengguna.
 
 ## Current Progress
 
@@ -15,6 +15,9 @@ Belum ada task aktif. Konflik intent pada follow-up `keduanya ready gak?` setela
 - Smoke production pertama lulus 8/9. Kasus yang gagal menunjukkan LLM benar memilih `stock_availability`, tetapi inferensi lokal dari intent `compare` sebelumnya menimpa hasil tersebut. Inferensi lanjutan compare kini hanya aktif ketika tidak ada semantic intent LLM yang terkunci.
 - Regression aktif-LLM meniru kasus production tersebut: setelah dua produk dibandingkan, `keduanya ready gak?` harus menghasilkan intent `stock_availability`, response type `products`, dan mempertahankan kedua produk.
 - Verifikasi setelah perbaikan konflik intent: 403/403 test lokal, coverage replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus.
+- Rerun smoke production setelah deploy lulus 9/9; output JSON berakhir normal tanpa `SMOKE ERROR`, dan kasus `context_pair_stock_followup` yang sebelumnya gagal kini memiliki `passed: true`.
+- Inspeksi payload menemukan `context_focused_product_promo_followup` masih mengembalikan tiga produk walaupun hanya satu produk fokus yang ditanyakan. Promo fast path kini mendahulukan produk rujukan percakapan, regression active-LLM memastikan hanya produk fokus yang keluar, dan smoke gate mewajibkan `maxProducts: 1`.
+- Verifikasi setelah penguatan gate promo: 403/403 test lokal, coverage replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus. Production rerun dengan gate baru masih pending.
 - Product matcher kini memisahkan huruf dan angka pada kode rapat, sehingga `GX92` diperlakukan sama dengan `GX-92`/`GX 92` tanpa mengubah angka percakapan biasa menjadi model number.
 - Kata kebutuhan seperti bahan, dimensi, berat, aksesori, harga nett, dan satuan tidak lagi mencemari token nama produk. Pertanyaan `Ideon bahannya metal atau plastik?` tetap berlabuh ke produk Ideon, lalu facet material dijawab dari katalog.
 - Guard tetap konservatif: `getter black` meminta klarifikasi ketika beberapa produk dekat, `ideon ultraman` tidak ditebak, dan kode salah `GX99 Ideon` tidak dialihkan ke `GX-92`.
@@ -239,9 +242,10 @@ Belum ada task aktif. Konflik intent pada follow-up `keduanya ready gak?` setela
 
 ## Next Steps
 
-1. Deploy perubahan lalu jalankan `npm.cmd run benchmark:context -- --endpoint https://ai-vercel-ten-sigma.vercel.app/api/ask` untuk smoke production 9 kasus.
-2. Setelah smoke production lulus, lanjutkan audit intent berikutnya tanpa mengubah baseline rekomendasi, Product Grounding, dan kontinuitas produk.
-3. Pantau metadata intent/provider, latency, HTTP 429/5xx, dan konsumsi quota sebelum uji pengguna ramai.
+1. Deploy penguatan promo lalu rerun `npm.cmd run benchmark:context -- --endpoint https://ai-vercel-ten-sigma.vercel.app/api/ask`; kasus promo fokus harus memiliki tepat satu produk.
+2. Setelah gate ketat lulus 9/9, jalankan smoke manual singkat untuk transisi compare ke stok, follow-up promo, dan follow-up foto.
+3. Setelah smoke manual lulus, lanjutkan audit intent berikutnya tanpa mengubah baseline rekomendasi, Product Grounding, dan kontinuitas produk.
+4. Pantau metadata intent/provider, latency, HTTP 429/5xx, dan konsumsi quota sebelum uji pengguna ramai.
 
 ## Blockers
 

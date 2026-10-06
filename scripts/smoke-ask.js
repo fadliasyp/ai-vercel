@@ -295,6 +295,7 @@ const CASES = [
     expectedIntent: "price_promo",
     expectedProductName: "Jumbo Machinder Mazinger Z",
     minProducts: 1,
+    maxProducts: 1,
   },
   {
     id: "context_focused_product_photo_followup",

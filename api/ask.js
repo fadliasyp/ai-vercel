@@ -6770,6 +6770,31 @@ Kembalikan JSON valid:
         q.includes("sale") ||
         q.includes("cashback"))
     ) {
+      const referencedPromoProducts = resolveReferencedProducts(cleanProducts);
+      if (
+        conversationTurn.usesPreviousProducts &&
+        referencedPromoProducts.length
+      ) {
+        const promoProducts = referencedPromoProducts.filter(
+          (product) => product.isPromo,
+        );
+        const intro =
+          referencedPromoProducts.length === 1
+            ? promoProducts.length
+              ? `**${referencedPromoProducts[0].name}** sedang promo. Berikut harga yang tercatat sekarang:`
+              : `**${referencedPromoProducts[0].name}** ditemukan, tetapi saat ini belum sedang promo. Berikut harga yang tercatat sekarang:`
+            : "Berikut status promo untuk kedua produk yang kamu maksud:";
+
+        return await send(
+          {
+            type: "products",
+            intro,
+            products: referencedPromoProducts,
+          },
+          "price_promo",
+        );
+      }
+
       const promoKeywords =
         selectedSuggestion?.action_key === "catalog_promo"
           ? []
