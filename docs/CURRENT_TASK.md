@@ -2,10 +2,11 @@
 
 ## Status
 
-Belum ada task aktif. Preflight final pra-sidang lulus tanpa perubahan source produksi. Transaction Continuity Batch 1 tetap lulus production gate 7/7 dan Multi-turn Product Continuity tetap dibekukan setelah lulus production smoke 9/9 serta smoke manual 3/3.
+Belum ada task aktif. Preflight final pra-sidang lulus; perubahan terakhir hanya pemetaan label intent berbahasa Indonesia pada frontend, tanpa mengubah logic intent. Transaction Continuity Batch 1 tetap lulus production gate 7/7 dan Multi-turn Product Continuity tetap dibekukan setelah lulus production smoke 9/9 serta smoke manual 3/3.
 
 ## Current Progress
 
+- Badge intent frontend kini memakai label Indonesia untuk seluruh 13 intent aktif, ditambah label fitur pencarian produk dari foto. Nama intent internal, routing, classifier, dan response API tidak berubah; regression suite tetap lulus 403/403.
 - Preflight final 2026-10-06 lulus: `npm test` 403/403, coverage replay 9/9, benchmark pelanggan 26/26 turn dengan 135 assertion (100%), dataset image 53 aktif/0 nonaktif, serta syntax check `api/ask.js` dan `api/ask-image.js`.
 - Tidak ada source produksi yang diubah pada preflight. Menjelang sidang, perubahan fitur baru dibekukan dan patch hanya dilakukan untuk bug kritis yang dapat direproduksi.
 - Menambahkan gate terpisah `npm run benchmark:transactions` agar perluasan verifikasi transaksi tidak mengubah baseline context 9/9 yang sudah stabil.

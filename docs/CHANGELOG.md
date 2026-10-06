@@ -4,6 +4,8 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ## Unreleased
 
+- Changed frontend intent badges to consistent Indonesian labels without changing internal intent names, routing, or API behavior.
+
 ### Added
 
 - Added a product-grounding language matrix for compact model codes, reordered names, attribute questions, light typos, ambiguity, and unknown-product inverse cases.

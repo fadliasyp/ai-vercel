@@ -152,8 +152,7 @@
     let feedbackQuestionCountInSession = 0;
 
     try {
-      feedbackDoneInSession =
-        sessionStorage.getItem(FEEDBACK_DONE_KEY) === "1";
+      feedbackDoneInSession = sessionStorage.getItem(FEEDBACK_DONE_KEY) === "1";
       feedbackQuestionCountInSession = Math.max(
         0,
         Number(sessionStorage.getItem(FEEDBACK_COUNT_KEY) || 0),
@@ -304,10 +303,7 @@
         if (legacyHistory.length) {
           const limitedHistory = legacyHistory.slice(-MAX_CHAT_HISTORY_ITEMS);
           try {
-            localStorage.setItem(
-              SESSION_KEY,
-              JSON.stringify(limitedHistory),
-            );
+            localStorage.setItem(SESSION_KEY, JSON.stringify(limitedHistory));
             sessionStorage.removeItem(LEGACY_SESSION_KEY);
           } catch (e) {}
           return limitedHistory;
@@ -428,12 +424,12 @@
             ? suggestion
             : trustedMetadata
               ? trustedMetadata
-            : {
-                label: String(suggestion || ""),
-                value: String(suggestion || ""),
-                action_key: "follow_up",
-                required_fields: [],
-              };
+              : {
+                  label: String(suggestion || ""),
+                  value: String(suggestion || ""),
+                  action_key: "follow_up",
+                  required_fields: [],
+                };
         const text = String(action.label || action.value || "").trim();
         const value = String(action.value || text).trim();
         if (!text || !value) return;
@@ -473,9 +469,7 @@
           changed = true;
         }
       });
-      document
-        .querySelectorAll(".chat-feedback")
-        .forEach((el) => el.remove());
+      document.querySelectorAll(".chat-feedback").forEach((el) => el.remove());
       if (changed) saveChat();
     }
 
@@ -631,7 +625,8 @@
         return;
       }
 
-      status.textContent = "Maaf jawabannya belum membantu. Kamu bisa lanjut ke admin atau menulis ulang pertanyaanmu.";
+      status.textContent =
+        "Maaf jawabannya belum membantu. Kamu bisa lanjut ke admin atau menulis ulang pertanyaanmu.";
       const nextActions = document.createElement("div");
       nextActions.className = "chat-feedback__actions";
 
@@ -846,13 +841,19 @@
         if (!file) return;
 
         if (!/^image\//i.test(file.type || "")) {
-          addBotText("File yang dipilih harus berupa gambar ya.", "image_product_search");
+          addBotText(
+            "File yang dipilih harus berupa gambar ya.",
+            "image_product_search",
+          );
           imageInput.value = "";
           return;
         }
 
         if (file.size > 8 * 1024 * 1024) {
-          addBotText("Ukuran foto terlalu besar. Coba pilih foto maksimal 8 MB ya.", "image_product_search");
+          addBotText(
+            "Ukuran foto terlalu besar. Coba pilih foto maksimal 8 MB ya.",
+            "image_product_search",
+          );
           imageInput.value = "";
           return;
         }
@@ -869,7 +870,10 @@
           selectedImage = null;
           imageInput.value = "";
           renderImagePreview();
-          addBotText("Foto belum bisa dibaca. Coba pilih foto lain ya.", "image_product_search");
+          addBotText(
+            "Foto belum bisa dibaca. Coba pilih foto lain ya.",
+            "image_product_search",
+          );
         }
       });
     }
@@ -949,19 +953,20 @@
       let badge = "";
       if (intent) {
         const labelMap = {
+          greeting: "Sapaan",
           product_discovery: "Pencarian Produk",
+          recommendation: "Rekomendasi Produk",
           product_detail: "Detail Produk",
-          price_promo: "Harga & Promo",
-          stock_availability: "Cek Stok",
-          shipping_transaction: "Pengiriman & Bayar",
-          shipping_origin: "Asal Pengiriman",
-          general: "Info Umum",
-          recommendation: "Rekomendasi",
-          compare: "Perbandingan Produk",
           return_product: "Pengembalian Produk",
-          transaction_status: "Status Transaksi",
-          shipment_tracking: "Lacak Resi",
-          image_product_search: "Pencarian Foto",
+          price_promo: "Informasi Harga",
+          stock_availability: "Ketersediaan Stok",
+          shipping_transaction: "Transaksi Pengiriman",
+          general: "Pertanyaan Umum",
+          shipping_origin: "Lokasi Pengiriman",
+          compare: "Rekomendasi Produk",
+          transaction_status: "Status Pesanan",
+          shipment_tracking: "Pelacakan Pengiriman",
+          image_product_search: "Pencarian Produk dari Foto",
         };
         const niceLabel = labelMap[intent] || intent;
         badge = `<div class="intent-badge">${escapeHtml(niceLabel)}</div>`;
@@ -1492,9 +1497,7 @@
     }
 
     function recentApiHistory() {
-      return chatHistory
-        .filter((item) => item?.type !== "feedback")
-        .slice(-20);
+      return chatHistory.filter((item) => item?.type !== "feedback").slice(-20);
     }
 
     // ==============================
@@ -1546,12 +1549,12 @@
             body: JSON.stringify(
               imageToSend
                 ? {
-                  question,
-                  image: imageToSend.dataUrl,
-                  imageName: imageToSend.name || "",
-                  history: recentApiHistory(),
-                  pageContext,
-                }
+                    question,
+                    image: imageToSend.dataUrl,
+                    imageName: imageToSend.name || "",
+                    history: recentApiHistory(),
+                    pageContext,
+                  }
                 : {
                     question,
                     history: recentApiHistory(),
