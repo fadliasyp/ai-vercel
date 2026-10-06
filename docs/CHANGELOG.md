@@ -43,8 +43,9 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Product-grounding verification passes 400/400 local tests, 9/9 answer-coverage replay turns (59.4% before repair, 88.9% after repair), and 5/5 user-run production smoke cases.
 - Multi-turn Product Continuity passes 403/403 local tests, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions.
 - The first 9-case production context smoke passed 8/9. After fixing the compare-to-stock transition and deploying it, the production rerun passed 9/9.
-- Payload inspection found that the 9/9 result still contained a loose focused-promo assertion. The stricter one-product gate and routing fix pass locally; a production rerun is pending.
+- Payload inspection found that the earlier 9/9 result still contained a loose focused-promo assertion. After tightening the one-product gate and routing, the user-confirmed strict production rerun passes 9/9.
 - The strict production rerun was blocked by WooCommerce HTTP 508 `Insufficient Resource`. The accompanying log still showed the correct Groq `stock_availability` decision before catalog retrieval failed. The benchmark-runner hardening passes syntax checks, diff checks, and the full 403/403 local test suite.
+- After WooCommerce recovered, the same strict production context benchmark passed all 9/9 cases on 2026-10-06.
 - User-verified production smoke passes 3/3 for an approximate target, a bounded range with product-purpose constraints, and a terse same-session price refinement.
 - Added unit and full `/api/ask` regressions using the production question and a deliberately wrong Groq-shaped `maximum` result. All 399 local tests pass; only products within the Rp5.6-Rp8.4 million target window survive.
 - Added a data-driven language matrix and follow-up regressions. All 397 local tests pass, answer-coverage replay passes 9/9 turns, and the customer conversation benchmark passes 26/26 turns with 135 assertions (100%).

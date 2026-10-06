@@ -179,7 +179,7 @@ Menghubungkan bahasa pelanggan ke produk WooCommerce yang benar sebelum harga, s
 
 ### Status
 
-STABLE (local resolver dan endpoint regression scope; production smoke pending)
+STABLE (local resolver, endpoint regression, dan production smoke scope)
 
 ### Function
 
@@ -217,9 +217,10 @@ Mempertahankan objek produk yang benar ketika pelanggan melanjutkan percakapan d
 - Benchmark pelanggan lulus 26/26 turn dengan 135 assertion (100%).
 - Run production pertama lulus 8/9; satu konflik intent compare-versus-stock kemudian diperbaiki. Keputusan semantic LLM yang terkunci kini mengalahkan inferensi compare dari turn sebelumnya, sementara kata eksplisit `bandingkan`/`versus` tetap masuk jalur compare.
 - Rerun production setelah deploy lulus 9/9, termasuk `context_pair_stock_followup` yang sebelumnya gagal.
-- Inspeksi payload pada run tersebut menemukan false positive: follow-up promo produk fokus masih membawa tiga produk. Jalur promo sudah diperbaiki lokal dan gate kini menetapkan `maxProducts: 1`; rerun production dengan gate ketat masih pending.
+- Inspeksi payload pada run tersebut menemukan false positive: follow-up promo produk fokus masih membawa tiga produk. Jalur promo sudah diperbaiki dan gate kini menetapkan `maxProducts: 1`.
 - Rerun berikutnya tertahan oleh HTTP 508 `Insufficient Resource` dari WooCommerce. Log membuktikan semantic intent sudah benar sebelum fetch katalog gagal, sehingga hasil tersebut diklasifikasikan sebagai dependency unavailable dan bukan regression chatbot.
 - Runner `benchmark:context` memberi jeda default 8 detik antarkasus serta berhenti lebih awal ketika katalog sementara tidak tersedia; operator dapat mengubah jeda dengan `--delay-ms`.
+- Setelah dependency pulih, pengguna mengonfirmasi rerun gate production ketat lulus 9/9 pada 2026-10-06.
 
 ## Product Restock Schedule
 

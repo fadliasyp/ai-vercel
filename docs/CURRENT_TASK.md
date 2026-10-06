@@ -2,7 +2,7 @@
 
 ## Status
 
-Belum ada task aktif. Tahap Multi-turn Product Continuity dan gate promo ketat lulus verifikasi lokal. Rerun production terbaru belum dapat dinilai karena hosting WooCommerce mengembalikan HTTP 508 `Insufficient Resource`; ini adalah gangguan dependency katalog, bukan bukti bahwa seluruh logic chatbot gagal.
+Belum ada task aktif. Tahap Multi-turn Product Continuity dan gate promo ketat lulus verifikasi lokal serta production smoke 9/9. Gangguan WooCommerce HTTP 508 sebelumnya terbukti sementara dan tidak merepresentasikan regression logic chatbot.
 
 ## Current Progress
 
@@ -20,7 +20,8 @@ Belum ada task aktif. Tahap Multi-turn Product Continuity dan gate promo ketat l
 - Verifikasi setelah penguatan gate promo: 403/403 test lokal, coverage replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus. Production rerun dengan gate baru masih pending.
 - Log production 2026-10-06 menunjukkan Groq tetap memilih `stock_availability` dengan confidence 0,96 untuk `masih ready gak?`, lalu pengambilan katalog gagal dua kali dengan HTTP 508 `Insufficient Resource`/`WC_PRODUCTS_UNAVAILABLE`. Respons tanpa produk dan kegagalan smoke pada kondisi itu tidak boleh dinilai sebagai regression intent.
 - `benchmark:context` kini memakai jeda default 8 detik antarkasus dan maksimal 2 detik antarturn. Ketika payload menandakan katalog sementara tidak tersedia, benchmark berhenti sekali dengan pesan dependency unavailable alih-alih melanjutkan dan melaporkan seluruh kasus sebagai kegagalan logic.
-- Jeda dapat diatur melalui `--delay-ms`; rerun production tetap menunggu WooCommerce pulih.
+- Jeda dapat diatur melalui `--delay-ms`; fitur ini tetap dipertahankan untuk mengurangi burst pada benchmark berikutnya.
+- Setelah WooCommerce pulih, pengguna menjalankan ulang gate ketat dan mengonfirmasi production smoke lulus 9/9. Rerun production tidak lagi pending.
 - Product matcher kini memisahkan huruf dan angka pada kode rapat, sehingga `GX92` diperlakukan sama dengan `GX-92`/`GX 92` tanpa mengubah angka percakapan biasa menjadi model number.
 - Kata kebutuhan seperti bahan, dimensi, berat, aksesori, harga nett, dan satuan tidak lagi mencemari token nama produk. Pertanyaan `Ideon bahannya metal atau plastik?` tetap berlabuh ke produk Ideon, lalu facet material dijawab dari katalog.
 - Guard tetap konservatif: `getter black` meminta klarifikasi ketika beberapa produk dekat, `ideon ultraman` tidak ditebak, dan kode salah `GX99 Ideon` tidak dialihkan ke `GX-92`.
