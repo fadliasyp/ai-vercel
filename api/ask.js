@@ -44,6 +44,7 @@ import {
 import {
   chooseSemanticIntent,
   detectExplicitIntentOverride,
+  looksLikeGlobalReadyStockQuestion,
   looksLikeSingleProductSuitabilityQuestion,
   semanticRouteToLegacy,
   shouldUseSemanticRouter,
@@ -472,6 +473,7 @@ function isGlobalStockQuestion(q = "") {
   q = q.toLowerCase().replace(/\s+/g, " ").trim();
 
   return (
+    looksLikeGlobalReadyStockQuestion(q) ||
     q.includes("ready apa aja") ||
     q.includes("ready stock apa aja") ||
     q.includes("stok apa aja") ||
@@ -1029,9 +1031,14 @@ export default async function handler(req, res) {
     groqRoute?.intent === "recommendation" &&
     directExplicitIntent?.intent === "product_discovery" &&
     directExplicitIntent?.method === "explicit_product_discovery_rule";
+  const semanticReadyStockConflict =
+    groqRoute?.intent !== "stock_availability" &&
+    directExplicitIntent?.intent === "stock_availability" &&
+    directExplicitIntent?.method === "explicit_global_ready_stock_rule";
   const semanticDecisionIsPrimary =
     !semanticCatalogAvailabilityConflict &&
     !semanticCatalogBrowseConflict &&
+    !semanticReadyStockConflict &&
     groqRoute?.scope === "in_scope" &&
     Number(groqRoute.confidence || 0) >= minSemanticConfidence &&
     String(intentResult.method || "").includes("_semantic:");
@@ -1076,6 +1083,14 @@ export default async function handler(req, res) {
     answerPlan = buildAnswerPlan(compoundAnalysis);
     groqContext.compound = compactCompoundQuestionAnalysis(compoundAnalysis);
     groqContext.semanticDecision = groqRoute;
+  } else if (semanticReadyStockConflict) {
+    explicitIntentSource = "global_ready_stock_guard";
+    intentResult = {
+      ...intentResult,
+      ...directExplicitIntent,
+      score: 1,
+      scope: "in_scope",
+    };
   } else if (semanticCatalogBrowseConflict) {
     intentResult = {
       ...intentResult,

@@ -311,7 +311,7 @@ Membedakan cek stok produk tertentu, daftar produk ready, dan kebijakan stok umu
 
 - Bukti lokal 2026-10-06: full suite lulus, answer-coverage replay 9/9 turn (59,4% menjadi 88,9%), dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
 - Active-LLM endpoint regression membuktikan daftar ready global, kebijakan stok informal, dan guard pencarian katalog bernama.
-- Smoke production untuk patch Ketersediaan Stok belum dijalankan.
+- Smoke production pertama menemukan Groq salah membaca `yg bisa lngs dibungkus ada apa aja` sebagai pencarian produk. Koreksi prompt, normalisasi singkatan, dan guard konflik sudah lulus regression lokal dengan output provider production yang sama; redeploy dan smoke ulang masih diperlukan.
 
 ## Multi-turn Product Continuity
 

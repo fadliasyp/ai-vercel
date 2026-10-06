@@ -21,6 +21,9 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Fixed
 
+- Normalized `lgs`, `lgsg`, and `lngs` to `langsung` and taught the semantic router that `bisa langsung dibungkus ... apa aja` requests the ready-stock list.
+- Added a narrow `global_ready_stock_guard` so a high-confidence provider misclassification cannot turn that fulfillment phrase into a product keyword; product facts still come only from WooCommerce.
+- Added an endpoint regression using the exact wrong Groq route captured in production (`product_discovery`, confidence 0.92, no product entity).
 - Connected trusted product-free `stock` understanding to the WooCommerce ready-stock listing instead of treating conversational filler as a missing product name.
 - Added the structured `stock_policy` goal so informal questions about always-ready or PO policy remain separate from requests to list ready products; all counts still come from WooCommerce.
 - Narrowed the catalog-availability conflict guard to named products, preserving `tampilkan Voltes yang tersedia` as discovery without overriding product-free stock requests.
@@ -63,7 +66,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
-- LLM-grounded Stock Availability passes the full local suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. Production smoke is pending deployment.
+- LLM-grounded Stock Availability passes the full local suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. The first production smoke exposed the `lngs dibungkus` provider error; its correction is locally verified and awaits redeployment.
 - LLM-grounded Price/Promo passes the full local suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. The LLM shadow benchmark is blocked by an invalid local Vercel CLI token; the user-confirmed production smoke passes 5/5.
 - The user confirmed the deployed Product Detail smoke cases pass 3/3 in production.
 - LLM-grounded Product Detail passes the full 408/408 suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions; the user-confirmed production smoke passes 3/3.

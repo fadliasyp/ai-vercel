@@ -132,6 +132,10 @@ test("explicit rules resolve recommendation, compare, store, and insurance bound
     "stock_availability",
   );
   assert.equal(
+    detectExplicitIntentOverride("yg bisa lngs dibungkus ada apa aja")?.method,
+    "explicit_global_ready_stock_rule",
+  );
+  assert.equal(
     detectExplicitIntentOverride(
       "Lagi nyari Fewture Getter Set 1,2,3 Black Version nih, sisa berapa pcs di gudang?",
     ).intent,

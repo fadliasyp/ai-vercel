@@ -293,4 +293,5 @@ test("semantic prompt defines the risky intent boundaries", () => {
   assert.match(prompt, /7jtan\/jtaan/);
   assert.match(prompt, /stok adalah constraint recommendation/);
   assert.match(prompt, /goal stock_policy/);
+  assert.match(prompt, /langsung dibungkus ada apa aja/);
 });

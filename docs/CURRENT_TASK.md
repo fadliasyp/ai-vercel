@@ -2,10 +2,14 @@
 
 ## Status
 
-Belum ada task aktif. Prioritas 1 tahap Pencarian Produk, Rekomendasi, Detail Produk, Informasi Harga/Promo, dan Ketersediaan Stok sudah diperkuat tanpa mengubah baseline yang stabil. Empat tahap pertama telah dikonfirmasi benar di production oleh pengguna; patch Ketersediaan Stok sudah lulus verifikasi lokal dan menunggu deploy/smoke production.
+Belum ada task aktif. Prioritas 1 tahap Pencarian Produk, Rekomendasi, Detail Produk, Informasi Harga/Promo, dan Ketersediaan Stok sudah diperkuat tanpa mengubah baseline yang stabil. Empat tahap pertama telah dikonfirmasi benar di production oleh pengguna; koreksi Ketersediaan Stok untuk bahasa informal sudah lulus verifikasi lokal dan menunggu redeploy/smoke production.
 
 ## Current Progress
 
+- Log production membuktikan Groq salah membaca `yg bisa lngs dibungkus ada apa aja` sebagai `product_discovery` dengan confidence 0,92. Akibatnya handler stok tidak pernah dipanggil meskipun handler tersebut sudah benar.
+- Normalisasi bersama kini memahami `lgs`, `lgsg`, dan `lngs` sebagai `langsung`. Prompt semantic router juga menetapkan bahwa `bisa langsung dibungkus ... apa aja` berarti daftar ready stock, bukan nama produk atau pertanyaan packing.
+- Guard intent yang sempit menangani konflik ketika provider tetap mengembalikan `product_discovery` untuk pola tersebut. Hasil akhirnya hanya berasal dari produk WooCommerce berstatus `instock`, dan sumber koreksi tercatat sebagai `global_ready_stock_guard`.
+- Regression meniru output Groq production yang salah secara persis. Full suite lulus, coverage replay 9/9, serta benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
 - Goal LLM `stock` tanpa nama produk dan `requires_product: false` kini membuka daftar produk ready WooCommerce, termasuk ungkapan informal yang tidak cocok dengan frasa stok lokal.
 - Goal baru `stock_policy` membedakan pertanyaan kebijakan seperti apakah semua barang selalu ready dari permintaan daftar barang ready. LLM hanya menentukan jenis kebutuhan; hitungan ready/PO tetap dihitung dari katalog.
 - Pengecualian pencarian katalog versus cek stok kini hanya berlaku jika LLM membawa nama produk. Karena itu `tampilkan Voltes yang tersedia` tetap Pencarian Produk, sedangkan permintaan stok global tanpa nama produk dapat mengikuti keputusan LLM.
@@ -183,16 +187,19 @@ Belum ada task aktif. Prioritas 1 tahap Pencarian Produk, Rekomendasi, Detail Pr
 
 ## Active Task
 
-- Belum ada task aktif; LLM-Grounded Product Detail sudah terverifikasi lokal dan menunggu deploy/smoke production.
+- Belum ada task aktif; koreksi LLM-Grounded Stock Availability sudah terverifikasi lokal dan menunggu redeploy/smoke production.
 
 ## Last Completed Task
 
-- Task: menghubungkan goal Detail Produk dari semantic LLM ke formatter fakta WooCommerce.
+- Task: mengoreksi salah tafsir provider pada permintaan informal daftar produk ready stock.
 - Tanggal selesai: 2026-10-06.
-- Goal: memahami facet detail pada bahasa santai/typo tanpa menjadikan LLM sumber fakta dan tanpa mengubah logic intent stabil lain.
+- Goal: memahami `yg bisa lngs dibungkus ada apa aja` sebagai daftar produk ready tanpa menjadikan LLM sumber fakta stok dan tanpa mengubah intent stabil lain.
 
 ## Completed
 
+- Menormalisasi singkatan `lgs`, `lgsg`, dan `lngs` pada pemahaman bahasa bersama.
+- Menambahkan aturan prompt dan guard konflik yang hanya berlaku pada permintaan daftar ready global.
+- Menambahkan regression berdasarkan output Groq production yang salah dan memverifikasi full suite serta benchmark utama.
 - Meneruskan facet Detail Produk dari answer plan terverifikasi ke `buildProductTransactionSummary`.
 - Mempertahankan detail lengkap untuk pertanyaan umum dan catatan katalog untuk permintaan kelebihan/kekurangan.
 - Menambahkan fakta asal produksi/impor eksplisit ke ekstraksi detail WooCommerce.
@@ -263,9 +270,9 @@ Belum ada task aktif. Prioritas 1 tahap Pencarian Produk, Rekomendasi, Detail Pr
 
 ## Next Steps
 
-1. Deploy patch Detail Produk ke Vercel.
-2. Jalankan smoke browser singkat untuk material/kelengkapan dengan typo, detail umum, dan asal produksi yang tidak tercantum.
-3. Jika ketiganya benar, lanjutkan prioritas berikutnya ke Informasi Harga tanpa mengubah baseline pencarian, rekomendasi, Product Grounding, Detail Produk, kontinuitas produk, atau transaksi.
+1. Redeploy koreksi Ketersediaan Stok ke Vercel.
+2. Ulangi `yg bisa lngs dibungkus ada apa aja` dan pastikan respons berisi kartu produk ready dengan intent Ketersediaan Stok.
+3. Jika benar, lanjutkan empat smoke stok lainnya sebelum berpindah ke Perbandingan Produk.
 
 ## Blockers
 

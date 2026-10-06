@@ -1141,6 +1141,43 @@ test("routes real customer turns without stale products or fallback collisions",
 
     semanticRoute = {
       scope: "in_scope",
+      intent: "product_discovery",
+      intents: ["product_discovery"],
+      goals: ["product_search"],
+      confidence: 0.92,
+      entities: {
+        product_names: [],
+        budget_min: null,
+        budget_max: null,
+      },
+      requires_product: false,
+      customer_state: "neutral",
+      interpretation: "User wants to know what items can be wrapped in lngs",
+      topic_relation: "new_topic",
+      needs_clarification: false,
+      clarification_question: null,
+    };
+
+    const guardedGlobalStock = await ask(
+      "yg bisa lngs dibungkus ada apa aja",
+      null,
+      { sessionId: `guarded_global_stock_${Date.now()}` },
+    );
+    assert.equal(guardedGlobalStock.intent, "stock_availability");
+    assert.equal(guardedGlobalStock.type, "products");
+    assert.ok(guardedGlobalStock.products.length > 1);
+    assert.ok(
+      guardedGlobalStock.products.every(
+        (product) => product.stock === "instock",
+      ),
+    );
+    assert.equal(
+      guardedGlobalStock.assistant_meta.llm_led.intent_source,
+      "global_ready_stock_guard",
+    );
+
+    semanticRoute = {
+      scope: "in_scope",
       intent: "stock_availability",
       intents: ["stock_availability"],
       goals: ["stock"],

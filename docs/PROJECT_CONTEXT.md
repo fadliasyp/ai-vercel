@@ -162,7 +162,7 @@ Status project: **aktif dikembangkan**.
 Pada 2026-10-06:
 
 - Pengguna mengonfirmasi smoke production Harga/Promo lulus 5/5.
-- Tahap Ketersediaan Stok lulus full local suite, replay coverage 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion; smoke production masih pending deployment.
+- Tahap Ketersediaan Stok lulus full local suite, replay coverage 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion. Smoke pertama menemukan salah tafsir provider pada `lngs dibungkus`; regression dengan output production sudah lulus dan smoke ulang menunggu redeploy.
 - Pengguna mengonfirmasi smoke production Detail Produk lulus 3/3.
 - Tahap Harga/Promo lulus full local suite, replay coverage 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion. Benchmark LLM shadow tertahan oleh token Vercel CLI lokal yang tidak valid.
 - Transaction Continuity lulus targeted 12/12, full suite 403/403, coverage replay 9/9, benchmark pelanggan 26/26 turn dengan 135 assertion, dan production gate 7/7.

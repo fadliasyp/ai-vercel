@@ -49,6 +49,10 @@ test("normalizes abbreviations across every commerce flow", () => {
     ),
     "rekomendasi barang, cek stok, harga, ongkir, alamat, bayar, retur, status order, tracking",
   );
+  assert.equal(
+    normalizeIndonesianCommerceText("yg bisa lngs dibungkus atau lgsg dikirim"),
+    "yang bisa langsung dibungkus atau langsung dikirim",
+  );
 });
 
 test("keeps catalog typo matching conservative", () => {
