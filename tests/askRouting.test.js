@@ -1032,6 +1032,59 @@ test("routes real customer turns without stale products or fallback collisions",
 
     semanticRoute = {
       scope: "in_scope",
+      intent: "product_discovery",
+      intents: ["product_discovery"],
+      goals: ["catalog_search"],
+      confidence: 0.96,
+      entities: {
+        product_names: ["Voltes"],
+        budget_min: null,
+        budget_max: null,
+      },
+      requires_product: true,
+      customer_state: "neutral",
+      interpretation: "Pelanggan ingin melihat koleksi seri Voltes.",
+      topic_relation: "new_topic",
+      needs_clarification: false,
+      clarification_question: null,
+    };
+
+    const llmGroundedDiscovery = await ask(
+      "Aku kepengen banget lihat koleksi lawas seri Voltes",
+      null,
+      { sessionId: `llm_grounded_discovery_${Date.now()}` },
+    );
+    assert.equal(llmGroundedDiscovery.intent, "product_discovery");
+    assert.equal(llmGroundedDiscovery.type, "products");
+    assert.ok(llmGroundedDiscovery.products.length > 1);
+    assert.ok(
+      productNames(llmGroundedDiscovery).every((name) => /Voltes/i.test(name)),
+    );
+
+    semanticRoute = {
+      ...semanticRoute,
+      entities: {
+        ...semanticRoute.entities,
+        product_names: ["Robot Damashii Voltes V Legacy"],
+      },
+    };
+
+    const rejectedOverSpecificDiscovery = await ask(
+      "Coba tampilkan Voltes",
+      null,
+      { sessionId: `rejected_specific_discovery_${Date.now()}` },
+    );
+    assert.equal(rejectedOverSpecificDiscovery.intent, "product_discovery");
+    assert.equal(rejectedOverSpecificDiscovery.type, "products");
+    assert.ok(rejectedOverSpecificDiscovery.products.length > 1);
+    assert.ok(
+      productNames(rejectedOverSpecificDiscovery).every((name) =>
+        /Voltes/i.test(name),
+      ),
+    );
+
+    semanticRoute = {
+      scope: "in_scope",
       intent: "stock_availability",
       intents: ["stock_availability"],
       goals: ["stock"],

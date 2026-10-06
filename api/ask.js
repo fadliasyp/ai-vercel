@@ -986,6 +986,19 @@ export default async function handler(req, res) {
           .filter(Boolean)
       : [];
 
+  function getGroundedLlmProductNames(question = "") {
+    const questionTokens = new Set(extractProductSearchTokens(question));
+    if (!questionTokens.size) return [];
+
+    return trustedLlmProductNames.filter((name) => {
+      const nameTokens = extractProductSearchTokens(name);
+      return (
+        nameTokens.length > 0 &&
+        nameTokens.every((token) => questionTokens.has(token))
+      );
+    });
+  }
+
   const legacyIntentResult = chooseSemanticIntent({
     question: privacySafeQuestion(),
     localScope: localScopeDecision,
@@ -4310,28 +4323,20 @@ export default async function handler(req, res) {
         };
       }
 
-      if (trustedLlmProductNames.length === 1) {
-        const llmProductName = trustedLlmProductNames[0];
-        const questionTokens = new Set(extractProductSearchTokens(question));
-        const llmNameTokens = extractProductSearchTokens(llmProductName);
-        const entityComesFromQuestion = llmNameTokens.some((token) =>
-          questionTokens.has(token),
+      const groundedLlmProductNames = getGroundedLlmProductNames(question);
+      if (groundedLlmProductNames.length === 1) {
+        const llmEntityMatch = assessProductSearchConfidence(
+          groundedLlmProductNames[0],
+          lookupProducts,
+          {
+            preferPromo: compound && /\b(?:promo|diskon)\b/i.test(question),
+          },
         );
-
-        if (entityComesFromQuestion) {
-          const llmEntityMatch = assessProductSearchConfidence(
-            llmProductName,
-            lookupProducts,
-            {
-              preferPromo: compound && /\b(?:promo|diskon)\b/i.test(question),
-            },
-          );
-          if (llmEntityMatch.status !== "not_found") {
-            return {
-              ...llmEntityMatch,
-              reason: `llm_entity:${llmEntityMatch.reason}`,
-            };
-          }
+        if (llmEntityMatch.status !== "not_found") {
+          return {
+            ...llmEntityMatch,
+            reason: `llm_entity:${llmEntityMatch.reason}`,
+          };
         }
       }
 
@@ -7276,30 +7281,58 @@ Kembalikan JSON valid:
           .trim();
       }
       const cleanedQuery = cleanQueryForSearch(effectiveQuestion);
+      const groundedLlmDiscoveryNames =
+        getGroundedLlmProductNames(rawQuestion);
+      const llmDiscoveryQuery =
+        groundedLlmDiscoveryNames.length === 1
+          ? groundedLlmDiscoveryNames[0]
+          : "";
 
       let discoveryMatches = searchProductsForDiscovery(
-        cleanedQuery,
+        llmDiscoveryQuery || cleanedQuery,
         cleanProducts,
       );
+      let usedLlmDiscoveryMatch = Boolean(
+        llmDiscoveryQuery && discoveryMatches.length,
+      );
+
+      if (
+        !discoveryMatches.length &&
+        llmDiscoveryQuery &&
+        cleanedQuery &&
+        cleanedQuery !== llmDiscoveryQuery
+      ) {
+        discoveryMatches = searchProductsForDiscovery(
+          cleanedQuery,
+          cleanProducts,
+        );
+        usedLlmDiscoveryMatch = false;
+      }
 
       if (!discoveryMatches.length && effectiveQuestion !== rawQuestion) {
         discoveryMatches = searchProductsForDiscovery(
           rawQuestion,
           cleanProducts,
         );
+        usedLlmDiscoveryMatch = false;
       }
 
       const discoveryConfidence = assessProductSearchConfidence(
         rawQuestion,
         cleanProducts,
       );
-      if (discoveryConfidence.reason === "partial_query_match") {
+      if (
+        !usedLlmDiscoveryMatch &&
+        discoveryConfidence.reason === "partial_query_match"
+      ) {
         discoveryMatches = [];
       }
 
       if (!discoveryMatches.length) {
         const semanticRequestedTerm = stripRobotJadulStoreName(
-          intentResult.semantic?.product_name || "",
+          groundedLlmDiscoveryNames.length === 1
+            ? groundedLlmDiscoveryNames[0]
+            : "",
         ).trim();
         const requestedTerm = hasSpecificProductSearchTerms(
           semanticRequestedTerm,

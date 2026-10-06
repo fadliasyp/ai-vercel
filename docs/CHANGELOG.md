@@ -7,6 +7,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 - Added a single-line Vercel log for the Intent ML top-three predictions and confidence values without changing routing decisions.
 - Changed frontend intent badges to consistent Indonesian labels without changing internal intent names, routing, or API behavior.
 - Changed shared product resolution in active mode to consume the LLM's structured product entity before raw-text parsing, while retaining catalog and user-message grounding plus the local fallback.
+- Changed product discovery in active mode to query the WooCommerce catalog with a grounded LLM product entity before falling back to cleaned customer text.
 
 ### Added
 
@@ -20,6 +21,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Fixed
 
+- Prevented an LLM product entity from narrowing a family request such as `Voltes` to a full catalog variant that the customer did not mention. Every entity token must now be grounded in the current message.
 - Fixed bulk-discount questions such as `Kalau beli tiga barang, bisa dapat potongan harga nggak?` falling through to product lookup. The active LLM `bulk_discount` goal now routes directly to verified store policy, with Indonesian word-number extraction retained as fallback.
 - Fixed informal restock questions such as `kalau Voltron habis, kapan restok?` being rejected as unknown products. Restock wording is now removed from product identity matching while stock and schedule facts remain catalog-grounded.
 - Fixed requests such as `Coba tampilin robot Voltron yang tersedia` being locked as stock checks. Catalog availability now remains product discovery even if the LLM returns high-confidence `stock_availability`, while explicit quantity/ready/restock questions keep their existing route.
@@ -50,6 +52,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
+- LLM-first product discovery passes the full 405/405 local suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. Production smoke is pending deployment.
 - Transaction Continuity Batch 1 passes syntax/JSON/diff checks, the full 403/403 local suite, and the rules-only international-shipping smoke.
 - The first transaction production gate passed 6/7 and isolated the payment-facet bridge bug. After the fix, targeted tests pass 12/12, the full suite passes 403/403, coverage replay passes 9/9, and the customer benchmark passes 26/26 turns with 135 assertions.
 - After deployment, the user-confirmed transaction production rerun passes all 7/7 cases on 2026-10-06.

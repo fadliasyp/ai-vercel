@@ -2,10 +2,13 @@
 
 ## Status
 
-Belum ada task aktif. Prioritas 1 tahap Informasi Harga untuk kebijakan bulk discount sudah diperbaiki dan lulus seluruh verifikasi lokal; deploy/smoke production masih perlu dilakukan. Resolver produk tetap LLM-first pada mode active dan baseline stabil lainnya tidak diubah.
+Belum ada task aktif. Prioritas 1 tahap Pencarian Produk sudah diperbaiki dan lulus seluruh verifikasi lokal; deploy/smoke production masih perlu dilakukan. Tahap berikutnya dapat melanjutkan ke Detail Produk tanpa mengubah baseline pencarian dan rekomendasi yang sudah stabil.
 
 ## Current Progress
 
+- Pada mode active, `product_discovery` kini memakai satu entitas produk LLM yang tepercaya sebagai query utama sebelum parser teks lokal. Hasil tetap berasal dari katalog WooCommerce; parser lokal tetap fallback bila provider gagal, limit, atau entitas tidak valid.
+- Entitas produk LLM hanya dianggap grounded bila seluruh token namanya hadir pada pesan pelanggan. Karena itu permintaan umum `Voltes` tidak boleh dipersempit menjadi `Robot Damashii Voltes V Legacy` jika varian lengkap tersebut tidak disebut pelanggan.
+- Regression active-LLM membuktikan kalimat percakapan `Aku kepengen banget lihat koleksi lawas seri Voltes` tetap menghasilkan beberapa produk Voltes, sekaligus menguji penolakan entitas yang terlalu spesifik. Verifikasi: full suite 405/405, coverage replay 9/9, dan benchmark pelanggan 26/26 turn (135 assertion, 100%).
 - Goal LLM `bulk_discount` kini langsung menuju policy handler sebelum pengambilan katalog. Pertanyaan `Kalau beli tiga barang, bisa dapat potongan harga nggak?` tidak lagi meminta nama produk atau mengembalikan produk tidak ditemukan.
 - Angka kata `satu` sampai `sepuluh` didukung pada fallback bulk purchase. Respons menyatakan potongan tidak dijanjikan otomatis dan harus dikonfirmasi admin, tanpa mengarang promo.
 - Regression active-LLM memastikan response tidak membawa kartu produk dan mencatat sumber `llm_bulk_discount_policy`. Verifikasi: full suite 405/405, coverage replay 9/9, dan benchmark pelanggan 26/26 turn (135 assertion, 100%).
