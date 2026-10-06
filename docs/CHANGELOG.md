@@ -21,6 +21,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Fixed
 
+- Fixed named-family recommendations such as `dari semua variasi Voltes mana yang paling worth it` ranking the entire catalog when Groq returned an empty `product_names` array. Catalog-grounded fallback now scopes candidates before ranking and Gemini selection, and never substitutes another series when no scoped ready product exists.
 - Prevented an LLM product entity from narrowing a family request such as `Voltes` to a full catalog variant that the customer did not mention. Every entity token must now be grounded in the current message.
 - Fixed `Aku kepengen banget lihat koleksi lawas seri Voltes` being locked as a recommendation and returning unrelated alternatives. Explicit catalog browsing now wins this narrow conflict, and the semantic prompt distinguishes browsing a collection from asking for a recommendation.
 - Fixed bulk-discount questions such as `Kalau beli tiga barang, bisa dapat potongan harga nggak?` falling through to product lookup. The active LLM `bulk_discount` goal now routes directly to verified store policy, with Indonesian word-number extraction retained as fallback.
@@ -53,6 +54,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
+- Named-family recommendation regression reproduces the production Groq response with confidence 0.92 and empty `product_names`; the full 406/406 suite, 9/9 coverage replay, and 26/26 customer turns with 135 assertions pass.
 - LLM-first product discovery passes the full 405/405 local suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. Production smoke is pending deployment.
 - Transaction Continuity Batch 1 passes syntax/JSON/diff checks, the full 403/403 local suite, and the rules-only international-shipping smoke.
 - The first transaction production gate passed 6/7 and isolated the payment-facet bridge bug. After the fix, targeted tests pass 12/12, the full suite passes 403/403, coverage replay passes 9/9, and the customer benchmark passes 26/26 turns with 135 assertions.

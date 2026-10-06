@@ -6386,15 +6386,25 @@ export default async function handler(req, res) {
         rawQuestion,
         list,
       );
+      const groundedRecommendationProductNames =
+        getGroundedLlmProductNames(rawQuestion);
+      const fallbackRecommendationProductTokens =
+        requestedProductMatch.status !== "not_found"
+          ? requestedProductMatch.queryTokens || []
+          : [];
+      const recommendationProductQuery =
+        groundedRecommendationProductNames.length === 1
+          ? groundedRecommendationProductNames[0]
+          : fallbackRecommendationProductTokens.join(" ");
       const hasTrustedRecommendationUnderstanding = Boolean(
         groqRoute?.intent === "recommendation" &&
           Number(groqRoute.confidence || 0) >= minSemanticConfidence &&
           groqRoute.recommendation_request,
       );
       const hasExplicitNamedProductRequest =
-        hasTrustedRecommendationUnderstanding
-          ? (groqRoute.entities?.product_names || []).length > 0
-          : hasSpecificProductSearchTerms(rawQuestion);
+        Boolean(recommendationProductQuery) ||
+        (!hasTrustedRecommendationUnderstanding &&
+          hasSpecificProductSearchTerms(rawQuestion));
 
       if (
         isExplicitCatalogRequest &&
@@ -6412,6 +6422,28 @@ export default async function handler(req, res) {
           },
           "recommendation",
         );
+      }
+
+      if (recommendationProductQuery) {
+        const scopedCandidates = searchProductsForDiscovery(
+          recommendationProductQuery,
+          candidates,
+          candidates.length,
+        ).filter((product) => product._longestNameTokenRun > 0);
+
+        if (scopedCandidates.length) {
+          candidates = scopedCandidates;
+        } else {
+          return await send(
+            {
+              type: "text",
+              message:
+                `Belum ada varian **${recommendationProductQuery}** yang tercatat ready stock di katalog. ` +
+                "Aku tidak akan menggantinya dengan produk lain.",
+            },
+            "recommendation",
+          );
+        }
       }
 
       let shortlist = [];

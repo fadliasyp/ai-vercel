@@ -2,10 +2,14 @@
 
 ## Status
 
-Belum ada task aktif. Prioritas 1 tahap Pencarian Produk sudah diperbaiki dan lulus seluruh verifikasi lokal; deploy/smoke production masih perlu dilakukan. Tahap berikutnya dapat melanjutkan ke Detail Produk tanpa mengubah baseline pencarian dan rekomendasi yang sudah stabil.
+Belum ada task aktif. Prioritas 1 tahap Pencarian Produk dan penguncian keluarga produk pada Rekomendasi sudah diperbaiki serta lulus seluruh verifikasi lokal; deploy/smoke production masih perlu dilakukan. Tahap berikutnya dapat melanjutkan ke Detail Produk tanpa mengubah baseline yang sudah stabil.
 
 ## Current Progress
 
+- Log production membuktikan intent `recommendation` sudah benar untuk `Menurut mu dari semua variasi Voltes mana yang paling worth it`, tetapi Groq mengembalikan `product_names: []`. Akibatnya handler lama meranking seluruh katalog dan menghasilkan produk non-Voltes.
+- Rekomendasi kini memulihkan scope keluarga produk melalui matcher katalog ketika entitas LLM kosong, lalu memfilter kandidat secara keras sebelum ranking dan Gemini. Jika scope bernama tidak memiliki varian ready, chatbot tidak menggantinya dengan seri lain.
+- Kata percakapan `mu`, `varian`, dan `variasi` tidak lagi dianggap bagian identitas produk. Prompt semantic router juga mewajibkan rekomendasi bernama seperti variasi Voltes membawa `product_names: ["Voltes"]` dan `requires_product: true`.
+- Regression memakai pertanyaan dan output Groq production persis, termasuk confidence 0,92 dan `product_names` kosong; seluruh kartu hasil wajib Voltes. Verifikasi: full suite 406/406, coverage replay 9/9, dan benchmark pelanggan 26/26 turn (135 assertion, 100%).
 - Pada mode active, `product_discovery` kini memakai satu entitas produk LLM yang tepercaya sebagai query utama sebelum parser teks lokal. Hasil tetap berasal dari katalog WooCommerce; parser lokal tetap fallback bila provider gagal, limit, atau entitas tidak valid.
 - Entitas produk LLM hanya dianggap grounded bila seluruh token namanya hadir pada pesan pelanggan. Karena itu permintaan umum `Voltes` tidak boleh dipersempit menjadi `Robot Damashii Voltes V Legacy` jika varian lengkap tersebut tidak disebut pelanggan.
 - Konflik production ketika provider menilai `Aku kepengen banget lihat koleksi lawas seri Voltes` sebagai `recommendation` kini dikoreksi oleh perintah katalog eksplisit. Prompt provider juga menegaskan bahwa `lihat koleksi/seri` adalah pencarian, sedangkan rekomendasi harus meminta pilihan atau penilaian.

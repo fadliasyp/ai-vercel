@@ -53,6 +53,15 @@ test("does not treat generic recommendation constraints as a product name", () =
   assert.equal(hasSpecificProductSearchTerms(question), false);
 });
 
+test("keeps only the named family in a variation recommendation", () => {
+  assert.deepEqual(
+    extractProductSearchTokens(
+      "Menurut mu dari semua variasi Voltes mana yang paling worth it",
+    ),
+    ["voltes"],
+  );
+});
+
 test("finds a catalog product from a specific robot name", () => {
   const result = findBestSingleProductMatch(
     "cari barang Voltes V",

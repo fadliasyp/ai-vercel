@@ -113,6 +113,8 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 - Target harga yang berbeda harus menghasilkan kelompok kandidat yang relevan dengan target tersebut, bukan selalu daftar rekomendasi generik yang sama.
 - Promo, penjualan, dan rating hanya meranking kandidat yang relevan; sinyal tersebut tidak boleh mengalahkan target harga hingga menghasilkan produk yang jauh lebih murah.
 - Jika tidak ada kandidat dalam toleransi 20% dari target, jangan kembali ke daftar rekomendasi umum yang jauh dari nominal pelanggan.
+- Rekomendasi yang menyebut keluarga produk, misalnya `dari semua variasi Voltes mana yang paling worth it`, hanya boleh meranking anggota keluarga tersebut. Matcher katalog memulihkan scope dari pesan ketika LLM melewatkan `product_names`.
+- Filter keluarga produk dilakukan sebelum ranking dan pemilihan Gemini. Jika tidak ada varian ready, respons menyatakan hal itu tanpa mengganti dengan seri lain.
 
 ### Do Not Break
 
@@ -121,6 +123,7 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 - Jangan melewati guard produk untuk nama produk eksplisit yang tidak tersedia; pengecualian guard hanya berlaku ketika structured understanding tepercaya menyatakan `product_names` kosong.
 - Jangan mewariskan konteks rekomendasi ke pertanyaan yang jelas mengganti intent, misalnya `kapan restock ya`.
 - Jangan melonggarkan filter stok, kondisi, promo, hadiah, atau metadata produk untuk mengisi jumlah kartu.
+- Jangan membiarkan `product_names` LLM yang kosong menghapus nama keluarga produk yang dapat dibuktikan oleh pesan pelanggan dan katalog.
 
 ### Important Files
 
@@ -137,6 +140,7 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 - `npm run benchmark:coverage-replay`
 - Bukti 2026-10-06: 399/399 test lulus, replay 9/9 turn lulus, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus.
 - Bukti production 2026-10-06: smoke manual pengguna lulus 3/3 untuk target harga, rentang + kebutuhan, dan refinement harga singkat dalam sesi yang sama.
+- Bukti lokal 2026-10-06 untuk named-family recommendation: full suite 406/406, replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus. Smoke production belum dijalankan.
 
 ## Product Grounding
 

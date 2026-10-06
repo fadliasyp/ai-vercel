@@ -1089,6 +1089,50 @@ test("routes real customer turns without stale products or fallback collisions",
 
     semanticRoute = {
       scope: "in_scope",
+      intent: "recommendation",
+      intents: ["recommendation"],
+      goals: ["recommendation"],
+      confidence: 0.92,
+      entities: {
+        product_names: [],
+        budget_min: null,
+        budget_max: null,
+      },
+      recommendation_request: {
+        price_mode: "none",
+        target_price: null,
+        budget_min: null,
+        budget_max: null,
+        purposes: [],
+        stock: null,
+        condition: null,
+        promo_only: false,
+      },
+      requires_product: false,
+      customer_state: "neutral",
+      interpretation:
+        "Pelanggan menanyakan rekomendasi varian Voltes yang paling worth it.",
+      topic_relation: "new_topic",
+      needs_clarification: false,
+      clarification_question: null,
+    };
+
+    const scopedVoltesRecommendation = await ask(
+      "Menurut mu dari semua variasi Voltes mana yang paling worth it",
+      null,
+      { sessionId: `scoped_voltes_recommendation_${Date.now()}` },
+    );
+    assert.equal(scopedVoltesRecommendation.intent, "recommendation");
+    assert.equal(scopedVoltesRecommendation.type, "products");
+    assert.ok(scopedVoltesRecommendation.products.length > 1);
+    assert.ok(
+      productNames(scopedVoltesRecommendation).every((name) =>
+        /Voltes/i.test(name),
+      ),
+    );
+
+    semanticRoute = {
+      scope: "in_scope",
       intent: "stock_availability",
       intents: ["stock_availability"],
       goals: ["stock"],
