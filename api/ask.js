@@ -7178,6 +7178,20 @@ Kembalikan JSON valid:
     }
 
     if (intentResult.intent === "product_detail") {
+      const requestedDetailFacets = (
+        answerPlan.sections?.find((section) => section.key === "product_facts")
+          ?.facets || []
+      ).filter((facet) =>
+        [
+          "material",
+          "dimensions",
+          "product_condition",
+          "completeness",
+          "price",
+          "stock",
+          "promo",
+        ].includes(facet),
+      );
       const hasProductContext =
         usesPreviousProductContext ||
         Boolean(pageContext?.productId || pageContext?.productName);
@@ -7207,7 +7221,13 @@ Kembalikan JSON valid:
             type: "products",
             products: referencedProducts,
             reasoning_text: referencedProducts
-              .map((product) => buildProductDetailMessage(product))
+              .map((product) =>
+                requestedDetailFacets.length
+                  ? buildProductTransactionSummary(product, rawQuestion, {
+                      facets: requestedDetailFacets,
+                    })
+                  : buildProductDetailMessage(product),
+              )
               .join("\n\n"),
             _noTruncateReasoning: true,
           },
@@ -7246,9 +7266,18 @@ Kembalikan JSON valid:
           /\b(?:kekurangan|kelebihan|pertimbangan|perlu\s+diperhatikan)\b/i.test(
             rawQuestion,
           );
-        let reasoning_text = asksTradeoffs
-          ? buildProductConsiderationsMessage(bestProduct)
-          : buildProductDetailMessage(bestProduct);
+        const focusedFacts = requestedDetailFacets.length
+          ? buildProductTransactionSummary(bestProduct, rawQuestion, {
+              facets: requestedDetailFacets,
+            })
+          : "";
+        let reasoning_text = [
+          focusedFacts ||
+            (!asksTradeoffs ? buildProductDetailMessage(bestProduct) : ""),
+          asksTradeoffs ? buildProductConsiderationsMessage(bestProduct) : "",
+        ]
+          .filter(Boolean)
+          .join("\n\n");
 
         if (!asksTradeoffs && isOpinionQuestion(rawQuestion)) {
           const opinionText = buildProductOpinionReasoning(

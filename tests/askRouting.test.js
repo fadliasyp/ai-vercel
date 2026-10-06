@@ -1089,6 +1089,49 @@ test("routes real customer turns without stale products or fallback collisions",
 
     semanticRoute = {
       scope: "in_scope",
+      intent: "product_detail",
+      intents: ["product_detail"],
+      goals: ["material", "completeness"],
+      confidence: 0.97,
+      entities: {
+        product_names: ["Jumbo Machinder Mazinger Z"],
+        budget_min: null,
+        budget_max: null,
+      },
+      requires_product: true,
+      customer_state: "neutral",
+      interpretation:
+        "Pelanggan menanyakan bahan dan kelengkapan Jumbo Machinder Mazinger Z.",
+      topic_relation: "new_topic",
+      needs_clarification: false,
+      clarification_question: null,
+    };
+
+    const llmFocusedProductDetail = await ask(
+      "Jumbo Machinder Mazinger Z bahanya apaan, trus isi dus komplit ga?",
+      null,
+      { sessionId: `llm_product_detail_${Date.now()}` },
+    );
+    assert.equal(llmFocusedProductDetail.intent, "product_detail");
+    assert.deepEqual(productNames(llmFocusedProductDetail), [
+      "Jumbo Machinder Mazinger Z",
+    ]);
+    assert.match(llmFocusedProductDetail.reasoning_text, /die-cast dan ABS/i);
+    assert.match(
+      llmFocusedProductDetail.reasoning_text,
+      /Kelengkapan dari deskripsi/i,
+    );
+    assert.doesNotMatch(
+      llmFocusedProductDetail.reasoning_text,
+      /Harga saat ini|Stok:/i,
+    );
+    assert.deepEqual(
+      llmFocusedProductDetail.assistant_meta.llm_led.understanding_goals,
+      ["material", "completeness"],
+    );
+
+    semanticRoute = {
+      scope: "in_scope",
       intent: "recommendation",
       intents: ["recommendation"],
       goals: ["recommendation"],

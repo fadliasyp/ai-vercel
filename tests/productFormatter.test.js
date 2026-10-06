@@ -66,6 +66,26 @@ test("answers requested dimensions from WooCommerce catalog data", () => {
   assert.match(summary, /T: 40 cm/);
 });
 
+test("uses trusted semantic facets when casual wording contains a typo", () => {
+  const summary = buildProductTransactionSummary(
+    {
+      name: "Jumbo Machinder Mazinger Z",
+      description:
+        "Material die-cast dan ABS. Kelengkapan termasuk pedang dan stand.",
+      numericPrice: 7000000,
+      stock: "instock",
+    },
+    "bahanya apaan, isi dusnya komplit ga?",
+    { facets: ["material", "completeness"] },
+  );
+
+  assert.match(summary, /Bahan\/material dari deskripsi/i);
+  assert.match(summary, /die-cast dan ABS/i);
+  assert.match(summary, /Kelengkapan dari deskripsi/i);
+  assert.match(summary, /pedang dan stand/i);
+  assert.doesNotMatch(summary, /Harga saat ini|Stok:/i);
+});
+
 test("answers condition and completeness before a return-policy follow-up", () => {
   const summary = buildProductTransactionSummary(
     {
@@ -124,6 +144,16 @@ test("cleans WooCommerce HTML and explains an unspecified incomplete JUNK item",
   assert.match(message, /produk tidak lengkap/i);
   assert.match(message, /bagian yang hilang belum dirinci/i);
   assert.doesNotMatch(message, /<\/?(?:p|b)>/i);
+});
+
+test("keeps manufacturing origin facts from the WooCommerce description", () => {
+  const message = buildProductDetailMessage({
+    name: "Robot Test Japan",
+    stock: "instock",
+    description: "Material ABS dan die-cast. Made in Japan.",
+  });
+
+  assert.match(message, /Made in Japan/i);
 });
 
 test("grounds purchase considerations in WooCommerce descriptions", () => {

@@ -2,10 +2,15 @@
 
 ## Status
 
-Belum ada task aktif. Prioritas 1 tahap Pencarian Produk dan penguncian keluarga produk pada Rekomendasi sudah diperbaiki serta lulus seluruh verifikasi lokal; deploy/smoke production masih perlu dilakukan. Tahap berikutnya dapat melanjutkan ke Detail Produk tanpa mengubah baseline yang sudah stabil.
+Belum ada task aktif. Prioritas 1 tahap Pencarian Produk, Rekomendasi, dan Detail Produk sudah diperkuat tanpa mengubah baseline yang stabil. Pencarian dan Rekomendasi telah dikonfirmasi benar di production oleh pengguna; patch Detail Produk sudah lulus seluruh verifikasi lokal dan menunggu deploy/smoke production.
 
 ## Current Progress
 
+- Goal terstruktur LLM untuk Detail Produk (`material`, `dimensions`, `product_condition`, `completeness`, `price`, `stock`, dan `promo`) kini diteruskan ke formatter fakta. Bahasa santai atau typo yang dipahami LLM tidak lagi dibuang oleh parser kata lokal.
+- Jawaban Detail Produk yang meminta facet tertentu hanya menampilkan fakta relevan dari WooCommerce. Pertanyaan detail umum tetap memakai tampilan lengkap, sedangkan permintaan kelebihan/kekurangan tetap mempertahankan pertimbangan katalog.
+- Ekstraksi detail lengkap kini mempertahankan fakta asal produksi yang eksplisit seperti `Made in`, `diproduksi`, negara asal, atau status impor. Jika fakta tidak ada, guard lama tetap menolak menebak dan menawarkan admin handoff.
+- Regression active-LLM memakai `Jumbo Machinder Mazinger Z bahanya apaan, trus isi dus komplit ga?` dan membuktikan intent, objek produk, serta goal LLM benar sementara isi jawaban tetap berasal dari deskripsi fixture WooCommerce. Verifikasi: full suite 408/408, coverage replay 9/9, dan benchmark pelanggan 26/26 turn (135 assertion, 100%).
+- Pengguna mengonfirmasi smoke production untuk named-family recommendation Voltes sudah benar setelah deploy.
 - Log production membuktikan intent `recommendation` sudah benar untuk `Menurut mu dari semua variasi Voltes mana yang paling worth it`, tetapi Groq mengembalikan `product_names: []`. Akibatnya handler lama meranking seluruh katalog dan menghasilkan produk non-Voltes.
 - Rekomendasi kini memulihkan scope keluarga produk melalui matcher katalog ketika entitas LLM kosong, lalu memfilter kandidat secara keras sebelum ranking dan Gemini. Jika scope bernama tidak memiliki varian ready, chatbot tidak menggantinya dengan seri lain.
 - Kata percakapan `mu`, `varian`, dan `variasi` tidak lagi dianggap bagian identitas produk. Prompt semantic router juga mewajibkan rekomendasi bernama seperti variasi Voltes membawa `product_names: ["Voltes"]` dan `requires_product: true`.
@@ -167,16 +172,21 @@ Belum ada task aktif. Prioritas 1 tahap Pencarian Produk dan penguncian keluarga
 
 ## Active Task
 
-- Belum ada task aktif; Product Grounding sudah terverifikasi lokal dan production.
+- Belum ada task aktif; LLM-Grounded Product Detail sudah terverifikasi lokal dan menunggu deploy/smoke production.
 
 ## Last Completed Task
 
-- Task: hardening Product Grounding untuk nama produk alami, atribut, dan kode model.
+- Task: menghubungkan goal Detail Produk dari semantic LLM ke formatter fakta WooCommerce.
 - Tanggal selesai: 2026-10-06.
-- Goal: memastikan pertanyaan produk pendek/majemuk menemukan objek katalog yang benar tanpa menebak produk ambigu atau tidak dikenal.
+- Goal: memahami facet detail pada bahasa santai/typo tanpa menjadikan LLM sumber fakta dan tanpa mengubah logic intent stabil lain.
 
 ## Completed
 
+- Meneruskan facet Detail Produk dari answer plan terverifikasi ke `buildProductTransactionSummary`.
+- Mempertahankan detail lengkap untuk pertanyaan umum dan catatan katalog untuk permintaan kelebihan/kekurangan.
+- Menambahkan fakta asal produksi/impor eksplisit ke ekstraksi detail WooCommerce.
+- Menambahkan regression formatter dan active-LLM dengan typo bahasa sehari-hari.
+- Memverifikasi 408/408 test, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion.
 - Menormalisasi kode alfanumerik rapat seperti `GX92` pada matcher katalog bersama.
 - Mengeluarkan kata atribut produk dan satuan dari token identitas produk.
 - Menambahkan `tests/productGroundingLanguageMatrix.test.js` serta regression endpoint pertanyaan material + harga untuk Ideon.
@@ -231,48 +241,10 @@ Belum ada task aktif. Prioritas 1 tahap Pencarian Produk dan penguncian keluarga
 
 ## Files Modified
 
-- `lib/chatbot/intentFusion.js`
-- `lib/chatbot/productSearch.js`
-- `lib/chatbot/textNormalization.js`
-- `lib/chatbot/semanticRouter.js`
-- `tests/recommendationLanguageMatrix.test.js`
-- `tests/productSearch.test.js`
-- `tests/semanticRouter.test.js`
-- `benchmarks/customer-conversations.json`
-- `benchmarks/results/customer-conversations.json`
-- `lib/chatbot/conversationGoal.js`
-- `tests/conversationGoal.test.js`
-- `lib/chatbot/productRecommendation.js`
-- `tests/productRecommendationReasoning.test.js`
-- `tests/askRouting.test.js`
-- `scripts/smoke-ask.js`
-- `lib/chatbot/conversationGoal.js`
-- `tests/conversationGoal.test.js`
-- `lib/chatbot/productRecommendation.js`
-- `tests/productRecommendationReasoning.test.js`
-- `README.md`
-- `docs/PANDUAN_TEKNIS_INTENT_ML_DAN_ALUR_CHATBOT.md`
-- `lib/chatbot/gemini.js`
-- `tests/geminiFallback.test.js`
-- `lib/chatbot/responseNaturalizer.js`
-- `tests/responseNaturalizer.test.js`
 - `api/ask.js`
-- `lib/chatbot/storePolicy.js`
+- `lib/chatbot/productFormatter.js`
 - `tests/askRouting.test.js`
-- `tests/storePolicy.test.js`
-- `lib/chatbot/priceIntent.js`
-- `tests/priceIntent.test.js`
-- `lib/chatbot/recommendationMetadata.js`
-- `tests/recommendationMetadata.test.js`
-- `lib/chatbot/restockSchedule.js`
-- `tests/restockSchedule.test.js`
-- `lib/chatbot/llmAssistant.js`
-- `tests/llmAssistant.test.js`
-- `tests/crawlerRequestGuard.test.js`
-- `lib/chatbot/wooCatalog.js`
-- `lib/chatbot/wpApi.js`
-- `tests/wooCatalog.test.js`
-- `scripts/test-intent-ml-model.py`
+- `tests/productFormatter.test.js`
 - `docs/FEATURE_BASELINE.md`
 - `docs/PROJECT_CONTEXT.md`
 - `docs/CURRENT_TASK.md`
@@ -280,10 +252,9 @@ Belum ada task aktif. Prioritas 1 tahap Pencarian Produk dan penguncian keluarga
 
 ## Next Steps
 
-1. Bekukan source production sampai sidang; jangan deploy ulang bila tidak ada bug kritis yang dapat direproduksi.
-2. Sebelum demo, cek health Intent ML dan lakukan satu smoke browser singkat untuk rekomendasi, follow-up produk, dan ongkir bertahap tanpa menjalankan benchmark live berulang.
-3. Siapkan screenshot/video hasil demo sebagai cadangan bila WooCommerce, shipping API, atau provider LLM sedang lambat/limit.
-4. Setelah sidang, lanjutkan audit intent berikutnya tanpa mengubah baseline rekomendasi, Product Grounding, kontinuitas produk, dan transaksi.
+1. Deploy patch Detail Produk ke Vercel.
+2. Jalankan smoke browser singkat untuk material/kelengkapan dengan typo, detail umum, dan asal produksi yang tidak tercantum.
+3. Jika ketiganya benar, lanjutkan prioritas berikutnya ke Informasi Harga tanpa mengubah baseline pencarian, rekomendasi, Product Grounding, Detail Produk, kontinuitas produk, atau transaksi.
 
 ## Blockers
 

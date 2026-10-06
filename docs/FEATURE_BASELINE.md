@@ -196,6 +196,45 @@ Menghubungkan bahasa pelanggan ke produk WooCommerce yang benar sebelum harga, s
 - Bukti lokal 2026-10-06 untuk restock informal: full suite 404/404, replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus. Smoke production untuk patch ini belum dijalankan.
 - Bukti lokal 2026-10-06 untuk LLM-first product discovery: full suite 405/405, replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus. Smoke production untuk patch ini belum dijalankan.
 
+## LLM-Grounded Product Detail
+
+### Status
+
+STABLE (local formatter dan endpoint regression scope)
+
+### Function
+
+Memakai pemahaman facet dari LLM untuk menjawab detail produk secara fokus, sementara seluruh fakta tetap berasal dari produk WooCommerce yang sudah di-grounding.
+
+### Correct Behavior
+
+- Goal LLM `material`, `dimensions`, `product_condition`, `completeness`, `price`, `stock`, dan `promo` boleh menentukan fakta mana yang perlu ditampilkan.
+- Goal tersebut hanya dipakai setelah semantic route tepercaya; nama produk tetap harus lolos Product Grounding terhadap pesan pelanggan dan katalog.
+- Pertanyaan spesifik menampilkan fakta yang diminta tanpa memenuhi jawaban dengan harga, stok, atau detail lain yang tidak diminta.
+- Pertanyaan detail umum tetap memakai detail lengkap, dan pertanyaan kelebihan/kekurangan tetap memakai catatan yang benar-benar ada di katalog.
+- Informasi asal produksi atau impor hanya dijawab bila deskripsi WooCommerce memuat bukti eksplisit seperti `Made in`, `diproduksi`, negara asal, atau impor. Jika tidak ada, respons tidak boleh menebak.
+- Typo yang dipahami LLM, misalnya `bahanya` atau `komplit`, tetap dapat menghasilkan jawaban material/kelengkapan dari deskripsi WooCommerce.
+
+### Do Not Break
+
+- Jangan memakai LLM sebagai sumber material, ukuran, kondisi, kelengkapan, harga, stok, promo, atau asal produksi.
+- Jangan membiarkan facet LLM mengganti produk yang sudah dipilih oleh resolver katalog.
+- Jangan menghapus fallback detail lengkap ketika pelanggan tidak meminta facet tertentu.
+- Jangan menyatakan kelengkapan atau asal produksi pasti bila data katalog tidak mencantumkannya.
+- Jangan mengubah response shape `products` yang dipakai frontend.
+
+### Important Files
+
+- `api/ask.js`
+- `lib/chatbot/productFormatter.js`
+- `tests/productFormatter.test.js`
+- `tests/askRouting.test.js`
+
+### Verification
+
+- Bukti lokal 2026-10-06: full suite 408/408, answer-coverage replay 9/9 turn (59,4% menjadi 88,9%), dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
+- Smoke production untuk patch Detail Produk belum dijalankan.
+
 ## Multi-turn Product Continuity
 
 ### Status

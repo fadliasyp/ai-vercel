@@ -30,6 +30,7 @@ Status project: **aktif dikembangkan**.
 - Context/pending state untuk follow-up, klarifikasi produk, lokasi pengiriman, status pesanan, dan pergantian topik.
 - Normalisasi bahasa Indonesia, variasi ejaan, typo fallback, dan analisis bentuk kata.
 - Pencarian katalog, detail, harga/promo, stok, rekomendasi, dan perbandingan WooCommerce.
+- Detail Produk memakai goal terstruktur LLM untuk memahami facet yang diminta meskipun bahasa pelanggan santai atau typo, lalu mengambil nilai material, dimensi, kondisi, kelengkapan, harga, stok, dan promo hanya dari data WooCommerce. Pertanyaan detail umum tetap menampilkan ringkasan lengkap.
 - Product Grounding menormalisasi kode model rapat (`GX92`, `GX-92`, `GX 92`) dan memisahkan kata kebutuhan seperti bahan/dimensi/berat/aksesori dari identitas produk. Match ambigu tetap meminta pilihan dan produk tidak dikenal tidak diganti diam-diam.
 - Product Grounding tersebut lulus smoke production 5/5 pada 2026-10-06, mencakup exact match, pertanyaan majemuk, ambiguity, dan unknown model.
 - Jadwal restock per produk dari metadata WPC Product Timer, termasuk daftar semua restock mendatang dan pencarian satu produk.
