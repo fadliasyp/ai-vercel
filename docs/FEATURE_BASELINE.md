@@ -87,7 +87,7 @@ Memecah permintaan majemuk menjadi goal/facet, merencanakan jawaban, lalu mendet
 
 ### Status
 
-STABLE (local ranking dan endpoint regression scope)
+STABLE (local ranking, endpoint regression, dan production smoke scope)
 
 ### Function
 
@@ -101,6 +101,8 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 - Nominal yang langsung mengikuti permintaan rekomendasi, misalnya `rekomen robot 19 jutaan` atau `rekomendasiin robot 6 jutaan`, juga diperlakukan sebagai target harga meskipun kata `harga` tidak ditulis.
 - `budget sekitar 12 jutaan` dan `dana kisaran 12 juta` diperlakukan sebagai target mendekati Rp12 juta sekaligus batas maksimum Rp12 juta, sehingga produk yang jauh lebih murah tidak menang hanya karena promo/popularitas.
 - `budget maksimal 7 juta`, `di bawah 7 juta`, dan rentang `5 juta sampai 7 juta` tetap menjadi batas keras.
+- Kalimat yang meminta keputusan seperti `budget maksimal 4 juta, enaknya ambil robot yang mana?` tetap recommendation walaupun provider keliru memilih `price_promo`; batas maksimalnya tetap difilter secara keras.
+- Pernyataan pelanggan seperti `gue punya budget` bukan permintaan mencari produk bernama dan tidak boleh memicu guard produk tidak tersedia.
 - Permintaan generik seperti `Cari robot antara 5 sampai 8 juta buat pajangan` tidak boleh dianggap menyebut nama produk hanya karena mengandung kata rentang atau tujuan penggunaan.
 - Setelah hasil rekomendasi, follow-up seperti `yg 3 jutaan` atau `Kalau yang 6 jutaan ada apa aja?` diwarisi sebagai target harga baru untuk rekomendasi yang sama; pelanggan tidak perlu mengulang kata `rekomendasi robot`.
 - Dalam satu pesan yang menyebut rentang lama lalu alternatif baru, misalnya `antara 5 sampai 8 juta ... kalau yang 3 jutaan ada?`, harga eksplisit paling akhir menjadi target baru dan tujuan penggunaan sebelumnya tetap dipertahankan.
@@ -119,6 +121,7 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 ### Do Not Break
 
 - Jangan mengubah semua frasa nominal menjadi target harga; kata `budget`, batas atas/bawah, dan rentang tetap memakai constraint lama.
+- Jangan mengubah pertanyaan budget murni tanpa kata pilihan/penilaian menjadi rekomendasi.
 - Jangan menerima nominal baru yang hanya muncul dari output LLM dan tidak ada pada pesan atau goal follow-up terverifikasi.
 - Jangan melewati guard produk untuk nama produk eksplisit yang tidak tersedia; pengecualian guard hanya berlaku ketika structured understanding tepercaya menyatakan `product_names` kosong.
 - Jangan mewariskan konteks rekomendasi ke pertanyaan yang jelas mengganti intent, misalnya `kapan restock ya`.
@@ -141,6 +144,7 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 - Bukti 2026-10-06: 399/399 test lulus, replay 9/9 turn lulus, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus.
 - Bukti production 2026-10-06: smoke manual pengguna lulus 3/3 untuk target harga, rentang + kebutuhan, dan refinement harga singkat dalam sesi yang sama.
 - Bukti lokal 2026-10-06 untuk named-family recommendation: full suite 406/406, replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus. Smoke production belum dijalankan.
+- Bukti lokal 2026-10-07 untuk konflik recommendation-versus-price: full suite 410/410, replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus. Smoke production patch masih pending.
 
 ## Product Grounding
 
@@ -359,7 +363,7 @@ Memahami dua produk yang ingin dibandingkan melalui structured LLM, kemudian men
 
 ### Status
 
-STABLE (local endpoint regression scope; production smoke pending)
+STABLE (local endpoint regression dan production smoke scope)
 
 ### Function
 
@@ -391,6 +395,7 @@ Memahami jenis kendala dan tahap proses retur dari bahasa sehari-hari, lalu meny
 
 - Bukti lokal 2026-10-06: full suite 410/410, answer-coverage replay 9/9 turn (59,4% menjadi 88,9%), dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
 - Active-LLM endpoint regression membuktikan keluhan part kurang dan pertanyaan durasi refund memakai subtype LLM tetapi mempertahankan fakta policy deterministik.
+- Bukti production 2026-10-07: pengguna mengonfirmasi lima smoke Pengembalian Produk lulus 5/5.
 
 ## Multi-turn Product Continuity
 

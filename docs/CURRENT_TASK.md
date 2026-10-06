@@ -2,10 +2,16 @@
 
 ## Status
 
-Hardening intent Pengembalian Produk sudah lulus verifikasi lokal dan menunggu deploy serta smoke production. Seluruh Prioritas 1 tetap dipertahankan; pengguna telah mengonfirmasi smoke Perbandingan Produk lulus 5/5 di production.
+Perbaikan konflik intent rekomendasi `budget maksimal ... enaknya ambil ... yang mana` sudah lulus verifikasi lokal dan menunggu deploy serta smoke production. Pengembalian Produk sudah dikonfirmasi lulus 5/5 di production.
 
 ## Current Progress
 
+- Log production membuktikan Intent ML sudah benar memilih `recommendation` dengan confidence 64,91%, tetapi Groq memilih `price_promo` dengan confidence 96% dan mengunci intent yang salah.
+- Guard `recommendation_selection_guard` mempertahankan intent rekomendasi hanya ketika bahasa pelanggan secara eksplisit meminta pilihan, seperti `enaknya ambil`, `mending`, atau `pilihkan`.
+- Helper budget lama kini mengenali pola pemilihan yang sama sehingga tidak mengubah rekomendasi kembali menjadi Informasi Harga. Pernyataan `gue punya budget` juga tidak lagi dianggap sebagai nama produk yang dicari.
+- Regression endpoint memakai pertanyaan dan output Groq production persis. Hasil wajib berupa kartu rekomendasi dengan harga maksimal Rp4 juta dan tidak boleh memakai intro promo.
+- Verifikasi patch rekomendasi: full suite 410/410, coverage replay 9/9, serta benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
+- Pengguna mengonfirmasi lima smoke production Pengembalian Produk berjalan benar.
 - Semantic router kini membedakan jenis masalah retur (`return_damaged`, `return_incomplete`, `return_dented_box`, `return_wrong_item`, dan `return_change_of_mind`) serta tahap proses (`return_evidence`, `refund_timing`, dan `return_status`).
 - Goal retur dari LLM hanya memilih cabang respons. Tenggat klaim, waktu pemeriksaan, waktu refund, bukti, syarat, dan admin handoff tetap berasal dari builder deterministik `storePolicy.js`.
 - Parser lokal lama tetap menjadi fallback saat provider gagal, limit, atau semantic route tidak tepercaya.
@@ -201,13 +207,13 @@ Hardening intent Pengembalian Produk sudah lulus verifikasi lokal dan menunggu d
 
 ## Active Task
 
-- Deploy dan smoke production untuk LLM-Grounded Product Return.
+- Deploy dan smoke production untuk koreksi konflik intent rekomendasi-versus-harga.
 
 ## Last Completed Task
 
-- Task: menghubungkan dua entitas produk dari semantic LLM ke handler Perbandingan Produk dan memverifikasinya di production.
-- Tanggal selesai: 2026-10-06.
-- Goal: memahami bahasa perbandingan natural tanpa menjadikan LLM sumber fakta produk dan tanpa menghapus parser fallback lama.
+- Task: LLM-Grounded Product Return dan verifikasi production 5/5.
+- Tanggal selesai: 2026-10-07.
+- Goal: memahami bahasa retur natural tanpa menjadikan LLM sumber kebijakan toko dan tanpa menghapus parser fallback lama.
 
 ## Completed
 
@@ -277,13 +283,12 @@ Hardening intent Pengembalian Produk sudah lulus verifikasi lokal dan menunggu d
 ## Files Modified
 
 - `api/ask.js`
-- `lib/chatbot/llmAssistant.js`
 - `lib/chatbot/semanticRouter.js`
-- `lib/chatbot/storePolicy.js`
+- `lib/chatbot/transactionIntent.js`
 - `tests/askRouting.test.js`
-- `tests/llmAssistant.test.js`
+- `tests/intentFusion.test.js`
 - `tests/semanticRouter.test.js`
-- `tests/storePolicy.test.js`
+- `tests/transactionIntent.test.js`
 - `docs/FEATURE_BASELINE.md`
 - `docs/PROJECT_CONTEXT.md`
 - `docs/CURRENT_TASK.md`
@@ -291,9 +296,9 @@ Hardening intent Pengembalian Produk sudah lulus verifikasi lokal dan menunggu d
 
 ## Next Steps
 
-1. Deploy patch Pengembalian Produk ke Vercel.
-2. Jalankan lima smoke retur: part kurang, barang rusak, bukti klaim, durasi refund, dan status pengajuan.
-3. Jika semuanya benar, bekukan logic retur dan lanjutkan intent berikutnya tanpa mengubah baseline yang sudah lulus.
+1. Deploy patch koreksi rekomendasi ke Vercel.
+2. Ulangi pertanyaan production `Gue punya budget maksimal 4 juta, enaknya ambil robot yang mana?` dan pastikan badge Rekomendasi Produk serta seluruh harga maksimal Rp4 juta.
+3. Jalankan kasus kebalikan `Budget maksimal 4 juta ada produk apa saja?` untuk memastikan daftar budget tanpa permintaan memilih tetap bukan rekomendasi.
 
 ## Blockers
 

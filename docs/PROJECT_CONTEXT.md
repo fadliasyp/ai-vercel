@@ -40,6 +40,7 @@ Status project: **aktif dikembangkan**.
 - Jadwal restock per produk dari metadata WPC Product Timer, termasuk daftar semua restock mendatang dan pencarian satu produk.
 - Strength/caveat rekomendasi serta perbandingan dapat memakai deskripsi produk WooCommerce.
 - Rekomendasi membedakan target harga seperti `harga 7 jutaan` dan `rekomen robot 19 jutaan` dari batas budget; target harga hanya menerima kandidat dalam toleransi 20%, sedangkan batas/rentang tetap menjadi filter keras. Frasa `budget sekitar/kisaran X` memakai X sebagai target sekaligus batas maksimum.
+- Permintaan memilih seperti `budget maksimal 4 juta, enaknya ambil robot yang mana?` tetap menjadi rekomendasi meskipun semantic provider memilih harga/promo. Budget pelanggan tidak dianggap nama produk dan batas maksimum tetap diterapkan pada fakta harga WooCommerce.
 - Rekomendasi generik dengan rentang/tujuan memakai `product_names` terstruktur untuk membedakannya dari pencarian nama produk. Kata seperti `antara`, `sampai`, dan `pajangan` tidak boleh memicu pesan produk tidak tersedia.
 - Goal rekomendasi aktif melengkapi follow-up nominal singkat maupun berbungkus percakapan: `yg 3 jutaan` dan `Kalau yang 6 jutaan ada apa aja?` menjadi target harga baru, sedangkan `3 juta` menjadi batas budget; pergantian intent eksplisit tetap tidak diwarisi. Koreksi harga paling akhir dalam satu pesan juga mengalahkan rentang sebelumnya tanpa menghapus tujuan penggunaan.
 - Normalisasi rekomendasi memahami slang/singkatan seperti `rekomen`, `pilihin`, `mnurut lu`, `klo/kl`, `jtan/jtaan`, dan `sd`; matriks regression juga memuat kasus kebalikan agar harga atau stok biasa tidak salah menjadi rekomendasi.
@@ -160,6 +161,11 @@ Status project: **aktif dikembangkan**.
 - `tests/`: regression protection.
 
 ## Latest Verification
+
+Pada 2026-10-07:
+
+- Pengguna mengonfirmasi smoke production Pengembalian Produk lulus 5/5.
+- Koreksi konflik rekomendasi-versus-harga lulus full suite 410/410, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%); smoke production patch masih pending.
 
 Pada 2026-10-06:
 

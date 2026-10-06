@@ -15,6 +15,7 @@ import {
   looksLikeShippingCoverageQuestion,
   looksLikeInternationalShippingQuestion,
   looksLikeHowToBuyQuestion,
+  looksLikeRecommendationRequest,
   looksLikeShippingOriginQuestion,
   looksLikeProductManufacturingOriginQuestion,
   needsRecommendationBudgetClarification,
@@ -190,6 +191,13 @@ test("detects product facts combined with transaction policy", () => {
 });
 
 test("asks for a budget before running a budget-based recommendation", () => {
+  assert.equal(
+    looksLikeRecommendationRequest(
+      "Gue punya budget maksimal 4 juta, enaknya ambil robot yang mana?",
+    ),
+    true,
+  );
+  assert.equal(looksLikeRecommendationRequest("budget maksimal 4 juta"), false);
   assert.equal(
     needsRecommendationBudgetClarification(
       "Minta rekomendasi robot sesuai budget",

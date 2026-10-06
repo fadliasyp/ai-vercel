@@ -23,6 +23,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Fixed
 
+- Fixed the production sentence `Gue punya budget maksimal 4 juta, enaknya ambil robot yang mana?` being locked as `price_promo`. Explicit product-selection language now survives a conflicting semantic provider result, stays recommendation through the budget stage, and no longer treats `gue punya budget` as a missing product name.
 - Connected trusted return goals to the deterministic store-policy builder. Casual complaints such as a missing robot hand now receive the incomplete-item procedure, while refund-duration questions receive the verified timeline without allowing the LLM to invent policy.
 - Connected two grounded LLM product entities to the comparison handler before the legacy regex parser, while retaining WooCommerce matching and the existing fallback path.
 - Fixed `brang apa saja yang dijual?` being treated as a search for a product named `brang` even though Gemini correctly returned a product-free catalog-search route. Shared normalization now maps `brang` to `barang`, and trusted object-free `product_search` understanding opens the WooCommerce catalog overview while named-series searches remain unchanged.
@@ -71,7 +72,8 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
-- LLM-grounded Product Return passes active-LLM endpoint regressions, the full 410/410 local suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. Production smoke is pending deployment.
+- The recommendation-selection conflict regression reproduces the exact production Groq route and passes the full 410/410 suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. Production smoke for this patch is pending deployment.
+- LLM-grounded Product Return passes active-LLM endpoint regressions, the full 410/410 local suite, 9/9 answer-coverage replay turns, 26/26 customer-conversation turns with 135 assertions, and the user-confirmed 5/5 production smoke.
 - The user confirmed the five Product Comparison production smoke cases pass.
 - LLM-grounded Product Comparison passes active-LLM endpoint regression, the full local suite, 9/9 answer-coverage replay turns, 26/26 customer-conversation turns with 135 assertions, and the user-confirmed 5/5 production smoke.
 - The user confirmed the five Stock Availability and catalog-overview production smoke cases pass.

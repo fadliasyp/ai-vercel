@@ -87,6 +87,16 @@ test("explicit rules resolve recommendation, compare, store, and insurance bound
     "recommendation",
   );
   assert.equal(
+    detectExplicitIntentOverride(
+      "Gue punya budget maksimal 4 juta, enaknya ambil robot yang mana?",
+    ).intent,
+    "recommendation",
+  );
+  assert.equal(
+    detectExplicitIntentOverride("budget maksimal 4 juta")?.intent,
+    "price_promo",
+  );
+  assert.equal(
     detectExplicitIntentOverride("GX 47 sama GX 48 beda apa").intent,
     "compare",
   );

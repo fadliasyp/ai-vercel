@@ -1035,10 +1035,15 @@ export default async function handler(req, res) {
     groqRoute?.intent !== "stock_availability" &&
     directExplicitIntent?.intent === "stock_availability" &&
     directExplicitIntent?.method === "explicit_global_ready_stock_rule";
+  const semanticRecommendationSelectionConflict =
+    groqRoute?.intent !== "recommendation" &&
+    directExplicitIntent?.intent === "recommendation" &&
+    directExplicitIntent?.method === "explicit_recommendation_rule";
   const semanticDecisionIsPrimary =
     !semanticCatalogAvailabilityConflict &&
     !semanticCatalogBrowseConflict &&
     !semanticReadyStockConflict &&
+    !semanticRecommendationSelectionConflict &&
     groqRoute?.scope === "in_scope" &&
     Number(groqRoute.confidence || 0) >= minSemanticConfidence &&
     String(intentResult.method || "").includes("_semantic:");
@@ -1085,6 +1090,14 @@ export default async function handler(req, res) {
     groqContext.semanticDecision = groqRoute;
   } else if (semanticReadyStockConflict) {
     explicitIntentSource = "global_ready_stock_guard";
+    intentResult = {
+      ...intentResult,
+      ...directExplicitIntent,
+      score: 1,
+      scope: "in_scope",
+    };
+  } else if (semanticRecommendationSelectionConflict) {
+    explicitIntentSource = "recommendation_selection_guard";
     intentResult = {
       ...intentResult,
       ...directExplicitIntent,
@@ -6438,10 +6451,13 @@ export default async function handler(req, res) {
         recNeeds.requestedDecade != null ||
         recNeeds.requestedFranchiseIds.length > 0 ||
         Boolean(recNeeds.requestedSizeClass);
-      const isExplicitCatalogRequest =
-        /\b(?:ada|jual|menjual|punya|tersedia|cari|carikan)\b/i.test(
+      const isCustomerBudgetStatement =
+        /\b(?:aku|saya|gue|gua|gw)\s+(?:punya|ada)\s+(?:budget|anggaran|dana|modal)\b/i.test(
           rawQuestion,
         );
+      const isExplicitCatalogRequest =
+        !isCustomerBudgetStatement &&
+        /\b(?:ada|jual|menjual|punya|tersedia|cari|carikan)\b/i.test(rawQuestion);
       const requestedProductMatch = assessProductSearchConfidence(
         rawQuestion,
         list,

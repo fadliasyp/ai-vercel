@@ -1598,6 +1598,58 @@ test("routes real customer turns without stale products or fallback collisions",
 
     semanticRoute = {
       scope: "in_scope",
+      intent: "price_promo",
+      intents: ["price_promo"],
+      goals: ["price", "promo"],
+      confidence: 0.96,
+      entities: {
+        product_names: [],
+        budget_min: null,
+        budget_max: 4000000,
+      },
+      recommendation_request: {
+        price_mode: "maximum",
+        target_price: null,
+        budget_min: null,
+        budget_max: 4000000,
+        purposes: [],
+        stock: null,
+        condition: null,
+        promo_only: false,
+      },
+      requires_product: false,
+      customer_state: "neutral",
+      interpretation:
+        "Pelanggan ingin memilih robot dengan budget maksimal empat juta.",
+      topic_relation: "new_topic",
+      needs_clarification: false,
+      clarification_question: null,
+    };
+
+    const correctedRecommendationSelection = await ask(
+      "Gue punya budget maksimal 4 juta, enaknya ambil robot yang mana?",
+      null,
+      { sessionId: `recommendation_selection_guard_${Date.now()}` },
+    );
+    assert.equal(correctedRecommendationSelection.intent, "recommendation");
+    assert.equal(correctedRecommendationSelection.type, "products");
+    assert.ok(correctedRecommendationSelection.products.length > 0);
+    assert.ok(
+      correctedRecommendationSelection.products.every(
+        (item) => Number(item.numericPrice || 0) <= 4000000,
+      ),
+    );
+    assert.doesNotMatch(
+      correctedRecommendationSelection.intro || "",
+      /diskon besar-besaran/i,
+    );
+    assert.equal(
+      correctedRecommendationSelection.assistant_meta.llm_led.intent_source,
+      "recommendation_selection_guard",
+    );
+
+    semanticRoute = {
+      scope: "in_scope",
       intent: "recommendation",
       intents: ["recommendation"],
       goals: ["recommendation", "price"],
