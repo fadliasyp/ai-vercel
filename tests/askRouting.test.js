@@ -924,6 +924,32 @@ test("routes real customer turns without stale products or fallback collisions",
     );
 
     semanticRoute = {
+      ...semanticRoute,
+      entities: {
+        ...semanticRoute.entities,
+        product_names: [],
+      },
+      interpretation:
+        "Pelanggan menanyakan stok dua produk yang baru dibandingkan.",
+      topic_relation: "follow_up",
+    };
+
+    const llmLockedPairStock = await ask("keduanya ready gak?", null, {
+      sessionId: compareFollowUpSession,
+    });
+    assert.equal(llmLockedPairStock.intent, "stock_availability");
+    assert.equal(llmLockedPairStock.type, "products");
+    assert.deepEqual(productNames(llmLockedPairStock), [
+      "Comparison Robot Alpha",
+      "Comparison Robot Beta",
+    ]);
+    assert.equal(llmLockedPairStock.assistant_meta.llm_led.intent_source, "llm");
+    assert.equal(
+      llmLockedPairStock.assistant_meta.llm_led.served_intent,
+      "stock_availability",
+    );
+
+    semanticRoute = {
       scope: "in_scope",
       intent: "recommendation",
       intents: ["recommendation"],

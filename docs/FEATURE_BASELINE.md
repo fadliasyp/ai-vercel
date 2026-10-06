@@ -216,6 +216,7 @@ Mempertahankan objek produk yang benar ketika pelanggan melanjutkan percakapan d
 - Answer-coverage replay lulus 9/9 turn.
 - Benchmark pelanggan lulus 26/26 turn dengan 135 assertion (100%).
 - Smoke production 9 kasus belum dijalankan setelah perubahan ini.
+- Run production pertama lulus 8/9; satu konflik intent compare-versus-stock sudah diperbaiki lokal dan menunggu deploy serta rerun. Keputusan semantic LLM yang terkunci kini mengalahkan inferensi compare dari turn sebelumnya, sementara kata eksplisit `bandingkan`/`versus` tetap masuk jalur compare.
 
 ## Product Restock Schedule
 

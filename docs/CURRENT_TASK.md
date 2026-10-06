@@ -2,7 +2,7 @@
 
 ## Status
 
-Belum ada task aktif. Tahap Multi-turn Product Continuity sudah selesai secara lokal; deployment dan smoke production 9 kasus masih menunggu pengguna. Baseline Product Grounding dan rekomendasi yang sebelumnya lulus tetap dipertahankan.
+Belum ada task aktif. Konflik intent pada follow-up `keduanya ready gak?` setelah perbandingan sudah diperbaiki dan terverifikasi lokal; deployment ulang serta smoke production 9 kasus masih menunggu pengguna. Baseline Product Grounding dan rekomendasi yang sebelumnya lulus tetap dipertahankan.
 
 ## Current Progress
 
@@ -12,6 +12,9 @@ Belum ada task aktif. Tahap Multi-turn Product Continuity sudah selesai secara l
 - Guard pencarian produk tidak lagi mengambil alih pertanyaan promo, harga, foto, atau detail hanya karena kalimat memakai kata `ada`.
 - Verifikasi tahap Multi-turn Product Continuity: 403/403 test lokal, coverage replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus.
 - `npm run benchmark:context` kini memiliki 9 gate production, termasuk stok produk fokus, promo, foto, dua produk, perpindahan produk eksplisit, dan interupsi pending ongkir.
+- Smoke production pertama lulus 8/9. Kasus yang gagal menunjukkan LLM benar memilih `stock_availability`, tetapi inferensi lokal dari intent `compare` sebelumnya menimpa hasil tersebut. Inferensi lanjutan compare kini hanya aktif ketika tidak ada semantic intent LLM yang terkunci.
+- Regression aktif-LLM meniru kasus production tersebut: setelah dua produk dibandingkan, `keduanya ready gak?` harus menghasilkan intent `stock_availability`, response type `products`, dan mempertahankan kedua produk.
+- Verifikasi setelah perbaikan konflik intent: 403/403 test lokal, coverage replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus.
 - Product matcher kini memisahkan huruf dan angka pada kode rapat, sehingga `GX92` diperlakukan sama dengan `GX-92`/`GX 92` tanpa mengubah angka percakapan biasa menjadi model number.
 - Kata kebutuhan seperti bahan, dimensi, berat, aksesori, harga nett, dan satuan tidak lagi mencemari token nama produk. Pertanyaan `Ideon bahannya metal atau plastik?` tetap berlabuh ke produk Ideon, lalu facet material dijawab dari katalog.
 - Guard tetap konservatif: `getter black` meminta klarifikasi ketika beberapa produk dekat, `ideon ultraman` tidak ditebak, dan kode salah `GX99 Ideon` tidak dialihkan ke `GX-92`.

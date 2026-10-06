@@ -6000,7 +6000,8 @@ export default async function handler(req, res) {
       q.includes("apa bedanya") ||
       q.includes("bedanya") ||
       q.includes("perbedaan") ||
-      (compareFollowUpContext &&
+      (!semanticIntentLock &&
+        compareFollowUpContext &&
         /\b(dengan|sama|dan|atau)\b/.test(q) &&
         q.split(/\s+/).filter(Boolean).length >= 3) ||
       (q.includes(" beda ") && q.includes(" dengan "));
