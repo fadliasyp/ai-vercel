@@ -6,6 +6,7 @@ Belum ada task aktif. Preflight final pra-sidang lulus; perubahan terakhir hanya
 
 ## Current Progress
 
+- Log Vercel kini mencetak `INTENT ML TOP 3` segera setelah hasil classifier tersedia, lengkap dengan peringkat, confidence desimal, dan persentase. Logging bersifat observability-only; keputusan routing tidak berubah dan fallback lokal ditandai jelas saat ML tidak tersedia.
 - Badge intent frontend kini memakai label Indonesia untuk seluruh 13 intent aktif, ditambah label fitur pencarian produk dari foto. Nama intent internal, routing, classifier, dan response API tidak berubah; regression suite tetap lulus 403/403.
 - Preflight final 2026-10-06 lulus: `npm test` 403/403, coverage replay 9/9, benchmark pelanggan 26/26 turn dengan 135 assertion (100%), dataset image 53 aktif/0 nonaktif, serta syntax check `api/ask.js` dan `api/ask-image.js`.
 - Tidak ada source produksi yang diubah pada preflight. Menjelang sidang, perubahan fitur baru dibekukan dan patch hanya dilakukan untuk bug kritis yang dapat direproduksi.

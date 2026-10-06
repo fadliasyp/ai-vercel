@@ -939,6 +939,29 @@ export default async function handler(req, res) {
     localIntentTask,
     groqRouteTask,
   ]);
+  const mlTop3ForLog = Array.isArray(localIntentResult?.ml_top3)
+    ? localIntentResult.ml_top3.slice(0, 3).map((candidate, index) => {
+        const confidence = Number(
+          candidate?.prob ?? candidate?.confidence ?? candidate?.score,
+        );
+        return {
+          rank: index + 1,
+          intent: String(candidate?.intent || "unknown"),
+          confidence: Number.isFinite(confidence)
+            ? Number(confidence.toFixed(6))
+            : null,
+          confidence_percent: Number.isFinite(confidence)
+            ? `${(confidence * 100).toFixed(2)}%`
+            : null,
+        };
+      })
+    : [];
+  console.log(
+    "INTENT ML TOP 3:",
+    mlTop3ForLog.length
+      ? JSON.stringify(mlTop3ForLog)
+      : "tidak tersedia; fallback lokal aktif",
+  );
   const understandingRateLimited =
     !groqRoute &&
     (groqRouteError?.status === 429 ||

@@ -2652,6 +2652,19 @@ Hal yang harus ditunjukkan:
 - `method=tfidf_logreg`;
 - `is_low_confidence`.
 
+Pada deployment Vercel, `api/ask.js` juga mencetak tiga prediksi classifier
+teratas segera setelah hasil Intent ML tersedia. Formatnya satu baris agar mudah
+ditunjukkan saat sidang:
+
+```text
+INTENT ML TOP 3: [{"rank":1,"intent":"stock_availability","confidence":0.87,"confidence_percent":"87.00%"}, ...]
+```
+
+Log ini adalah bukti keluaran TF-IDF + Logistic Regression, bukan keputusan
+akhir chatbot. Intent akhir masih dapat divalidasi atau dikoreksi oleh threshold,
+rule lokal, konteks percakapan, dan semantic router LLM. Jika API Intent ML tidak
+tersedia, log menampilkan `tidak tersedia; fallback lokal aktif`.
+
 ### 21.3 Menghubungkan Node ke API lokal
 
 Pada terminal yang menjalankan `ai-vercel`, set URL hanya untuk proses lokal atau gunakan konfigurasi development yang aman:

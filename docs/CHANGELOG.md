@@ -4,6 +4,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ## Unreleased
 
+- Added a single-line Vercel log for the Intent ML top-three predictions and confidence values without changing routing decisions.
 - Changed frontend intent badges to consistent Indonesian labels without changing internal intent names, routing, or API behavior.
 
 ### Added
