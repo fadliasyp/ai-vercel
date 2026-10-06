@@ -90,6 +90,73 @@ uv run `
   python scripts/test-intent-ml-model.py `
   "C:\kumpulan-codingan-fadli\intent-ml-api\intent_model_tfidf_logreg_terbaru.joblib"
 
+=========================
+WARNA - WARNA PADA CHATBOT
+=========================
+- Header Chatbot (Ada tulisan "Tanya Produk")
+linear-gradient(135deg, #2c7be5 0%, #4f9af5 100%);
+
+- Warna Pertanyaan Pelanggan
+kolomnya : #ai-chat-messages .msg.user {
+  background: #111827; 
+Tulisan nya : color: #fff;
+}
+
+- Intent Pertanyaan
+#ai-chat-messages .intent-badge {
+  color: #0f172a;
+  background: #eef2ff;
+  border: 1px solid #e0e7ff;
+  margin-bottom: 6px;
+}
+
+- Background Chatbot yg warna putih
+#ai-chat-messages {
+  font-size: 14px;
+  background: #fbfdff;}
+
+- Tombol Kirim
+#ai-chat-input button {
+  background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0 16px;
+    border-radius: 12px;}
+
+- simbol + (menambah foto)
+#ai-chat-box #ai-chat-input .ai-attach-image-btn {
+  border: 1px solid #dbeafe;
+  background: #eff6ff;
+  color: #1d4ed8;}
+
+- Kolom input pertanyaaan
+#ai-chat-input .ai-input {
+  border: 1px solid #e6edf7;
+  border-radius: 14px;
+
+  background: #ffffff;
+  color: #0f172a;}
+
+- Icon Chatbot
+itu di buat pure CSS, bukan Simbol/Icon
+#ai-chat-bubble {
+  background: linear-gradient(145deg, #0f8ff2 0%, #1675dc 100%);}
+#ai-chat-bubble .ai-chat-bubble__icon {
+  background: #ffffff;
+  box-shadow: 0 2px 5px rgba(15, 23, 42, 0.14);
+}
+#ai-chat-bubble .ai-chat-bubble__icon::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  bottom: 30px;
+  width: 30px;
+  height: 8px;
+  background: #ffffff;
+  transform: skewY(-34deg);
+  border-radius: 0 0 0 2px;
+  z-index: -1;
+}
 
 latih dataset bencmark kyknya ini syntak nya
 npm.cmd run benchmark:images -- --endpoint https://ai-vercel-ten-sigma.vercel.app/api/ask-image --fresh
