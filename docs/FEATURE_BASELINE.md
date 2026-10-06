@@ -153,6 +153,7 @@ Menghubungkan bahasa pelanggan ke produk WooCommerce yang benar sebelum harga, s
 - Nama eksplisit pada turn baru mengalahkan produk lama atau konteks halaman yang berbeda.
 - Kandidat dekat yang sama kuat menghasilkan klarifikasi; kombinasi nama asing atau model salah tidak boleh dipaksakan ke produk terdekat.
 - Nama lini katalog yang memakai kata atribut, misalnya `POSE+ METAL series SASURAIGER`, tetap dapat ditemukan dari token identitas lainnya dan exact-name matching.
+- Pada mode active, satu `product_names` terstruktur dari LLM dipakai sebelum parsing nama dari kalimat mentah. Hasilnya tetap wajib cocok dengan WooCommerce dan memiliki bukti token dari pesan pelanggan.
 - Permintaan seperti `tampilin robot Voltron yang tersedia` adalah pencarian katalog dengan filter ketersediaan, bukan pertanyaan jumlah stok. Salah klasifikasi LLM ke `stock_availability` tidak boleh mengunci routing ini.
 - Kata percakapan `coba`, `tampilin`, `nampilin`, dan `tunjukin` tidak boleh menjadi token identitas produk.
 - Kata tujuan restock seperti `habis`, `kapan`, `restock/restok`, `bakal masuk lagi`, dan `kembali` tidak boleh mencemari nama keluarga produk yang disebut pelanggan.
@@ -161,6 +162,7 @@ Menghubungkan bahasa pelanggan ke produk WooCommerce yang benar sebelum harga, s
 
 - Jangan menurunkan threshold hanya untuk membuat semua query menghasilkan produk.
 - Jangan mengganti produk tidak dikenal dengan produk ready stock atau populer.
+- Jangan menerima nama produk keluaran LLM yang tidak memiliki bukti pada pesan pelanggan; parser lokal tetap fallback ketika LLM tidak tersedia atau entitasnya tidak tepercaya.
 - Jangan membuang seluruh goal majemuk setelah produk ditemukan.
 - Jangan memakai stale context ketika pelanggan menyebut produk baru.
 - Jangan mengubah pertanyaan stok eksplisit seperti `sisa berapa pcs`, `ready`, atau `restock` menjadi pencarian katalog.

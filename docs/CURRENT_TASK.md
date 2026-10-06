@@ -2,10 +2,13 @@
 
 ## Status
 
-Belum ada task aktif. Bug pencarian katalog dan pertanyaan restock nama keluarga produk sudah diperbaiki serta lulus seluruh verifikasi lokal; deploy dan smoke production untuk patch terbaru masih perlu dilakukan. Transaction Continuity Batch 1 dan Multi-turn Product Continuity tetap dibekukan pada baseline yang sudah lulus.
+Belum ada task aktif. Resolver produk kini LLM-first pada mode active, sedangkan parser lokal hanya fallback; seluruh verifikasi lokal lulus dan deploy/smoke production masih perlu dilakukan. Transaction Continuity Batch 1 dan Multi-turn Product Continuity tetap dibekukan pada baseline yang sudah lulus.
 
 ## Current Progress
 
+- Pada mode LLM-led active, `product_names` terstruktur dari provider kini menjadi input utama resolver produk bersama. Nama tersebut tetap harus ditemukan di WooCommerce dan memiliki token yang berasal dari pertanyaan pelanggan; entitas LLM yang tidak grounded ditolak.
+- Parser teks mentah tetap tersedia hanya sebagai fallback ketika provider limit/gagal atau tidak menghasilkan entitas tepercaya. Structured suggestion tetap memiliki prioritas tertinggi karena pilihan pengguna sudah tervalidasi.
+- Regression active-LLM membuktikan `Daitarn` dari pemahaman LLM dipakai untuk pertanyaan restock informal, sementara entitas `Daitarn` ditolak ketika pelanggan menulis `Ultraman`. Full suite tetap 404/404, replay 9/9, dan benchmark pelanggan 26/26 (135 assertion, 100%).
 - Pertanyaan `kalau Voltron habis, kapan restok?` tidak lagi memakai `habis`, `kapan`, dan `restock` sebagai bagian nama produk. Matcher kini menemukan keluarga produk `Voltron`, lalu jawaban jadwal/stok tetap memakai fakta WooCommerce.
 - Variasi `kapan ready lagi`, `bakal masuk lagi kapan`, dan `restoknya kapan` dilindungi regression matcher; endpoint regression membuktikan pertanyaan restock informal tetap masuk `stock_availability` dan menemukan produk yang benar.
 - Verifikasi patch restock: full suite 404/404, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).

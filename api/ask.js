@@ -162,6 +162,7 @@ import {
   assessProductSearchConfidence,
   buildProductSearchClarification,
   buildProductSearchOptions,
+  extractProductSearchTokens,
   findVerifiedPageProduct,
   extractRequestedCatalogTerm,
   hasSpecificProductSearchTerms,
@@ -973,6 +974,14 @@ export default async function handler(req, res) {
   const minSemanticConfidence = Number.isFinite(configuredSemanticConfidence)
     ? configuredSemanticConfidence
     : 0.65;
+  const trustedLlmProductNames =
+    llmAssistantConfig.mode === "active" &&
+    groqRoute?.scope === "in_scope" &&
+    Number(groqRoute.confidence || 0) >= minSemanticConfidence
+      ? [...new Set(groqRoute.entities?.product_names || [])]
+          .map((name) => String(name || "").trim())
+          .filter(Boolean)
+      : [];
 
   const legacyIntentResult = chooseSemanticIntent({
     question: privacySafeQuestion(),
@@ -4263,6 +4272,31 @@ export default async function handler(req, res) {
           product: selectedProduct,
           candidates: [selectedProduct],
         };
+      }
+
+      if (trustedLlmProductNames.length === 1) {
+        const llmProductName = trustedLlmProductNames[0];
+        const questionTokens = new Set(extractProductSearchTokens(question));
+        const llmNameTokens = extractProductSearchTokens(llmProductName);
+        const entityComesFromQuestion = llmNameTokens.some((token) =>
+          questionTokens.has(token),
+        );
+
+        if (entityComesFromQuestion) {
+          const llmEntityMatch = assessProductSearchConfidence(
+            llmProductName,
+            lookupProducts,
+            {
+              preferPromo: compound && /\b(?:promo|diskon)\b/i.test(question),
+            },
+          );
+          if (llmEntityMatch.status !== "not_found") {
+            return {
+              ...llmEntityMatch,
+              reason: `llm_entity:${llmEntityMatch.reason}`,
+            };
+          }
+        }
       }
 
       const catalogMatch = assessProductSearchConfidence(

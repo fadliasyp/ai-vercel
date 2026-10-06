@@ -1001,6 +1001,47 @@ test("routes real customer turns without stale products or fallback collisions",
       goals: ["stock"],
       confidence: 0.96,
       entities: {
+        product_names: ["Daitarn"],
+        budget_min: null,
+        budget_max: null,
+      },
+      requires_product: true,
+      customer_state: "neutral",
+      interpretation:
+        "Pelanggan menanyakan jadwal restock produk Daitarn.",
+      topic_relation: "new_topic",
+      needs_clarification: false,
+      clarification_question: null,
+    };
+
+    const llmGroundedRestock = await ask(
+      "kalau Daitarn habis, kapan restok?",
+      null,
+      { sessionId: `llm_grounded_restock_${Date.now()}` },
+    );
+    assert.equal(llmGroundedRestock.intent, "stock_availability");
+    assert.deepEqual(productNames(llmGroundedRestock), [
+      "Soul of Chogokin Daitarn 3",
+    ]);
+    assert.match(llmGroundedRestock.product_match?.reason || "", /^llm_entity:/);
+
+    const rejectedHallucinatedEntity = await ask(
+      "Ultraman kapan restok?",
+      null,
+      { sessionId: `rejected_llm_entity_${Date.now()}` },
+    );
+    assert.equal(rejectedHallucinatedEntity.intent, "stock_availability");
+    assert.equal(rejectedHallucinatedEntity.type, "text");
+    assert.equal(rejectedHallucinatedEntity.products, undefined);
+    assert.match(rejectedHallucinatedEntity.message, /belum ditemukan/i);
+
+    semanticRoute = {
+      scope: "in_scope",
+      intent: "stock_availability",
+      intents: ["stock_availability"],
+      goals: ["stock"],
+      confidence: 0.96,
+      entities: {
         product_names: ["Fewture Getter Set 1,2,3 Black Version"],
         budget_min: null,
         budget_max: null,

@@ -6,6 +6,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 - Added a single-line Vercel log for the Intent ML top-three predictions and confidence values without changing routing decisions.
 - Changed frontend intent badges to consistent Indonesian labels without changing internal intent names, routing, or API behavior.
+- Changed shared product resolution in active mode to consume the LLM's structured product entity before raw-text parsing, while retaining catalog and user-message grounding plus the local fallback.
 
 ### Added
 
