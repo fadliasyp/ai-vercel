@@ -45,6 +45,7 @@ import {
   chooseSemanticIntent,
   detectExplicitIntentOverride,
   looksLikeGlobalReadyStockQuestion,
+  looksLikeGlobalUnavailableStockQuestion,
   looksLikeSingleProductSuitabilityQuestion,
   semanticRouteToLegacy,
   shouldUseSemanticRouter,
@@ -474,6 +475,7 @@ function isGlobalStockQuestion(q = "") {
 
   return (
     looksLikeGlobalReadyStockQuestion(q) ||
+    looksLikeGlobalUnavailableStockQuestion(q) ||
     q.includes("ready apa aja") ||
     q.includes("ready stock apa aja") ||
     q.includes("stok apa aja") ||
@@ -1082,7 +1084,10 @@ export default async function handler(req, res) {
   const semanticReadyStockConflict =
     groqRoute?.intent !== "stock_availability" &&
     directExplicitIntent?.intent === "stock_availability" &&
-    directExplicitIntent?.method === "explicit_global_ready_stock_rule";
+    [
+      "explicit_global_ready_stock_rule",
+      "explicit_global_unavailable_stock_rule",
+    ].includes(directExplicitIntent?.method);
   const semanticRecommendationSelectionConflict =
     groqRoute?.intent !== "recommendation" &&
     directExplicitIntent?.intent === "recommendation" &&
@@ -1137,7 +1142,10 @@ export default async function handler(req, res) {
     groqContext.compound = compactCompoundQuestionAnalysis(compoundAnalysis);
     groqContext.semanticDecision = groqRoute;
   } else if (semanticReadyStockConflict) {
-    explicitIntentSource = "global_ready_stock_guard";
+    explicitIntentSource =
+      directExplicitIntent?.method === "explicit_global_unavailable_stock_rule"
+        ? "global_unavailable_stock_guard"
+        : "global_ready_stock_guard";
     intentResult = {
       ...intentResult,
       ...directExplicitIntent,
@@ -6418,15 +6426,40 @@ export default async function handler(req, res) {
       isGlobalStockQuestion(rawQuestion)
     ) {
       const products = await getCleanProducts();
-      const readyProducts = products
-        .filter((p) => p.stock === "instock")
+      const requestedStockStatus =
+        selectedSuggestion?.action_key === "catalog_ready_stock"
+          ? "ready"
+          : compoundAnalysis.constraints?.stock ||
+            groqRoute?.entities?.stock_status ||
+            "ready";
+      const asksUnavailable = requestedStockStatus === "unavailable";
+      const matchingProducts = products
+        .filter((product) =>
+          asksUnavailable
+            ? ["outofstock", "onbackorder"].includes(product.stock)
+            : product.stock === "instock",
+        )
         .slice(0, 10);
+
+      if (!matchingProducts.length) {
+        return send(
+          {
+            type: "text",
+            message: asksUnavailable
+              ? "Saat ini tidak ada produk yang tercatat habis atau belum ready di katalog."
+              : "Saat ini tidak ada produk yang tercatat ready stock di katalog.",
+          },
+          "stock_availability",
+        );
+      }
 
       return send(
         {
           type: "products",
-          intro: "Berikut produk yang saat ini ready stock:",
-          products: readyProducts,
+          intro: asksUnavailable
+            ? "Berikut produk yang saat ini tercatat habis atau belum ready:"
+            : "Berikut produk yang saat ini ready stock:",
+          products: matchingProducts,
         },
         "stock_availability",
       );

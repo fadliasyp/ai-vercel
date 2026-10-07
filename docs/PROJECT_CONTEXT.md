@@ -165,6 +165,8 @@ Status project: **aktif dikembangkan**.
 
 Pada 2026-10-07:
 
+- Daftar stok global kini membedakan permintaan `ready` dan `habis/sold out/kosong/belum ready`. LLM mengirim `stock_status` terstruktur, kata eksplisit pelanggan menjadi validator, dan status produk tetap difilter dari WooCommerce.
+- Koreksi daftar stok unavailable lulus full suite 412/412, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%); smoke production masih pending.
 - Kalimat restok santai `gua udah nunggu lama nih, kira2 kapan restok sih?` tidak lagi dibaca sebagai nama produk. Halaman umum menampilkan daftar jadwal terverifikasi, sedangkan halaman produk memakai produk halaman yang telah dicocokkan ke WooCommerce.
 - Koreksi restok santai lulus full suite 412/412, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%); smoke production masih pending.
 - Pengguna mengonfirmasi smoke production Pengembalian Produk lulus 5/5.
