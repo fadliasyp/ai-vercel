@@ -5771,7 +5771,20 @@ export default async function handler(req, res) {
         );
       }
 
-      const productMatch = resolveRequestedProduct(rawQuestion, cleanProducts);
+      const implicitPageProduct =
+        !usesPreviousProductContext &&
+        !hasSpecificProductSearchTerms(rawQuestion)
+          ? findVerifiedPageProduct(pageContext, cleanProducts)
+          : null;
+      const productMatch = implicitPageProduct
+        ? {
+            status: "matched",
+            confidence: 1,
+            reason: "verified_page_context",
+            product: implicitPageProduct,
+            candidates: [implicitPageProduct],
+          }
+        : resolveRequestedProduct(rawQuestion, cleanProducts);
       const product = productMatch.product;
 
       if (product) {

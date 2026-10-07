@@ -502,6 +502,7 @@ Menjawab jadwal restock dari metadata WPC Product Timer tanpa meminta LLM meneba
 - Pertanyaan restock tetap memakai intent `stock_availability`.
 - Pertanyaan umum seperti `kapan robot-robot restock?` menampilkan semua produk dengan jadwal mendatang, diurutkan dari waktu paling dekat.
 - Pertanyaan umum tanpa nama produk tetap dikenali meskipun memakai filler percakapan/waktu, misalnya `kapan restock sih udah nunggu lama nih?`, `kapan restock barang emang`, atau `dari kemarin nunggu kapan restock sih`.
+- Variasi slang seperti `gua udah nunggu lama nih, kira2 kapan restok sih?` tidak dianggap sebagai nama produk. Dari halaman umum hasilnya adalah daftar restok; dari halaman produk yang terverifikasi, produk halaman menjadi objek restok tersirat.
 - Pertanyaan yang menyebut satu produk hanya menjawab produk tersebut.
 - Hanya aksi `set_instock` dengan `date_time_after` yang pasti dan berlaku bagi storefront yang boleh ditampilkan.
 - Jadwal lampau tidak ditampilkan sebagai jadwal mendatang.
@@ -529,6 +530,7 @@ Menjawab jadwal restock dari metadata WPC Product Timer tanpa meminta LLM meneba
 - `npm test`
 - `npm run benchmark:coverage-replay`
 - Bukti 2026-09-30: 375/375 test lulus; coverage replay 9/9 turn lulus.
+- Bukti lokal 2026-10-07 untuk filler restok dan konteks halaman: 412/412 test lulus, coverage replay 9/9 turn, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%). Smoke production masih pending.
 - Audit read-only live: produk ID 4994 menghasilkan jadwal `30 September 2026 pukul 10.24 WIB`.
 
 ## Controlled Conversation Actions

@@ -336,6 +336,7 @@ test("routes real customer turns without stale products or fallback collisions",
       "kapan restock sih udah nunggu lama nih?",
       "Kapan restock barang emang",
       "Dari kemarin nunggu kapan restock sih",
+      "gua udah nunggu lama nih, kira2 kapan restok sih?",
     ]) {
       const genericRestock = await ask(question, null, {
         sessionId: `generic_restock_${Date.now()}_${question.length}`,
@@ -353,6 +354,22 @@ test("routes real customer turns without stale products or fallback collisions",
         /produk yang kamu tanyakan belum ditemukan/i,
       );
     }
+
+    const pageRestock = await ask(
+      "gua udah nunggu lama nih, kira2 kapan restok sih?",
+      {
+        productId: 13,
+        productName: "Soul of Chogokin Daitarn 3",
+        url: "https://catalog.test/product/13",
+      },
+      { sessionId: `page_restock_${Date.now()}` },
+    );
+    assert.equal(pageRestock.intent, "stock_availability");
+    assert.equal(pageRestock.type, "products");
+    assert.deepEqual(productNames(pageRestock), [
+      "Soul of Chogokin Daitarn 3",
+    ]);
+    assert.match(pageRestock.intro, /1 Desember 2099.*15\.30 WIB/is);
 
     const specificRestock = await ask(
       "kapan Soul of Chogokin Daitarn 3 restock?",

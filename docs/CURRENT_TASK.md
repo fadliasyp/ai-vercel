@@ -2,10 +2,13 @@
 
 ## Status
 
-Koreksi `budget 9 jutaan` sebagai target harga rekomendasi sudah lulus verifikasi lokal dan menunggu deploy serta satu smoke production. Koreksi konflik intent rekomendasi tetap lulus 3/3 di production dan Pengembalian Produk lulus 5/5.
+Koreksi restok bahasa santai dan `budget 9 jutaan` sudah lulus verifikasi lokal, lalu menunggu deploy serta smoke production. Koreksi konflik intent rekomendasi tetap lulus 3/3 di production dan Pengembalian Produk lulus 5/5.
 
 ## Current Progress
 
+- Laporan production `gua udah nunggu lama nih, kira2 kapan restok sih?` sudah benar masuk `stock_availability`, tetapi product grounding lokal masih menganggap `gua`, `udah`, `nunggu`, dan `lama` sebagai nama produk.
+- Filler percakapan tersebut kini diabaikan pada klasifikasi restok dan pencarian produk. Dari halaman umum pertanyaan menampilkan semua jadwal restok terverifikasi; dari halaman produk, konteks halaman WooCommerce dipakai sebagai produk tersirat.
+- Regression memakai kalimat laporan persis untuk dua konteks tersebut. Verifikasi lulus: full suite 412/412, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
 - Log production membuktikan Intent ML sudah benar memilih `recommendation` dengan confidence 64,91%, tetapi Groq memilih `price_promo` dengan confidence 96% dan mengunci intent yang salah.
 - Guard `recommendation_selection_guard` mempertahankan intent rekomendasi hanya ketika bahasa pelanggan secara eksplisit meminta pilihan, seperti `enaknya ambil`, `mending`, atau `pilihkan`.
 - Helper budget lama kini mengenali pola pemilihan yang sama sehingga tidak mengubah rekomendasi kembali menjadi Informasi Harga. Pernyataan `gue punya budget` juga tidak lagi dianggap sebagai nama produk yang dicari.
@@ -214,7 +217,7 @@ Koreksi `budget 9 jutaan` sebagai target harga rekomendasi sudah lulus verifikas
 
 ## Active Task
 
-- Deploy dan smoke production koreksi target harga `budget X jutaan`.
+- Deploy dan smoke production koreksi restok bahasa santai serta target harga `budget X jutaan`.
 
 ## Last Completed Task
 
@@ -289,6 +292,12 @@ Koreksi `budget 9 jutaan` sebagai target harga rekomendasi sudah lulus verifikas
 
 ## Files Modified
 
+- `api/ask.js`
+- `lib/chatbot/productSearch.js`
+- `lib/chatbot/restockSchedule.js`
+- `tests/askRouting.test.js`
+- `tests/productSearch.test.js`
+- `tests/restockSchedule.test.js`
 - `lib/chatbot/productRecommendation.js`
 - `lib/chatbot/semanticRouter.js`
 - `tests/productRecommendationReasoning.test.js`
@@ -301,9 +310,11 @@ Koreksi `budget 9 jutaan` sebagai target harga rekomendasi sudah lulus verifikas
 
 ## Next Steps
 
-1. Deploy koreksi target harga rekomendasi ke Vercel.
-2. Ulangi `Rekomen dong robot buat kado budget 9 jutaan` dan pastikan seluruh hasil berada pada Rp7,2-Rp9 juta.
-3. Jalankan kasus kebalikan `Rekomen robot budget maksimal 9 juta` dan pastikan tetap diperlakukan sebagai batas maksimum, bukan target harga.
+1. Deploy koreksi restok bahasa santai dan target harga rekomendasi ke Vercel.
+2. Ulangi `gua udah nunggu lama nih, kira2 kapan restok sih?` dari halaman umum dan pastikan tidak ada pesan produk tidak ditemukan.
+3. Ulangi kalimat yang sama dari satu halaman produk dan pastikan jawaban tetap fokus ke produk halaman tersebut.
+4. Ulangi `Rekomen dong robot buat kado budget 9 jutaan` dan pastikan seluruh hasil berada pada Rp7,2-Rp9 juta.
+5. Jalankan kasus kebalikan `Rekomen robot budget maksimal 9 juta` dan pastikan tetap diperlakukan sebagai batas maksimum, bukan target harga.
 
 ## Blockers
 

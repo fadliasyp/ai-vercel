@@ -27,6 +27,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Fixed
 
+- Fixed `gua udah nunggu lama nih, kira2 kapan restok sih?` being treated as an unavailable product name. Casual first-person/waiting fillers are ignored by product grounding; on a general page the request lists verified upcoming restocks, while on a verified product page it uses that page product.
 - Fixed `Rekomen dong robot buat kado budget 9 jutaan` being treated as a loose maximum after the semantic provider returned `price_mode: maximum`. Casual `budget X jutaan` now supplies target X plus hard maximum X, while explicit maximum wording remains unchanged.
 - Fixed the production sentence `Gue punya budget maksimal 4 juta, enaknya ambil robot yang mana?` being locked as `price_promo`. Explicit product-selection language now survives a conflicting semantic provider result, stays recommendation through the budget stage, and no longer treats `gue punya budget` as a missing product name.
 - Connected trusted return goals to the deterministic store-policy builder. Casual complaints such as a missing robot hand now receive the incomplete-item procedure, while refund-duration questions receive the verified timeline without allowing the LLM to invent policy.
@@ -77,6 +78,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
+- The casual-restock regression passes the full 412/412 suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. Production smoke is pending deployment.
 - The exact Rp9 million gift-budget regression rejects distant cheap products and passes the full 411/411 suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. Production smoke is pending deployment.
 - The recommendation-selection conflict regression reproduces the exact production Groq route and passes the full 410/410 suite, 9/9 answer-coverage replay turns, 26/26 customer-conversation turns with 135 assertions, and the user-confirmed 3/3 production smoke.
 - Intent-log presentation changes pass the full 410/410 local suite without changing routing or response behavior.

@@ -165,6 +165,8 @@ Status project: **aktif dikembangkan**.
 
 Pada 2026-10-07:
 
+- Kalimat restok santai `gua udah nunggu lama nih, kira2 kapan restok sih?` tidak lagi dibaca sebagai nama produk. Halaman umum menampilkan daftar jadwal terverifikasi, sedangkan halaman produk memakai produk halaman yang telah dicocokkan ke WooCommerce.
+- Koreksi restok santai lulus full suite 412/412, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%); smoke production masih pending.
 - Pengguna mengonfirmasi smoke production Pengembalian Produk lulus 5/5.
 - Koreksi konflik rekomendasi-versus-harga lulus full suite 410/410, coverage replay 9/9, benchmark pelanggan 26/26 turn dengan 135 assertion (100%), dan smoke production 3/3.
 - Log intent untuk presentasi menyamarkan method sebagai `ML` serta identitas provider/model pada bagian atas. Nilai asli tidak diubah dan tetap tersedia pada blok debug router paling bawah.
