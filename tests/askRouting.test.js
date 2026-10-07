@@ -308,10 +308,11 @@ test("routes real customer turns without stale products or fallback collisions",
     assert.ok(productNames(readyCatalog).length > 1);
     assert.doesNotMatch(readyCatalog.intro, /mau cek stok produk apa/i);
 
+    const unavailableSession = `unavailable_catalog_${Date.now()}`;
     const unavailableCatalog = await ask(
       "yg habis /soldout robot apa ajaa",
       null,
-      { sessionId: `unavailable_catalog_${Date.now()}` },
+      { sessionId: unavailableSession },
     );
     assert.equal(unavailableCatalog.intent, "stock_availability");
     assert.equal(unavailableCatalog.type, "products");
@@ -322,6 +323,28 @@ test("routes real customer turns without stale products or fallback collisions",
       ),
     );
     assert.match(unavailableCatalog.intro, /habis|belum ready/i);
+    assert.match(unavailableCatalog.intro, /jadwal restock mendatang/i);
+    assert.match(unavailableCatalog.intro, /1 Desember 2099.*15\.30 WIB/is);
+
+    const unavailableRestockFollowUp = await ask(
+      "kira2 kapan dia restok",
+      null,
+      { sessionId: unavailableSession },
+    );
+    assert.equal(unavailableRestockFollowUp.intent, "stock_availability");
+    assert.equal(unavailableRestockFollowUp.type, "products");
+    assert.deepEqual(productNames(unavailableRestockFollowUp), [
+      "Soul of Chogokin Daitarn 3",
+      "DX Chogokin Dairugger XV",
+    ]);
+    assert.match(
+      unavailableRestockFollowUp.intro,
+      /1 Desember 2099.*15\.30 WIB/is,
+    );
+    assert.doesNotMatch(
+      unavailableRestockFollowUp.intro,
+      /pilih salah satu produk/i,
+    );
 
     const catalogOverview = await ask("Barang apa aja yang dijual?", null, {
       sessionId: `catalog_overview_${Date.now()}`,

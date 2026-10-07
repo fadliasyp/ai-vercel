@@ -27,6 +27,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Fixed
 
+- Fixed unavailable-stock results omitting verified WooCommerce restock schedules, then losing the product group on `kira2 kapan dia restok`. The first response now includes known schedules, and the follow-up resolves the casual pronoun to the previously displayed group instead of opening an unrelated product clarification.
 - Fixed global unavailable-stock questions such as `yg habis /soldout robot apa ajaa` returning ready products. Semantic understanding now carries `entities.stock_status`, explicit local wording can correct a conflicting provider value, and the catalog filter keeps stock facts grounded in WooCommerce.
 - Fixed `gua udah nunggu lama nih, kira2 kapan restok sih?` being treated as an unavailable product name. Casual first-person/waiting fillers are ignored by product grounding; on a general page the request lists verified upcoming restocks, while on a verified product page it uses that page product.
 - Fixed `Rekomen dong robot buat kado budget 9 jutaan` being treated as a loose maximum after the semantic provider returned `price_mode: maximum`. Casual `budget X jutaan` now supplies target X plus hard maximum X, while explicit maximum wording remains unchanged.
@@ -79,6 +80,7 @@ Changelog ini hanya mencatat perubahan yang dapat diverifikasi dari task saat in
 
 ### Verification
 
+- The unavailable-stock to grouped-restock two-turn regression passes the full 413/413 suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. Production smoke is pending deployment.
 - Ready-versus-unavailable stock-list regressions pass the full 412/412 suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. Production smoke is pending deployment.
 - The casual-restock regression passes the full 412/412 suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. Production smoke is pending deployment.
 - The exact Rp9 million gift-budget regression rejects distant cheap products and passes the full 411/411 suite, 9/9 answer-coverage replay turns, and 26/26 customer-conversation turns with 135 assertions. Production smoke is pending deployment.

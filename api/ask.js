@@ -5753,6 +5753,43 @@ export default async function handler(req, res) {
       const asksForAllRestocks =
         looksLikeGeneralRestockQuestion(rawQuestion, { hasProductContext }) ||
         (!hasProductContext && !hasSpecificProductSearchTerms(rawQuestion));
+      const referencedRestockProducts = resolveReferencedProducts(cleanProducts);
+
+      if (
+        usesPreviousProductContext &&
+        referencedRestockProducts.length > 1
+      ) {
+        const upcomingRestocks = listUpcomingRestocks(
+          referencedRestockProducts,
+        );
+        if (!upcomingRestocks.length) {
+          return await send(
+            buildUnknownAnswerResponse({
+              intent: "stock_availability",
+              message:
+                "Belum ada jadwal restock mendatang yang terverifikasi untuk produk-produk tadi. Silakan tanyakan langsung ke Admin Robot Jadul untuk rencana restock terbaru.",
+              topic: "jadwal restock produk yang sebelumnya ditampilkan",
+            }),
+            "stock_availability",
+          );
+        }
+
+        const unscheduledCount =
+          referencedRestockProducts.length - upcomingRestocks.length;
+        return await send(
+          {
+            type: "products",
+            intent: "stock_availability",
+            intro:
+              buildRestockListMessage(upcomingRestocks) +
+              (unscheduledCount > 0
+                ? `\n\n**${unscheduledCount} produk lain** dari daftar sebelumnya belum memiliki jadwal restock mendatang yang terverifikasi.`
+                : ""),
+            products: upcomingRestocks.map((entry) => entry.product),
+          },
+          "stock_availability",
+        );
+      }
 
       if (asksForAllRestocks) {
         const upcomingRestocks = listUpcomingRestocks(cleanProducts);
@@ -6453,12 +6490,25 @@ export default async function handler(req, res) {
         );
       }
 
+      let stockListIntro = "Berikut produk yang saat ini ready stock:";
+      if (asksUnavailable) {
+        const upcomingRestocks = listUpcomingRestocks(matchingProducts);
+        const unscheduledCount =
+          matchingProducts.length - upcomingRestocks.length;
+        stockListIntro =
+          "Berikut produk yang saat ini tercatat habis atau belum ready:" +
+          (upcomingRestocks.length
+            ? `\n\n${buildRestockListMessage(upcomingRestocks)}`
+            : "\n\nBelum ada jadwal restock mendatang yang terverifikasi untuk daftar ini.") +
+          (upcomingRestocks.length && unscheduledCount > 0
+            ? `\n\n**${unscheduledCount} produk lain** belum memiliki jadwal restock mendatang yang terverifikasi.`
+            : "");
+      }
+
       return send(
         {
           type: "products",
-          intro: asksUnavailable
-            ? "Berikut produk yang saat ini tercatat habis atau belum ready:"
-            : "Berikut produk yang saat ini ready stock:",
+          intro: stockListIntro,
           products: matchingProducts,
         },
         "stock_availability",

@@ -293,6 +293,7 @@ Membedakan cek stok produk tertentu, daftar produk ready, dan kebijakan stok umu
 - Goal `stock` dengan `product_names` kosong dan `requires_product: false` berarti pelanggan meminta daftar produk ready dari katalog.
 - Daftar stok global membedakan `ready` dari `unavailable`: permintaan `habis`, `sold out`, `kosong`, atau `belum ready` hanya menampilkan produk WooCommerce yang tidak tersedia, bukan daftar ready stock.
 - Structured entity LLM `stock_status` membantu memahami variasi bahasa, tetapi frasa eksplisit pelanggan tetap dapat mengoreksi nilai provider yang bertentangan. Status akhir setiap produk selalu berasal dari WooCommerce.
+- Daftar produk unavailable langsung menyertakan jadwal restok mendatang yang terverifikasi. Setelah daftar jamak tersebut, follow-up seperti `kira2 kapan dia restok` merujuk seluruh kelompok sebelumnya; produk tanpa timer tidak diberi tanggal perkiraan.
 - Goal `stock_policy` berarti pelanggan menanyakan kebijakan umum seperti apakah semua barang selalu ready atau tersedia melalui PO.
 - Produk bernama tetap memakai Product Grounding dan hanya menampilkan status/jumlah stok produk yang cocok.
 - Permintaan katalog bernama seperti `tampilkan Voltes yang tersedia` tetap `product_discovery`, bukan cek jumlah stok.
@@ -302,6 +303,7 @@ Membedakan cek stok produk tertentu, daftar produk ready, dan kebijakan stok umu
 
 - Jangan memakai LLM sebagai sumber status stok, jumlah unit, mode PO, atau jadwal restock.
 - Jangan memakai handler daftar ready untuk permintaan produk habis/sold out, dan jangan membiarkan nilai `stock_status` LLM mengalahkan kata stok eksplisit yang berlawanan pada pesan pelanggan.
+- Jangan memaksa follow-up restok kelompok memilih satu produk, tetapi jangan pula mengarang jadwal untuk anggota kelompok yang tidak memiliki timer WooCommerce terverifikasi.
 - Jangan mengubah pencarian seri/kategori menjadi `stock_availability` hanya karena memuat kata `tersedia`.
 - Jangan meminta nama produk lagi ketika structured understanding tepercaya sudah menyatakan permintaan daftar ready global.
 - Jangan mengganti produk yang tidak ditemukan dengan produk ready atau populer lain.
@@ -319,6 +321,7 @@ Membedakan cek stok produk tertentu, daftar produk ready, dan kebijakan stok umu
 ### Verification
 
 - Bukti lokal 2026-10-07 untuk pemisahan daftar ready dan unavailable: full suite 412/412, replay 9/9 turn, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%). Regression mencakup output provider yang sengaja bertentangan; smoke production masih pending.
+- Bukti lokal 2026-10-07 untuk kontinuitas unavailable -> restok kelompok: full suite 413/413, replay 9/9 turn, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%). Smoke production masih pending.
 - Bukti lokal 2026-10-06: full suite lulus, answer-coverage replay 9/9 turn (59,4% menjadi 88,9%), dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
 - Active-LLM endpoint regression membuktikan daftar ready global, kebijakan stok informal, dan guard pencarian katalog bernama.
 - Smoke production pertama menemukan Groq salah membaca `yg bisa lngs dibungkus ada apa aja` sebagai pencarian produk. Koreksi prompt, normalisasi singkatan, dan guard konflik sudah lulus regression lokal dengan output provider production yang sama; redeploy dan smoke ulang masih diperlukan.

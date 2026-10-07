@@ -260,6 +260,18 @@ test("treats keduanya as a pair instead of the second product", () => {
   );
 });
 
+test("resolves a casual restock pronoun to the previous product group", () => {
+  const result = resolveConversationTurn("kira2 kapan dia restok", {
+    lastIntent: "stock_availability",
+    lastProducts: products,
+  });
+
+  assert.equal(result.changed, true);
+  assert.equal(result.usesPreviousProducts, true);
+  assert.deepEqual(result.referencedProducts, products);
+  assert.match(result.question, /kapan produk-produk sebelumnya restok/i);
+});
+
 test("keeps a compact product goal and preserves it across shipping", () => {
   const goal = buildActiveConversationGoal(null, {
     intent: "recommendation",

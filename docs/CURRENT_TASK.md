@@ -2,10 +2,13 @@
 
 ## Status
 
-Koreksi daftar stok habis/sold out, restok bahasa santai, dan `budget 9 jutaan` sudah lulus verifikasi lokal, lalu menunggu deploy serta smoke production. Koreksi konflik intent rekomendasi tetap lulus 3/3 di production dan Pengembalian Produk lulus 5/5.
+Koreksi kontinuitas daftar stok habis ke jadwal restok, restok bahasa santai, dan `budget 9 jutaan` sudah lulus verifikasi lokal, lalu menunggu deploy serta smoke production. Koreksi konflik intent rekomendasi tetap lulus 3/3 di production dan Pengembalian Produk lulus 5/5.
 
 ## Current Progress
 
+- Daftar produk habis sebelumnya tidak menyertakan timer restok, lalu follow-up `kira2 kapan dia restok` kehilangan kelompok produk dan membuka klarifikasi nama produk.
+- Respons unavailable kini menyertakan seluruh jadwal mendatang yang terverifikasi dari produk yang ditampilkan. Kata ganti santai `dia/mereka/semuanya` pada pertanyaan restok setelah daftar jamak merujuk kelompok tersebut.
+- Produk kelompok tanpa timer tetap diberi keterangan belum memiliki jadwal terverifikasi. Regression dua turn persis lulus bersama full suite 413/413, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
 - Laporan `yg habis /soldout robot apa ajaa` sudah masuk intent stok, tetapi handler global lama selalu memfilter `instock` tanpa membaca apakah pelanggan meminta ready atau unavailable.
 - Semantic router kini membawa `entities.stock_status` (`ready`/`unavailable`). Constraint eksplisit dari pesan pelanggan diprioritaskan bila provider bertentangan, lalu filter akhir memakai status WooCommerce `instock`, `outofstock`, atau `onbackorder`.
 - Regression memakai kalimat laporan persis dengan simulasi provider yang salah mengirim `ready`, serta bahasa santai `robot yg lg kosong ada apa aja?`. Verifikasi lulus: full suite 412/412, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
@@ -220,7 +223,7 @@ Koreksi daftar stok habis/sold out, restok bahasa santai, dan `budget 9 jutaan` 
 
 ## Active Task
 
-- Deploy dan smoke production koreksi daftar stok unavailable, restok bahasa santai, serta target harga `budget X jutaan`.
+- Deploy dan smoke production kontinuitas daftar stok unavailable -> jadwal restok, restok bahasa santai, serta target harga `budget X jutaan`.
 
 ## Last Completed Task
 
@@ -296,12 +299,14 @@ Koreksi daftar stok habis/sold out, restok bahasa santai, dan `budget 9 jutaan` 
 ## Files Modified
 
 - `api/ask.js`
+- `lib/chatbot/conversationGoal.js`
 - `lib/chatbot/intentFusion.js`
 - `lib/chatbot/semanticRouter.js`
 - `tests/semanticRouter.test.js`
 - `lib/chatbot/productSearch.js`
 - `lib/chatbot/restockSchedule.js`
 - `tests/askRouting.test.js`
+- `tests/conversationGoal.test.js`
 - `tests/productSearch.test.js`
 - `tests/restockSchedule.test.js`
 - `lib/chatbot/productRecommendation.js`
@@ -317,10 +322,10 @@ Koreksi daftar stok habis/sold out, restok bahasa santai, dan `budget 9 jutaan` 
 ## Next Steps
 
 1. Deploy seluruh koreksi terbaru ke Vercel.
-2. Jalankan `yg habis /soldout robot apa ajaa` dan pastikan seluruh kartu berstatus tidak ready.
-3. Jalankan kasus kebalikan `robot yang ready ada apa aja?` dan pastikan seluruh kartu berstatus ready.
-4. Ulangi `gua udah nunggu lama nih, kira2 kapan restok sih?` dari halaman umum dan satu halaman produk.
-5. Ulangi `Rekomen dong robot buat kado budget 9 jutaan` dan pastikan seluruh hasil berada pada Rp7,2-Rp9 juta.
+2. Jalankan `yg habis stok apa aja?` dan pastikan kartu hanya berstatus tidak ready serta jadwal terverifikasi langsung terlihat.
+3. Pada sesi yang sama, kirim `kira2 kapan dia restok` dan pastikan tidak muncul permintaan memilih produk; hasil harus memuat seluruh jadwal yang tersedia dari daftar sebelumnya.
+4. Jalankan kasus kebalikan `robot yang ready ada apa aja?` dan pastikan seluruh kartu berstatus ready.
+5. Ulangi smoke restok santai dan rekomendasi `budget 9 jutaan` yang masih pending.
 
 ## Blockers
 
