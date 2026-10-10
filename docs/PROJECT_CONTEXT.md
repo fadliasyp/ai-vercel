@@ -41,6 +41,7 @@ Status project: **aktif dikembangkan**.
 - Strength/caveat rekomendasi serta perbandingan dapat memakai deskripsi produk WooCommerce.
 - Rekomendasi membedakan target harga seperti `harga 7 jutaan` dan `rekomen robot 19 jutaan` dari batas budget; target harga hanya menerima kandidat dalam toleransi 20%, sedangkan batas/rentang tetap menjadi filter keras. Frasa `budget sekitar/kisaran X` memakai X sebagai target sekaligus batas maksimum.
 - Permintaan memilih seperti `budget maksimal 4 juta, enaknya ambil robot yang mana?` tetap menjadi rekomendasi meskipun semantic provider memilih harga/promo. Budget pelanggan tidak dianggap nama produk dan batas maksimum tetap diterapkan pada fakta harga WooCommerce.
+- Pada rekomendasi, `budget X jutaan` berarti target harga X sekaligus batas maksimum X. Resolver mengoreksi output provider yang hanya menganggapnya maximum, sedangkan kata batas eksplisit tetap dipertahankan sebagai maximum.
 - Rekomendasi generik dengan rentang/tujuan memakai `product_names` terstruktur untuk membedakannya dari pencarian nama produk. Kata seperti `antara`, `sampai`, dan `pajangan` tidak boleh memicu pesan produk tidak tersedia.
 - Goal rekomendasi aktif melengkapi follow-up nominal singkat maupun berbungkus percakapan: `yg 3 jutaan` dan `Kalau yang 6 jutaan ada apa aja?` menjadi target harga baru, sedangkan `3 juta` menjadi batas budget; pergantian intent eksplisit tetap tidak diwarisi. Koreksi harga paling akhir dalam satu pesan juga mengalahkan rentang sebelumnya tanpa menghapus tujuan penggunaan.
 - Normalisasi rekomendasi memahami slang/singkatan seperti `rekomen`, `pilihin`, `mnurut lu`, `klo/kl`, `jtan/jtaan`, dan `sd`; matriks regression juga memuat kasus kebalikan agar harga atau stok biasa tidak salah menjadi rekomendasi.
@@ -164,9 +165,16 @@ Status project: **aktif dikembangkan**.
 
 Pada 2026-10-07:
 
+- Daftar produk habis kini langsung menampilkan jadwal restok WooCommerce yang terverifikasi. Follow-up `kira2 kapan dia restok` setelah daftar jamak memakai seluruh kelompok sebelumnya dan tidak lagi meminta pilihan produk secara generik.
+- Kontinuitas unavailable -> restok kelompok lulus full suite 413/413, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%); smoke production masih pending.
+- Daftar stok global kini membedakan permintaan `ready` dan `habis/sold out/kosong/belum ready`. LLM mengirim `stock_status` terstruktur, kata eksplisit pelanggan menjadi validator, dan status produk tetap difilter dari WooCommerce.
+- Koreksi daftar stok unavailable lulus full suite 412/412, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%); smoke production masih pending.
+- Kalimat restok santai `gua udah nunggu lama nih, kira2 kapan restok sih?` tidak lagi dibaca sebagai nama produk. Halaman umum menampilkan daftar jadwal terverifikasi, sedangkan halaman produk memakai produk halaman yang telah dicocokkan ke WooCommerce.
+- Koreksi restok santai lulus full suite 412/412, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%); smoke production masih pending.
 - Pengguna mengonfirmasi smoke production Pengembalian Produk lulus 5/5.
 - Koreksi konflik rekomendasi-versus-harga lulus full suite 410/410, coverage replay 9/9, benchmark pelanggan 26/26 turn dengan 135 assertion (100%), dan smoke production 3/3.
 - Log intent untuk presentasi menyamarkan method sebagai `ML` serta identitas provider/model pada bagian atas. Nilai asli tidak diubah dan tetap tersedia pada blok debug router paling bawah.
+- Koreksi `budget 9 jutaan` lulus full suite 411/411, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%); smoke production patch masih pending.
 
 Pada 2026-10-06:
 

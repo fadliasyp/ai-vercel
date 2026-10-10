@@ -100,6 +100,7 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 - `harga 7 jutaan` dan `harga sekitar 7 juta` diperlakukan sebagai target harga, lalu kandidat terdekat diprioritaskan.
 - Nominal yang langsung mengikuti permintaan rekomendasi, misalnya `rekomen robot 19 jutaan` atau `rekomendasiin robot 6 jutaan`, juga diperlakukan sebagai target harga meskipun kata `harga` tidak ditulis.
 - `budget sekitar 12 jutaan` dan `dana kisaran 12 juta` diperlakukan sebagai target mendekati Rp12 juta sekaligus batas maksimum Rp12 juta, sehingga produk yang jauh lebih murah tidak menang hanya karena promo/popularitas.
+- `budget 9 jutaan` pada permintaan rekomendasi juga berarti target mendekati Rp9 juta sekaligus batas maksimum Rp9 juta. Akhiran `-an` membedakannya dari batas eksplisit `budget maksimal`, `di bawah`, atau `cuma punya`.
 - `budget maksimal 7 juta`, `di bawah 7 juta`, dan rentang `5 juta sampai 7 juta` tetap menjadi batas keras.
 - Kalimat yang meminta keputusan seperti `budget maksimal 4 juta, enaknya ambil robot yang mana?` tetap recommendation walaupun provider keliru memilih `price_promo`; batas maksimalnya tetap difilter secara keras.
 - Pernyataan pelanggan seperti `gue punya budget` bukan permintaan mencari produk bernama dan tidak boleh memicu guard produk tidak tersedia.
@@ -145,6 +146,7 @@ Membedakan harga sasaran dari batas budget agar rekomendasi mengikuti kisaran ya
 - Bukti production 2026-10-06: smoke manual pengguna lulus 3/3 untuk target harga, rentang + kebutuhan, dan refinement harga singkat dalam sesi yang sama.
 - Bukti lokal 2026-10-06 untuk named-family recommendation: full suite 406/406, replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus. Smoke production belum dijalankan.
 - Bukti 2026-10-07 untuk konflik recommendation-versus-price: full suite 410/410, replay 9/9 turn, benchmark pelanggan 26/26 turn (135 assertion, 100%), dan smoke production 3/3 lulus.
+- Bukti lokal 2026-10-07 untuk `budget 9 jutaan`: full suite 411/411, replay 9/9 turn, dan benchmark pelanggan 26/26 turn (135 assertion, 100%) lulus. Smoke production patch masih pending.
 
 ## Product Grounding
 
@@ -289,6 +291,9 @@ Membedakan cek stok produk tertentu, daftar produk ready, dan kebijakan stok umu
 ### Correct Behavior
 
 - Goal `stock` dengan `product_names` kosong dan `requires_product: false` berarti pelanggan meminta daftar produk ready dari katalog.
+- Daftar stok global membedakan `ready` dari `unavailable`: permintaan `habis`, `sold out`, `kosong`, atau `belum ready` hanya menampilkan produk WooCommerce yang tidak tersedia, bukan daftar ready stock.
+- Structured entity LLM `stock_status` membantu memahami variasi bahasa, tetapi frasa eksplisit pelanggan tetap dapat mengoreksi nilai provider yang bertentangan. Status akhir setiap produk selalu berasal dari WooCommerce.
+- Daftar produk unavailable langsung menyertakan jadwal restok mendatang yang terverifikasi. Setelah daftar jamak tersebut, follow-up seperti `kira2 kapan dia restok` merujuk seluruh kelompok sebelumnya; produk tanpa timer tidak diberi tanggal perkiraan.
 - Goal `stock_policy` berarti pelanggan menanyakan kebijakan umum seperti apakah semua barang selalu ready atau tersedia melalui PO.
 - Produk bernama tetap memakai Product Grounding dan hanya menampilkan status/jumlah stok produk yang cocok.
 - Permintaan katalog bernama seperti `tampilkan Voltes yang tersedia` tetap `product_discovery`, bukan cek jumlah stok.
@@ -297,6 +302,8 @@ Membedakan cek stok produk tertentu, daftar produk ready, dan kebijakan stok umu
 ### Do Not Break
 
 - Jangan memakai LLM sebagai sumber status stok, jumlah unit, mode PO, atau jadwal restock.
+- Jangan memakai handler daftar ready untuk permintaan produk habis/sold out, dan jangan membiarkan nilai `stock_status` LLM mengalahkan kata stok eksplisit yang berlawanan pada pesan pelanggan.
+- Jangan memaksa follow-up restok kelompok memilih satu produk, tetapi jangan pula mengarang jadwal untuk anggota kelompok yang tidak memiliki timer WooCommerce terverifikasi.
 - Jangan mengubah pencarian seri/kategori menjadi `stock_availability` hanya karena memuat kata `tersedia`.
 - Jangan meminta nama produk lagi ketika structured understanding tepercaya sudah menyatakan permintaan daftar ready global.
 - Jangan mengganti produk yang tidak ditemukan dengan produk ready atau populer lain.
@@ -313,6 +320,8 @@ Membedakan cek stok produk tertentu, daftar produk ready, dan kebijakan stok umu
 
 ### Verification
 
+- Bukti lokal 2026-10-07 untuk pemisahan daftar ready dan unavailable: full suite 412/412, replay 9/9 turn, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%). Regression mencakup output provider yang sengaja bertentangan; smoke production masih pending.
+- Bukti lokal 2026-10-07 untuk kontinuitas unavailable -> restok kelompok: full suite 413/413, replay 9/9 turn, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%). Smoke production masih pending.
 - Bukti lokal 2026-10-06: full suite lulus, answer-coverage replay 9/9 turn (59,4% menjadi 88,9%), dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
 - Active-LLM endpoint regression membuktikan daftar ready global, kebijakan stok informal, dan guard pencarian katalog bernama.
 - Smoke production pertama menemukan Groq salah membaca `yg bisa lngs dibungkus ada apa aja` sebagai pencarian produk. Koreksi prompt, normalisasi singkatan, dan guard konflik sudah lulus regression lokal dengan output provider production yang sama; redeploy dan smoke ulang masih diperlukan.
@@ -500,6 +509,7 @@ Menjawab jadwal restock dari metadata WPC Product Timer tanpa meminta LLM meneba
 - Pertanyaan restock tetap memakai intent `stock_availability`.
 - Pertanyaan umum seperti `kapan robot-robot restock?` menampilkan semua produk dengan jadwal mendatang, diurutkan dari waktu paling dekat.
 - Pertanyaan umum tanpa nama produk tetap dikenali meskipun memakai filler percakapan/waktu, misalnya `kapan restock sih udah nunggu lama nih?`, `kapan restock barang emang`, atau `dari kemarin nunggu kapan restock sih`.
+- Variasi slang seperti `gua udah nunggu lama nih, kira2 kapan restok sih?` tidak dianggap sebagai nama produk. Dari halaman umum hasilnya adalah daftar restok; dari halaman produk yang terverifikasi, produk halaman menjadi objek restok tersirat.
 - Pertanyaan yang menyebut satu produk hanya menjawab produk tersebut.
 - Hanya aksi `set_instock` dengan `date_time_after` yang pasti dan berlaku bagi storefront yang boleh ditampilkan.
 - Jadwal lampau tidak ditampilkan sebagai jadwal mendatang.
@@ -527,6 +537,7 @@ Menjawab jadwal restock dari metadata WPC Product Timer tanpa meminta LLM meneba
 - `npm test`
 - `npm run benchmark:coverage-replay`
 - Bukti 2026-09-30: 375/375 test lulus; coverage replay 9/9 turn lulus.
+- Bukti lokal 2026-10-07 untuk filler restok dan konteks halaman: 412/412 test lulus, coverage replay 9/9 turn, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%). Smoke production masih pending.
 - Audit read-only live: produk ID 4994 menghasilkan jadwal `30 September 2026 pukul 10.24 WIB`.
 
 ## Controlled Conversation Actions

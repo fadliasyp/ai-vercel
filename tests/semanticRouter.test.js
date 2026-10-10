@@ -45,6 +45,7 @@ ${JSON.stringify(
       location: "  Jakarta Selatan ",
       order_id: null,
       tracking_number: null,
+      stock_status: "unavailable",
     },
   }),
 )}
@@ -55,6 +56,7 @@ ${JSON.stringify(
   assert.deepEqual(parsed.entities.product_names, ["Chogokin GX-47T"]);
   assert.equal(parsed.entities.budget_min, 100000);
   assert.equal(parsed.entities.location, "Jakarta Selatan");
+  assert.equal(parsed.entities.stock_status, "unavailable");
 });
 
 test("keeps the LLM-led interpretation and conversation relation structured", () => {
@@ -296,8 +298,11 @@ test("semantic prompt defines the risky intent boundaries", () => {
   assert.match(prompt, /stok adalah constraint recommendation/);
   assert.match(prompt, /goal stock_policy/);
   assert.match(prompt, /langsung dibungkus ada apa aja/);
+  assert.match(prompt, /stock_status "unavailable"/);
   assert.match(prompt, /budget maksimal 4 juta/);
   assert.match(prompt, /wajib recommendation, bukan price_promo/);
+  assert.match(prompt, /Budget X jutaan/);
+  assert.match(prompt, /cuma punya X/);
   assert.match(prompt, /return_incomplete/);
   assert.match(prompt, /refund_timing/);
   assert.match(prompt, /Jangan menganggap refund otomatis disetujui/);

@@ -316,6 +316,78 @@ test("explicit approximate target corrects an LLM maximum classification", () =>
   );
 });
 
+test("casual jutaan budget corrects an LLM maximum and keeps gift results near target", () => {
+  const needs = extractRecommendationNeeds(
+    "Rekomen dong robot buat kado budget 9 jutaan",
+    {
+      intent: "recommendation",
+      confidence: 0.96,
+      topic_relation: "new_topic",
+      recommendation_request: {
+        price_mode: "maximum",
+        target_price: null,
+        budget_min: null,
+        budget_max: 9000000,
+        purposes: ["gift"],
+        stock: null,
+        condition: null,
+        promo_only: false,
+      },
+    },
+  );
+  const recommendations = pickRecommendedProducts(
+    [
+      {
+        id: 1,
+        name: "Enam ratus ribu",
+        numericPrice: 650000,
+        stock: "instock",
+      },
+      {
+        id: 2,
+        name: "Tiga juta",
+        numericPrice: 3000000,
+        stock: "instock",
+      },
+      {
+        id: 3,
+        name: "Tujuh setengah juta",
+        numericPrice: 7500000,
+        stock: "instock",
+      },
+      {
+        id: 4,
+        name: "Delapan setengah juta",
+        numericPrice: 8500000,
+        stock: "instock",
+      },
+      {
+        id: 5,
+        name: "Sembilan juta",
+        numericPrice: 9000000,
+        stock: "instock",
+      },
+      {
+        id: 6,
+        name: "Sembilan setengah juta",
+        numericPrice: 9500000,
+        stock: "instock",
+      },
+    ],
+    needs,
+    3,
+  );
+
+  assert.equal(needs.priceMode, "target");
+  assert.equal(needs.targetPrice, 9000000);
+  assert.equal(needs.budgetMax, 9000000);
+  assert.equal(needs.wantsGift, true);
+  assert.deepEqual(
+    recommendations.map((product) => product.id),
+    [5, 4, 3],
+  );
+});
+
 test("accepts an LLM maximum for negated wording and rejects invented money", () => {
   const maximumNeeds = extractRecommendationNeeds(
     "Yang bagus, tapi jangan lebih dari 6 juta",

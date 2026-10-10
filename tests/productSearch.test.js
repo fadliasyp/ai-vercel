@@ -53,6 +53,13 @@ test("does not treat generic recommendation constraints as a product name", () =
   assert.equal(hasSpecificProductSearchTerms(question), false);
 });
 
+test("does not treat casual restock filler as a product name", () => {
+  const question = "gua udah nunggu lama nih, kira2 kapan restok sih?";
+
+  assert.deepEqual(extractProductSearchTokens(question), []);
+  assert.equal(hasSpecificProductSearchTerms(question), false);
+});
+
 test("keeps only the named family in a variation recommendation", () => {
   assert.deepEqual(
     extractProductSearchTokens(

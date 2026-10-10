@@ -2,16 +2,29 @@
 
 ## Status
 
-Format log intent untuk kebutuhan sidang sudah diubah secara lokal dan menunggu deploy serta pemeriksaan tampilan di Vercel. Koreksi konflik rekomendasi sudah dikonfirmasi lulus 3/3 di production dan Pengembalian Produk lulus 5/5.
+Koreksi kontinuitas daftar stok habis ke jadwal restok, restok bahasa santai, dan `budget 9 jutaan` sudah lulus verifikasi lokal, lalu menunggu deploy serta smoke production. Koreksi konflik intent rekomendasi tetap lulus 3/3 di production dan Pengembalian Produk lulus 5/5.
 
 ## Current Progress
 
+- Daftar produk habis sebelumnya tidak menyertakan timer restok, lalu follow-up `kira2 kapan dia restok` kehilangan kelompok produk dan membuka klarifikasi nama produk.
+- Respons unavailable kini menyertakan seluruh jadwal mendatang yang terverifikasi dari produk yang ditampilkan. Kata ganti santai `dia/mereka/semuanya` pada pertanyaan restok setelah daftar jamak merujuk kelompok tersebut.
+- Produk kelompok tanpa timer tetap diberi keterangan belum memiliki jadwal terverifikasi. Regression dua turn persis lulus bersama full suite 413/413, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
+- Laporan `yg habis /soldout robot apa ajaa` sudah masuk intent stok, tetapi handler global lama selalu memfilter `instock` tanpa membaca apakah pelanggan meminta ready atau unavailable.
+- Semantic router kini membawa `entities.stock_status` (`ready`/`unavailable`). Constraint eksplisit dari pesan pelanggan diprioritaskan bila provider bertentangan, lalu filter akhir memakai status WooCommerce `instock`, `outofstock`, atau `onbackorder`.
+- Regression memakai kalimat laporan persis dengan simulasi provider yang salah mengirim `ready`, serta bahasa santai `robot yg lg kosong ada apa aja?`. Verifikasi lulus: full suite 412/412, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
+- Laporan production `gua udah nunggu lama nih, kira2 kapan restok sih?` sudah benar masuk `stock_availability`, tetapi product grounding lokal masih menganggap `gua`, `udah`, `nunggu`, dan `lama` sebagai nama produk.
+- Filler percakapan tersebut kini diabaikan pada klasifikasi restok dan pencarian produk. Dari halaman umum pertanyaan menampilkan semua jadwal restok terverifikasi; dari halaman produk, konteks halaman WooCommerce dipakai sebagai produk tersirat.
+- Regression memakai kalimat laporan persis untuk dua konteks tersebut. Verifikasi lulus: full suite 412/412, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
 - Log production membuktikan Intent ML sudah benar memilih `recommendation` dengan confidence 64,91%, tetapi Groq memilih `price_promo` dengan confidence 96% dan mengunci intent yang salah.
 - Guard `recommendation_selection_guard` mempertahankan intent rekomendasi hanya ketika bahasa pelanggan secara eksplisit meminta pilihan, seperti `enaknya ambil`, `mending`, atau `pilihkan`.
 - Helper budget lama kini mengenali pola pemilihan yang sama sehingga tidak mengubah rekomendasi kembali menjadi Informasi Harga. Pernyataan `gue punya budget` juga tidak lagi dianggap sebagai nama produk yang dicari.
 - Regression endpoint memakai pertanyaan dan output Groq production persis. Hasil wajib berupa kartu rekomendasi dengan harga maksimal Rp4 juta dan tidak boleh memakai intro promo.
 - Verifikasi patch rekomendasi: full suite 410/410, coverage replay 9/9, serta benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
 - Pengguna mengonfirmasi tiga smoke production koreksi rekomendasi lulus 3/3.
+- Log production `Rekomen dong robot buat kado budget 9 jutaan` menunjukkan intent dan tujuan kado sudah benar, tetapi provider mengirim `price_mode: maximum`; akibatnya produk jauh lebih murah tetap lolos dan mengalahkan kandidat dekat Rp9 juta.
+- Resolver harga kini mengubah `budget X jutaan` menjadi target X sekaligus batas maksimum X, meskipun provider salah mengirim mode `maximum`. Kata batas eksplisit seperti `maksimal`, `di bawah`, atau `cuma punya` tetap menjadi maximum.
+- Regression memakai kalimat production persis dan memastikan kandidat Rp650 ribu/Rp3 juta ditolak, sedangkan produk Rp7,5-Rp9 juta diprioritaskan.
+- Verifikasi koreksi target budget: full suite 411/411, coverage replay 9/9, dan benchmark pelanggan 26/26 turn dengan 135 assertion (100%).
 - Log intent presentasi kini selalu menampilkan `method: "ML"` tanpa nama provider/model. Method dan identitas provider/model asli tetap dicetak pada blok `INTENT LOG ASLI (DEBUG - ROUTER)` tepat sebelum respons dikirim.
 - Perubahan format log hanya memengaruhi `console.log`; nilai internal untuk routing, session, observability, dan respons tidak diubah. Full suite tetap lulus 410/410.
 - Pengguna mengonfirmasi lima smoke production Pengembalian Produk berjalan benar.
@@ -210,7 +223,7 @@ Format log intent untuk kebutuhan sidang sudah diubah secara lokal dan menunggu 
 
 ## Active Task
 
-- Deploy dan periksa format log intent presentasi di Vercel.
+- Deploy dan smoke production kontinuitas daftar stok unavailable -> jadwal restok, restok bahasa santai, serta target harga `budget X jutaan`.
 
 ## Last Completed Task
 
@@ -286,6 +299,21 @@ Format log intent untuk kebutuhan sidang sudah diubah secara lokal dan menunggu 
 ## Files Modified
 
 - `api/ask.js`
+- `lib/chatbot/conversationGoal.js`
+- `lib/chatbot/intentFusion.js`
+- `lib/chatbot/semanticRouter.js`
+- `tests/semanticRouter.test.js`
+- `lib/chatbot/productSearch.js`
+- `lib/chatbot/restockSchedule.js`
+- `tests/askRouting.test.js`
+- `tests/conversationGoal.test.js`
+- `tests/productSearch.test.js`
+- `tests/restockSchedule.test.js`
+- `lib/chatbot/productRecommendation.js`
+- `lib/chatbot/semanticRouter.js`
+- `tests/productRecommendationReasoning.test.js`
+- `tests/recommendationLanguageMatrix.test.js`
+- `tests/semanticRouter.test.js`
 - `docs/FEATURE_BASELINE.md`
 - `docs/PROJECT_CONTEXT.md`
 - `docs/CURRENT_TASK.md`
@@ -293,9 +321,11 @@ Format log intent untuk kebutuhan sidang sudah diubah secara lokal dan menunggu 
 
 ## Next Steps
 
-1. Deploy perubahan format log ke Vercel.
-2. Kirim satu pertanyaan biasa dan pastikan log intent utama memakai `method: "ML"` tanpa nama provider/model.
-3. Pastikan blok `INTENT LOG ASLI (DEBUG - ROUTER)` berada paling bawah dan masih memuat method, router, serta response provider/model asli untuk debugging.
+1. Deploy seluruh koreksi terbaru ke Vercel.
+2. Jalankan `yg habis stok apa aja?` dan pastikan kartu hanya berstatus tidak ready serta jadwal terverifikasi langsung terlihat.
+3. Pada sesi yang sama, kirim `kira2 kapan dia restok` dan pastikan tidak muncul permintaan memilih produk; hasil harus memuat seluruh jadwal yang tersedia dari daftar sebelumnya.
+4. Jalankan kasus kebalikan `robot yang ready ada apa aja?` dan pastikan seluruh kartu berstatus ready.
+5. Ulangi smoke restok santai dan rekomendasi `budget 9 jutaan` yang masih pending.
 
 ## Blockers
 

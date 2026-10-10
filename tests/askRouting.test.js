@@ -308,6 +308,44 @@ test("routes real customer turns without stale products or fallback collisions",
     assert.ok(productNames(readyCatalog).length > 1);
     assert.doesNotMatch(readyCatalog.intro, /mau cek stok produk apa/i);
 
+    const unavailableSession = `unavailable_catalog_${Date.now()}`;
+    const unavailableCatalog = await ask(
+      "yg habis /soldout robot apa ajaa",
+      null,
+      { sessionId: unavailableSession },
+    );
+    assert.equal(unavailableCatalog.intent, "stock_availability");
+    assert.equal(unavailableCatalog.type, "products");
+    assert.ok(unavailableCatalog.products.length > 0);
+    assert.ok(
+      unavailableCatalog.products.every((product) =>
+        ["outofstock", "onbackorder"].includes(product.stock),
+      ),
+    );
+    assert.match(unavailableCatalog.intro, /habis|belum ready/i);
+    assert.match(unavailableCatalog.intro, /jadwal restock mendatang/i);
+    assert.match(unavailableCatalog.intro, /1 Desember 2099.*15\.30 WIB/is);
+
+    const unavailableRestockFollowUp = await ask(
+      "kira2 kapan dia restok",
+      null,
+      { sessionId: unavailableSession },
+    );
+    assert.equal(unavailableRestockFollowUp.intent, "stock_availability");
+    assert.equal(unavailableRestockFollowUp.type, "products");
+    assert.deepEqual(productNames(unavailableRestockFollowUp), [
+      "Soul of Chogokin Daitarn 3",
+      "DX Chogokin Dairugger XV",
+    ]);
+    assert.match(
+      unavailableRestockFollowUp.intro,
+      /1 Desember 2099.*15\.30 WIB/is,
+    );
+    assert.doesNotMatch(
+      unavailableRestockFollowUp.intro,
+      /pilih salah satu produk/i,
+    );
+
     const catalogOverview = await ask("Barang apa aja yang dijual?", null, {
       sessionId: `catalog_overview_${Date.now()}`,
     });
@@ -336,6 +374,7 @@ test("routes real customer turns without stale products or fallback collisions",
       "kapan restock sih udah nunggu lama nih?",
       "Kapan restock barang emang",
       "Dari kemarin nunggu kapan restock sih",
+      "gua udah nunggu lama nih, kira2 kapan restok sih?",
     ]) {
       const genericRestock = await ask(question, null, {
         sessionId: `generic_restock_${Date.now()}_${question.length}`,
@@ -353,6 +392,22 @@ test("routes real customer turns without stale products or fallback collisions",
         /produk yang kamu tanyakan belum ditemukan/i,
       );
     }
+
+    const pageRestock = await ask(
+      "gua udah nunggu lama nih, kira2 kapan restok sih?",
+      {
+        productId: 13,
+        productName: "Soul of Chogokin Daitarn 3",
+        url: "https://catalog.test/product/13",
+      },
+      { sessionId: `page_restock_${Date.now()}` },
+    );
+    assert.equal(pageRestock.intent, "stock_availability");
+    assert.equal(pageRestock.type, "products");
+    assert.deepEqual(productNames(pageRestock), [
+      "Soul of Chogokin Daitarn 3",
+    ]);
+    assert.match(pageRestock.intro, /1 Desember 2099.*15\.30 WIB/is);
 
     const specificRestock = await ask(
       "kapan Soul of Chogokin Daitarn 3 restock?",
@@ -1209,7 +1264,61 @@ test("routes real customer turns without stale products or fallback collisions",
 
     semanticRoute = {
       ...semanticRoute,
+      entities: {
+        ...semanticRoute.entities,
+        stock_status: "ready",
+      },
+      interpretation:
+        "Pelanggan meminta daftar robot yang sedang habis atau sold out.",
+    };
+
+    const llmUnderstoodUnavailableStock = await ask(
+      "yg habis /soldout robot apa ajaa",
+      null,
+      { sessionId: `llm_unavailable_stock_${Date.now()}` },
+    );
+    assert.equal(llmUnderstoodUnavailableStock.intent, "stock_availability");
+    assert.equal(llmUnderstoodUnavailableStock.type, "products");
+    assert.ok(llmUnderstoodUnavailableStock.products.length > 0);
+    assert.ok(
+      llmUnderstoodUnavailableStock.products.every((product) =>
+        ["outofstock", "onbackorder"].includes(product.stock),
+      ),
+    );
+    assert.match(llmUnderstoodUnavailableStock.intro, /habis|belum ready/i);
+    assert.doesNotMatch(llmUnderstoodUnavailableStock.intro, /ready stock:/i);
+
+    semanticRoute = {
+      ...semanticRoute,
+      entities: {
+        ...semanticRoute.entities,
+        stock_status: "unavailable",
+      },
+    };
+
+    const llmUnderstoodCasualUnavailableStock = await ask(
+      "robot yg lg kosong ada apa aja?",
+      null,
+      { sessionId: `llm_casual_unavailable_stock_${Date.now()}` },
+    );
+    assert.equal(
+      llmUnderstoodCasualUnavailableStock.intent,
+      "stock_availability",
+    );
+    assert.ok(llmUnderstoodCasualUnavailableStock.products.length > 0);
+    assert.ok(
+      llmUnderstoodCasualUnavailableStock.products.every((product) =>
+        ["outofstock", "onbackorder"].includes(product.stock),
+      ),
+    );
+
+    semanticRoute = {
+      ...semanticRoute,
       goals: ["stock_policy"],
+      entities: {
+        ...semanticRoute.entities,
+        stock_status: null,
+      },
       interpretation:
         "Pelanggan menanyakan apakah seluruh barang selalu tersedia.",
     };
